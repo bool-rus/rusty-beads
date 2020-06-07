@@ -4,7 +4,6 @@ version = "0.0.0"
 authors = ["Serge Barinov <bool.rus@gmail.com>"]
 edition = "2018"
 
-
 [dependencies]
 iced='*'
 iced_native = '*'
