@@ -1,0 +1,23 @@
+language: rust
+os:
+  - linux
+  - osx
+  - windows
+rust:
+  - stable
+cache: cargo
+matrix:
+  fast_finish: true
+script:
+  - cargo build --release
+deploy:
+  provider: releases
+  api_key:
+    secure: X7vvcgqpB0b8j9JBTDxcp8yHu3oYISNN7ZEG0/nI7pcxAcLEVsm5PU204VWljagnvvTHajk6mXYCMWJWOtj0MQWNvnwWhahpw5KQjpSQKh5dO5hbGxFDJye1lOHOJFyDX6YwxWxFP7W62psh1Dvl05tSmtF+StRUMqEcjx/7RUmJIMaZEAElYg+kTI1WBcWuUK/cey9/Wl5kFnaPAv+tubNv3PLJrvTnr4+8RfDlIF6NSlBnalTwxlYyc+MVnSHal6DvSRvHF6T5bBoXmwRBf0mqyCuADDPTckHwEqU0OcqvAF7XoW7tDYSMnlwbnGN5/tUYf7DvDEvreLKFv/Wr2OVfFCGzeKHvvF3HUb3luVSAFoFo0Ko8rLwBs+ucxN/yx2vJN2HZBKfIrZ9vkNZIrTzIij+C2fIHP20xY/INl+DyNPIEJVBbcTf8GIbkCfFei04BhtOrxS8GLxv7GxAm1sQ03igzQgHJ3Ls8Shmr0vmdVLoIwe1LU8mO+0rb+nYDlda8kQ88BkUtI5SJZMDzJmK0d7QLeio55qlIqvf2n4+Ry1emuWtCXnPUr/VFnI5LoLLQ7h2XMC7s16BybY9qUpxeoFGSypOMdIbfgRJRloE27f9xa6e/ADvOAuE7MOWdud9TFEYEnLEuqaC/qk4Vk64JyYO5/mZOBR5sGEXo3Lo=
+  file:
+    - target/release/beads-and-threads
+    - target/release/beads-and-threads
+    - target/release/beads-and-threads.exe
+  skip_cleanup: true
+  on:
+    tags: true
