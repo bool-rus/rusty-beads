@@ -9,6 +9,7 @@ mod style;
 mod pallette;
 mod menu;
 mod io;
+mod beads;
 
 use reimport::*;
 use field::Grid;

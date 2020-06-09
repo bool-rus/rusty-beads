@@ -82,7 +82,12 @@ impl<T:Clone> Grid<T> {
         self.data = data;
         Ok(())
     }
+    pub fn as_data(&self) -> &[T]{
+        self.data.as_slice()
+    }
 }
+
+
 
 impl<T: Default + Clone> Default for Grid<T> {
     fn default() -> Self {
