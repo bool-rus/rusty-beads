@@ -17,6 +17,7 @@ use ui::AsContainer;
 use lib::Color;
 use lib::Message;
 use menu::TopMenu;
+use beads::Beads;
 
 
 #[derive(Default)]
@@ -24,6 +25,7 @@ struct Counter {
     // The counter value
     top_menu: TopMenu,
     grid: Grid<Color>,
+    beads: Beads<Color>,
     active_color: Color,
 }
 
@@ -59,6 +61,7 @@ impl Sandbox for Counter {
                 println!("Error: {}", e);
             });}
         }
+        self.beads = (&self.grid).into()
     }
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.as_container();
@@ -69,13 +72,7 @@ impl Sandbox for Counter {
             .push(Text::new("F"))
             .push(Text::new("T"))
         );
-        let right = Container::new(Column::new()
-            .push(Text::new("R"))
-            .push(Text::new("I"))
-            .push(Text::new("G"))
-            .push(Text::new("H"))
-            .push(Text::new("T"))
-        );
+        let right = self.beads.as_container();
         let content = self.grid.as_container();
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
