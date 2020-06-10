@@ -12,4 +12,5 @@ pub use iced::{
     Container,
     Point,
     Background,
+    Scrollable,
 };
