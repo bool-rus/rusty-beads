@@ -25,8 +25,10 @@ struct Counter {
     // The counter value
     top_menu: TopMenu,
     grid: Grid<Color>,
+    //TODO: remove from field
     beads: Beads<Color>,
     active_color: Color,
+    beads_scroll: iced::scrollable::State,
 }
 
 
@@ -73,6 +75,7 @@ impl Sandbox for Counter {
             .push(Text::new("T"))
         );
         let right = self.beads.as_container();
+        let right = Scrollable::new(&mut self.beads_scroll).push(right);
         let content = self.grid.as_container();
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
