@@ -9,21 +9,32 @@ use iced_native::input::{mouse, ButtonState};
 use crate::wrapper::Wrappable;
 use crate::lib::Message;
 use crate::field::Grid;
+use crate::beads::Beads;
+use crate::lib;
+use iced::Align;
 
-pub struct ColorBox<T> {
+struct ColorBox<T> {
     color: Color,
     width: Length,
     height: Length,
-    message: T,
+    message: Option<T>,
 }
 
 impl <T> ColorBox<T> {
-    pub fn new<C: Into<Color>>(color: C, message: T) -> Self {
+    fn new<C: Into<Color>>(color: C, message: T) -> Self {
         Self {
             color: color.into(),
             width: Length::FillPortion(2),
             height: Length::FillPortion(2),
-            message
+            message: Some(message)
+        }
+    }
+    fn just_color<C: Into<Color>>(color: C) -> Self {
+        Self {
+            color: color.into(),
+            width: Length::Units(30),
+            height: Length::Units(30),
+            message: None
         }
     }
 }
@@ -78,16 +89,18 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
         _renderer: &Renderer,
         _clipboard: Option<&dyn Clipboard>,
     ) {
-        match event {
-            Event::Mouse(mouse::Event::Input {
-                             button: mouse::Button::Left,
-                             state: ButtonState::Pressed,
-                         }) => {
-                if layout.bounds().contains(cursor_position) {
-                    messages.push(self.message.clone())
-                }
-            },
-            _ => {}
+        if let Some(ref msg) = self.message {
+            match event {
+                Event::Mouse(mouse::Event::Input {
+                                 button: mouse::Button::Left,
+                                 state: ButtonState::Pressed,
+                             }) => {
+                    if layout.bounds().contains(cursor_position) {
+                        messages.push(msg.clone())
+                    }
+                },
+                _ => {}
+            }
         };
     }
 }
@@ -124,5 +137,19 @@ impl AsContainer for Grid<crate::lib::Color> {
                     .height(Length::Fill)
                     .into()
             }).collect()))
+    }
+}
+
+impl AsContainer for Beads<lib::Color> {
+    fn as_container(&mut self) -> Container<'_, Message> {
+        let col = Column::with_children(
+            self.iter().map(|(color, count)|{
+                Row::new().spacing(5).align_items(Align::Center)
+                    .push(ColorBox::just_color(color.clone()))
+                    .push(Text::new(count.to_string()))
+                    .into()
+            }).collect()
+        ).spacing(1);
+        Container::new(col)
     }
 }
