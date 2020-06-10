@@ -12,7 +12,7 @@ mod io;
 
 use reimport::*;
 use field::Grid;
-use ui::AsElement;
+use ui::AsContainer;
 use lib::Color;
 use lib::Message;
 use menu::TopMenu;
@@ -60,20 +60,39 @@ impl Sandbox for Counter {
         }
     }
     fn view(&mut self) -> Element<'_, Message> {
-        Column::new()
-            .height(Length::Fill)
-            .width(Length::Fill)
-            .push(self.top_menu.as_element())
-            .push(Space::new(Length::Fill, Length::Units(10)))
-            .push(Row::new().push(self.grid.as_element()))
-            .into()
+        let top = self.top_menu.as_container();
+        let bottom = Container::new(Text::new("footer"));
+        let left = Container::new(Column::new()
+            .push(Text::new("L"))
+            .push(Text::new("E"))
+            .push(Text::new("F"))
+            .push(Text::new("T"))
+        );
+        let right = Container::new(Column::new()
+            .push(Text::new("R"))
+            .push(Text::new("I"))
+            .push(Text::new("G"))
+            .push(Text::new("H"))
+            .push(Text::new("T"))
+        );
+        let content = self.grid.as_container();
+        Column::new().height(Length::Fill).spacing(10)
+            .push(top)
+            .push(Row::new()
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .push(left)
+                .push(content.height(Length::Fill).width(Length::Fill))
+                .push(right)
+            ).push(bottom).into()
+
     }
 }
 
 fn main() {
     Counter::run(Settings {
         window: iced::window::Settings {
-            size: (500, 500),
+            size: (480, 480),
             resizable: true,
             decorations: true,
         },

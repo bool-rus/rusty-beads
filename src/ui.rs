@@ -98,12 +98,12 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
     }
 }
 
-pub trait AsElement {
-    fn as_element(&mut self) -> Element<'_, Message>;
+pub trait AsContainer {
+    fn as_container(&mut self) -> Container<'_, Message>;
 }
 
-impl AsElement for Grid<crate::lib::Color> {
-    fn as_element(&mut self) -> Element<'_, Message> {
+impl AsContainer for Grid<crate::lib::Color> {
+    fn as_container(&mut self) -> Container<'_, Message> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
             self.as_table()
@@ -115,6 +115,7 @@ impl AsElement for Grid<crate::lib::Color> {
                 ));
                 children.extend(arr.iter().enumerate().map(|(col,item)| {
                     ColorBox::new(item.clone(), Message::PlateClicked(row, col)).into()
+                    //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
                     Space::new(Length::FillPortion(portions[index+1]),Length::Fill).into()
@@ -122,6 +123,6 @@ impl AsElement for Grid<crate::lib::Color> {
                 Row::with_children(children)
                     .height(Length::Fill)
                     .into()
-            }).collect())).into()
+            }).collect()))
     }
 }
