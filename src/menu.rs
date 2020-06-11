@@ -2,7 +2,11 @@ use crate::reimport::*;
 use button::State;
 use crate::pallette::Pallette;
 use crate::ui::AsContainer;
-use crate::lib::Message;
+use crate::lib::{Message, Color};
+use iced::{Svg, svg, Align, Scrollable, scrollable};
+use crate::icon;
+use crate::field::Grid;
+use crate::beads::Beads;
 
 #[derive(Default)]
 pub struct TopMenu {
@@ -22,5 +26,38 @@ impl AsContainer for TopMenu {
             .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed))
             .push(self.palette.as_container())
             .spacing(5))
+    }
+}
+
+#[derive(Default)]
+pub struct RightMenu {
+    beads_btn: State,
+    show_beads: bool,
+    beads: Beads<Color>,
+    beads_scroll: scrollable::State,
+}
+
+impl RightMenu {
+    pub fn beads_pressed(&mut self) {
+        self.show_beads = !self.show_beads;
+    }
+    pub fn update(&mut self, grid: &Grid<Color>) {
+        if self.show_beads {
+            self.beads = grid.into();
+        }
+    }
+}
+
+impl AsContainer for RightMenu {
+    fn as_container(&mut self) -> Container<'_, Message> {
+        let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
+        let buttons = Column::new().width(Length::Units(30)).push(
+            Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
+        );
+        let mut row = Row::new();
+        if self.show_beads {
+            row = row.push(Scrollable::new(&mut self.beads_scroll).push(self.beads.as_container()));
+        }
+        Container::new(row.push(buttons))
     }
 }
