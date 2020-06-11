@@ -1,17 +1,15 @@
-extern crate iced_native;
-extern crate iced_wgpu;
 use crate::reimport::*;
-use crate::iced::{Color, Size};
+use crate::entities::Message;
+
 use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
 use iced_wgpu::{Primitive, Renderer, Defaults};
-use std::hash::Hash;
 use iced_native::input::{mouse, ButtonState};
-use crate::wrapper::Wrappable;
-use crate::lib::Message;
-use crate::field::Grid;
+use iced::{Size, Align, Color};
+use super::AsContainer;
+use crate::grid::Grid;
 use crate::beads::Beads;
-use crate::lib;
-use iced::Align;
+use crate::wrapper::Wrappable;
+use std::hash::Hash;
 
 struct ColorBox<T> {
     color: Color,
@@ -111,11 +109,8 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
     }
 }
 
-pub trait AsContainer {
-    fn as_container(&mut self) -> Container<'_, Message>;
-}
 
-impl AsContainer for Grid<crate::lib::Color> {
+impl AsContainer<Message> for Grid<crate::entities::Color> {
     fn as_container(&mut self) -> Container<'_, Message> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
@@ -140,7 +135,8 @@ impl AsContainer for Grid<crate::lib::Color> {
     }
 }
 
-impl AsContainer for Beads<lib::Color> {
+
+impl AsContainer<Message> for Beads<crate::entities::Color> {
     fn as_container(&mut self) -> Container<'_, Message> {
         let col = Column::with_children(
             self.iter().map(|(color, count)|{

@@ -1,6 +1,6 @@
 extern crate quick_csv;
-use crate::field::Grid;
-use crate::lib::Color;
+use crate::grid::Grid;
+use crate::entities::Color;
 use std::fs::File;
 use std::io::Write;
 use self::quick_csv::Csv;

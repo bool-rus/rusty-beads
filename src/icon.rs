@@ -1,1 +1,0 @@
-pub const BEADS: &[u8] = include_bytes!("../resources/beads-icon.svg");
