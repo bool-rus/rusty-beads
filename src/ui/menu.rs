@@ -1,11 +1,10 @@
 use crate::reimport::*;
 use button::State;
-use crate::pallette::Pallette;
+use super::pallette::Pallette;
 use crate::ui::AsContainer;
-use crate::lib::{Message, Color};
-use iced::{Svg, svg, Align, Scrollable, scrollable};
-use crate::icon;
-use crate::field::Grid;
+use crate::entities::{Message, Color};
+use iced::{Svg, svg, Scrollable, scrollable};
+use crate::grid::Grid;
 use crate::beads::Beads;
 
 #[derive(Default)]
@@ -17,7 +16,7 @@ pub struct TopMenu {
     load: State,
 }
 
-impl AsContainer for TopMenu {
+impl AsContainer<Message> for TopMenu {
     fn as_container(&mut self) -> Container<'_, Message> {
         Container::new(Row::new()
             .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed))
@@ -48,9 +47,9 @@ impl RightMenu {
     }
 }
 
-impl AsContainer for RightMenu {
+impl AsContainer<Message> for RightMenu {
     fn as_container(&mut self) -> Container<'_, Message> {
-        let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
+        let svg = Svg::new(svg::Handle::from_memory(super::icon::BEADS));
         let buttons = Column::new().width(Length::Units(30)).push(
             Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
         );

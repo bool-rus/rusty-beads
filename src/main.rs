@@ -1,24 +1,18 @@
 extern crate iced;
 
 mod reimport;
-mod field;
-mod lib;
+mod grid;
+mod entities;
 mod ui;
 mod wrapper;
-mod style;
-mod pallette;
-mod menu;
 mod io;
 mod beads;
-mod icon;
 
 use reimport::*;
-use field::Grid;
-use ui::AsContainer;
-use lib::Color;
-use lib::Message;
-use menu::*;
-use beads::Beads;
+use grid::Grid;
+use entities::Color;
+use entities::Message;
+use ui::*;
 
 
 #[derive(Default)]

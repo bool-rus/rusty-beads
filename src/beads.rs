@@ -1,6 +1,4 @@
-use crate::lib::Color;
-use crate::field::Grid;
-use std::io::IntoInnerError;
+use crate::grid::Grid;
 
 pub type Beads<T> = Vec<(T, usize)>;
 
@@ -47,10 +45,10 @@ impl<T: Eq> BeadsBuilder<T> {
 }
 
 #[cfg(test)]
+#[allow(unused_must_use)]
 mod test {
     use super::*;
-    use crate::field::*;
-    use crate::lib::Color;
+    use crate::entities::Color;
     use std::num::NonZeroUsize;
     use crate::beads::Beads;
 
