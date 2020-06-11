@@ -10,25 +10,23 @@ mod pallette;
 mod menu;
 mod io;
 mod beads;
+mod icon;
 
 use reimport::*;
 use field::Grid;
 use ui::AsContainer;
 use lib::Color;
 use lib::Message;
-use menu::TopMenu;
+use menu::*;
 use beads::Beads;
 
 
 #[derive(Default)]
 struct Counter {
-    // The counter value
     top_menu: TopMenu,
+    right_menu: RightMenu,
     grid: Grid<Color>,
-    //TODO: remove from field
-    beads: Beads<Color>,
     active_color: Color,
-    beads_scroll: iced::scrollable::State,
 }
 
 
@@ -62,8 +60,11 @@ impl Sandbox for Counter {
             Message::ShrinkPressed => {self.grid.shrink().unwrap_or_else(|e| {
                 println!("Error: {}", e);
             });}
+            Message::BeadsPressed => {
+                self.right_menu.beads_pressed()
+            }
         }
-        self.beads = (&self.grid).into()
+        self.right_menu.update(&self.grid);
     }
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.as_container();
@@ -74,8 +75,6 @@ impl Sandbox for Counter {
             .push(Text::new("F"))
             .push(Text::new("T"))
         );
-        let right = self.beads.as_container();
-        let right = Scrollable::new(&mut self.beads_scroll).push(right);
         let content = self.grid.as_container();
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
@@ -84,7 +83,7 @@ impl Sandbox for Counter {
                 .height(Length::Fill)
                 .push(left)
                 .push(content.height(Length::Fill).width(Length::Fill))
-                .push(right)
+                .push(self.right_menu.as_container())
             ).push(bottom).into()
 
     }

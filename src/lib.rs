@@ -84,5 +84,6 @@ pub enum Message {
     GrowPressed,
     ShrinkPressed,
     PlateClicked(usize, usize),
-    SetColor(Color)
+    SetColor(Color),
+    BeadsPressed,
 }
