@@ -2,6 +2,8 @@ language: rust
 os:
 - windows
 - linux
+env:
+  - CXXFLAGS_x86_64_pc_windows_gnu="-Wa,-mbig-obj"
 rust:
 - stable
 cache: cargo
