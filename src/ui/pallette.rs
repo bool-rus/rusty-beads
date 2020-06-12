@@ -1,4 +1,4 @@
-use crate::entities::{Color, Message};
+use crate::entities::{Color, StandartMessage};
 use crate::reimport::*;
 use crate::ui::AsContainer;
 
@@ -18,7 +18,7 @@ impl Pallette {
     }
 }
 
-impl<M: Clone + From<Message> + 'static> AsContainer<M> for Pallette {
+impl<M: Clone + From<StandartMessage> + 'static> AsContainer<M> for Pallette {
     fn as_container(&mut self) -> Container<'_, M> {
         Container::new(Row::with_children(
             self.buttons.iter_mut().map(|(color, state)| {
@@ -26,7 +26,7 @@ impl<M: Clone + From<Message> + 'static> AsContainer<M> for Pallette {
                     state,
                     Space::new(Length::Units(20), Length::Units(20)),
                 )
-                    .on_press(Message::SetColor(color.clone()).into())
+                    .on_press(StandartMessage::SetColor(color.clone()).into())
                     .style(crate::ui::style::ColorButton(color.clone().into()))
                     .into()
             }).collect()

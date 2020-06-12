@@ -7,23 +7,15 @@ mod ui;
 mod wrapper;
 mod io;
 mod beads;
+mod message;
 
 use reimport::*;
 use grid::Grid;
 use entities::Color;
-use entities::Message;
+use entities::StandartMessage;
+use message::Message;
 use ui::*;
 
-#[derive(Debug, Clone, Copy)]
-enum MainMessage {
-    Standart(Message)
-}
-
-impl From<Message> for MainMessage {
-    fn from(m: Message) -> Self {
-        MainMessage::Standart(m)
-    }
-}
 
 #[derive(Default)]
 struct Counter {
@@ -36,7 +28,7 @@ struct Counter {
 
 
 impl Sandbox for Counter {
-    type Message = MainMessage;
+    type Message = Message;
 
     fn new() -> Self {
         Default::default()
@@ -44,34 +36,37 @@ impl Sandbox for Counter {
     fn title(&self) -> String {
         "test-title".into()
     }
-    fn update(&mut self, message: MainMessage) {
-        let MainMessage::Standart(message) = message;
+    fn update(&mut self, message: Message) {
         match message {
-            Message::PlateClicked(row, col) => {
-                self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
-                    println!("Error: {}", e);
-                    Default::default()
-                });
-            }
-            Message::SetColor(color) => { self.active_color = color }
-            Message::ExportPressed => {
-                crate::io::write("grid.csv",&self.grid).unwrap();
-            }
-            Message::OpenPressed => {
-                let grid = crate::io::read("grid.csv").unwrap();
-                self.grid = grid;
-            }
-            Message::GrowPressed => {self.grid.grow(Default::default())}
-            Message::ShrinkPressed => {self.grid.shrink().unwrap_or_else(|e| {
-                println!("Error: {}", e);
-            });}
-            Message::BeadsPressed => {
-                self.right_menu.beads_pressed()
+            Message::Standart(message) => {
+                match message {
+                    StandartMessage::PlateClicked(row, col) => {
+                        self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
+                            println!("Error: {}", e);
+                            Default::default()
+                        });
+                    }
+                    StandartMessage::SetColor(color) => { self.active_color = color }
+                    StandartMessage::ExportPressed => {
+                        crate::io::write("grid.csv",&self.grid).unwrap();
+                    }
+                    StandartMessage::OpenPressed => {
+                        let grid = crate::io::read("grid.csv").unwrap();
+                        self.grid = grid;
+                    }
+                    StandartMessage::GrowPressed => {self.grid.grow(Default::default())}
+                    StandartMessage::ShrinkPressed => {self.grid.shrink().unwrap_or_else(|e| {
+                        println!("Error: {}", e);
+                    });}
+                    StandartMessage::BeadsPressed => {
+                        self.right_menu.beads_pressed()
+                    }
+                }
             }
         }
         self.right_menu.update(&self.grid);
     }
-    fn view(&mut self) -> Element<'_, MainMessage> {
+    fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.as_container();
         let bottom = Container::new(Text::new("footer"));
         let left = Container::new(Column::new()

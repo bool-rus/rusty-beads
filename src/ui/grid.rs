@@ -114,7 +114,7 @@ pub enum Message {
 }
 
 
-impl<M: Clone + From<entities::Message> + 'static> AsContainer<M> for Grid<crate::entities::Color> {
+impl<M: Clone + From<entities::StandartMessage> + 'static> AsContainer<M> for Grid<crate::entities::Color> {
     fn as_container(&mut self) -> Container<'_, M> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
@@ -126,7 +126,7 @@ impl<M: Clone + From<entities::Message> + 'static> AsContainer<M> for Grid<crate
                     Space::new(Length::FillPortion(portions[index]),Length::Fill)
                 ));
                 children.extend(arr.iter().enumerate().map(|(col,item)| {
-                    ColorBox::new(item.clone(), entities::Message::PlateClicked(row, col).into()).into()
+                    ColorBox::new(item.clone(), entities::StandartMessage::PlateClicked(row, col).into()).into()
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
