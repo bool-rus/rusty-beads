@@ -10,6 +10,7 @@ mod style;
 use crate::reimport::*;
 pub use pallette::Pallette;
 pub use menu::{TopMenu,RightMenu};
+pub use grid::Message as GridMessage;
 
 pub trait AsContainer<M> {
     fn as_container(&mut self) -> Container<'_, M>;

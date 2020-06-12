@@ -1,5 +1,5 @@
 use crate::reimport::*;
-use crate::entities::Message;
+use crate::entities;
 
 use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
 use iced_wgpu::{Primitive, Renderer, Defaults};
@@ -108,10 +108,14 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
         Element::new(self)
     }
 }
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    GridClicked(usize,usize)
+}
 
 
-impl AsContainer<Message> for Grid<crate::entities::Color> {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<M: Clone + From<entities::Message> + 'static> AsContainer<M> for Grid<crate::entities::Color> {
+    fn as_container(&mut self) -> Container<'_, M> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
             self.as_table()
@@ -122,7 +126,7 @@ impl AsContainer<Message> for Grid<crate::entities::Color> {
                     Space::new(Length::FillPortion(portions[index]),Length::Fill)
                 ));
                 children.extend(arr.iter().enumerate().map(|(col,item)| {
-                    ColorBox::new(item.clone(), Message::PlateClicked(row, col)).into()
+                    ColorBox::new(item.clone(), entities::Message::PlateClicked(row, col).into()).into()
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
@@ -136,8 +140,8 @@ impl AsContainer<Message> for Grid<crate::entities::Color> {
 }
 
 
-impl AsContainer<Message> for Beads<crate::entities::Color> {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<M: Clone+'static> AsContainer<M> for Beads<entities::Color> {
+    fn as_container(&mut self) -> Container<'_, M> {
         let col = Column::with_children(
             self.iter().map(|(color, count)|{
                 Row::new().spacing(5).align_items(Align::Center)

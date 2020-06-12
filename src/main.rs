@@ -14,6 +14,16 @@ use entities::Color;
 use entities::Message;
 use ui::*;
 
+#[derive(Debug, Clone, Copy)]
+enum MainMessage {
+    Standart(Message)
+}
+
+impl From<Message> for MainMessage {
+    fn from(m: Message) -> Self {
+        MainMessage::Standart(m)
+    }
+}
 
 #[derive(Default)]
 struct Counter {
@@ -26,7 +36,7 @@ struct Counter {
 
 
 impl Sandbox for Counter {
-    type Message = Message;
+    type Message = MainMessage;
 
     fn new() -> Self {
         Default::default()
@@ -34,7 +44,8 @@ impl Sandbox for Counter {
     fn title(&self) -> String {
         "test-title".into()
     }
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: MainMessage) {
+        let MainMessage::Standart(message) = message;
         match message {
             Message::PlateClicked(row, col) => {
                 self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
@@ -60,7 +71,7 @@ impl Sandbox for Counter {
         }
         self.right_menu.update(&self.grid);
     }
-    fn view(&mut self) -> Element<'_, Message> {
+    fn view(&mut self) -> Element<'_, MainMessage> {
         let top = self.top_menu.as_container();
         let bottom = Container::new(Text::new("footer"));
         let left = Container::new(Column::new()

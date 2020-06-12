@@ -16,13 +16,13 @@ pub struct TopMenu {
     load: State,
 }
 
-impl AsContainer<Message> for TopMenu {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<M: Clone + From<Message> + 'static> AsContainer<M> for TopMenu {
+    fn as_container(&mut self) -> Container<'_, M> {
         Container::new(Row::new()
-            .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed))
-            .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed))
-            .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed))
-            .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed))
+            .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
+            .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
+            .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed.into()))
+            .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed.into()))
             .push(self.palette.as_container())
             .spacing(5))
     }
@@ -47,11 +47,11 @@ impl RightMenu {
     }
 }
 
-impl AsContainer<Message> for RightMenu {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<M: Clone + From<Message> + 'static> AsContainer<M> for RightMenu {
+    fn as_container(&mut self) -> Container<'_, M> {
         let svg = Svg::new(svg::Handle::from_memory(super::icon::BEADS));
         let buttons = Column::new().width(Length::Units(30)).push(
-            Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
+            Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed.into())
         );
         let mut row = Row::new();
         if self.show_beads {

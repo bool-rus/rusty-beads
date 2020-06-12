@@ -18,15 +18,15 @@ impl Pallette {
     }
 }
 
-impl AsContainer<Message> for Pallette {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<M: Clone + From<Message> + 'static> AsContainer<M> for Pallette {
+    fn as_container(&mut self) -> Container<'_, M> {
         Container::new(Row::with_children(
             self.buttons.iter_mut().map(|(color, state)| {
                 Button::new(
                     state,
                     Space::new(Length::Units(20), Length::Units(20)),
                 )
-                    .on_press(Message::SetColor(color.clone()))
+                    .on_press(Message::SetColor(color.clone()).into())
                     .style(crate::ui::style::ColorButton(color.clone().into()))
                     .into()
             }).collect()
