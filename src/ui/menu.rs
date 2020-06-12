@@ -1,14 +1,14 @@
 use crate::reimport::*;
-use super::{AsContainer, icon, pallette};
+use super::{AsContainer, icon, palette};
 
 pub mod top {
     use super::*;
-    use pallette::Pallette;
+    use palette::Palette;
     use button::State;
 
     #[derive(Default)]
     pub struct TopMenu {
-        palette: Pallette,
+        palette: Palette,
         grow: State,
         shrink: State,
         export: State,
@@ -20,10 +20,10 @@ pub mod top {
         ExportPressed,
         GrowPressed,
         ShrinkPressed,
-        Pallette(pallette::Message),
+        Palette(palette::Message),
     }
 
-    impl<M: Clone + From<Message> + From<pallette::Message> + 'static> AsContainer<M> for TopMenu {
+    impl<M: Clone + From<Message> + From<palette::Message> + 'static> AsContainer<M> for TopMenu {
         fn as_container(&mut self) -> Container<'_, M> {
             Container::new(Row::new()
                 .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
@@ -35,9 +35,9 @@ pub mod top {
         }
     }
 
-    impl From<pallette::Message> for Message {
-        fn from(m: pallette::Message) -> Self {
-            Message::Pallette(m)
+    impl From<palette::Message> for Message {
+        fn from(m: palette::Message) -> Self {
+            Message::Palette(m)
         }
     }
 }

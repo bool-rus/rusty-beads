@@ -27,6 +27,6 @@ impl From<GridMessage> for Message {
 
 impl From<PaletteMessage> for Message {
     fn from(m: PaletteMessage) -> Self {
-        Message::TopMenu(TopMenuMessage::Pallette(m))
+        Message::TopMenu(TopMenuMessage::Palette(m))
     }
 }

@@ -52,7 +52,7 @@ impl Sandbox for Counter {
                             println!("Error: {}", e);
                         });
                     }
-                    TopMenuMessage::Pallette(msg) => match msg {
+                    TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }
                 }

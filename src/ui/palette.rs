@@ -2,7 +2,7 @@ use crate::entities::Color;
 use crate::reimport::*;
 use crate::ui::AsContainer;
 
-pub struct Pallette {
+pub struct Palette {
     buttons: Vec<(Color, button::State)>,
 }
 
@@ -11,7 +11,7 @@ pub enum Message {
     SetColor(Color),
 }
 
-impl Pallette {
+impl Palette {
     pub fn new(colors: Vec<Color>) -> Self {
         Self {
             buttons: colors.into_iter().map(|item| { (item, Default::default()) }).collect(),
@@ -22,7 +22,7 @@ impl Pallette {
     }
 }
 
-impl<M: Clone + From<Message> + 'static> AsContainer<M> for Pallette {
+impl<M: Clone + From<Message> + 'static> AsContainer<M> for Palette {
     fn as_container(&mut self) -> Container<'_, M> {
         Container::new(Row::with_children(
             self.buttons.iter_mut().map(|(color, state)| {
@@ -40,9 +40,9 @@ impl<M: Clone + From<Message> + 'static> AsContainer<M> for Pallette {
     }
 }
 
-impl Default for Pallette {
+impl Default for Palette {
     fn default() -> Self {
-        Pallette::new(
+        Palette::new(
             vec![
                 Color {r: 0, g:0, b:0},
                 Color {r: 255, g:255, b:255},
