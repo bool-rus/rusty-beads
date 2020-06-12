@@ -75,9 +75,3 @@ impl Into<iced::Color> for Color {
         iced::Color::from_rgb8(r,g,b)
     }
 }
-
-
-#[derive(Debug, Clone, Copy)]
-pub enum StandartMessage {
-    SetColor(Color),
-}

@@ -12,7 +12,6 @@ mod message;
 use reimport::*;
 use grid::Grid;
 use entities::Color;
-use entities::StandartMessage;
 use message::Message;
 use ui::*;
 
@@ -38,11 +37,6 @@ impl Sandbox for Counter {
     }
     fn update(&mut self, message: Message) {
         match message {
-            Message::Standart(msg) => {
-                match msg {
-                    StandartMessage::SetColor(color) => { self.active_color = color }
-                }
-            }
             Message::TopMenu(msg) => {
                 match msg {
                     TopMenuMessage::ExportPressed => {

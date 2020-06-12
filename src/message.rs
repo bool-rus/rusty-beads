@@ -1,9 +1,7 @@
-use crate::entities::StandartMessage;
 use crate::ui::{GridMessage, RightMenuMessage, TopMenuMessage, PaletteMessage};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
-    Standart(StandartMessage),
     Grid(GridMessage),
     RightMenu(RightMenuMessage),
     TopMenu(TopMenuMessage),
@@ -18,12 +16,6 @@ impl From<TopMenuMessage> for Message {
 impl From<RightMenuMessage> for Message {
     fn from(m: RightMenuMessage) -> Self {
         Message::RightMenu(m)
-    }
-}
-
-impl From<StandartMessage> for Message {
-    fn from(m: StandartMessage) -> Self {
-        Message::Standart(m)
     }
 }
 
