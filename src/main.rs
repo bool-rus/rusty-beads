@@ -38,14 +38,8 @@ impl Sandbox for Counter {
     }
     fn update(&mut self, message: Message) {
         match message {
-            Message::Standart(message) => {
-                match message {
-                    StandartMessage::PlateClicked(row, col) => {
-                        self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
-                            println!("Error: {}", e);
-                            Default::default()
-                        });
-                    }
+            Message::Standart(msg) => {
+                match msg {
                     StandartMessage::SetColor(color) => { self.active_color = color }
                     StandartMessage::ExportPressed => {
                         crate::io::write("grid.csv",&self.grid).unwrap();
@@ -60,6 +54,16 @@ impl Sandbox for Counter {
                     });}
                     StandartMessage::BeadsPressed => {
                         self.right_menu.beads_pressed()
+                    }
+                }
+            }
+            Message::Grid(msg) => {
+                match msg {
+                    GridMessage::GridClicked(row, col) => {
+                        self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
+                            println!("Error: {}", e);
+                            Default::default()
+                        });
                     }
                 }
             }

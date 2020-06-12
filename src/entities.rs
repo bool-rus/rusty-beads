@@ -83,7 +83,6 @@ pub enum StandartMessage {
     ExportPressed,
     GrowPressed,
     ShrinkPressed,
-    PlateClicked(usize, usize),
     SetColor(Color),
     BeadsPressed,
 }
