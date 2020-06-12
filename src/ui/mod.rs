@@ -9,7 +9,8 @@ mod style;
 
 use crate::reimport::*;
 pub use pallette::Pallette;
-pub use menu::{TopMenu,RightMenu};
+pub use menu::TopMenu;
+pub use menu::right::{Message as RightMenuMessage, RightMenu};
 pub use grid::Message as GridMessage;
 
 pub trait AsContainer<M> {

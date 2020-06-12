@@ -84,5 +84,4 @@ pub enum StandartMessage {
     GrowPressed,
     ShrinkPressed,
     SetColor(Color),
-    BeadsPressed,
 }

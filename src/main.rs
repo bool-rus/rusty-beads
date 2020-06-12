@@ -52,9 +52,6 @@ impl Sandbox for Counter {
                     StandartMessage::ShrinkPressed => {self.grid.shrink().unwrap_or_else(|e| {
                         println!("Error: {}", e);
                     });}
-                    StandartMessage::BeadsPressed => {
-                        self.right_menu.beads_pressed()
-                    }
                 }
             }
             Message::Grid(msg) => {
@@ -67,8 +64,9 @@ impl Sandbox for Counter {
                     }
                 }
             }
+            Message::RightMenu(msg) => { self.right_menu.update(msg) }
         }
-        self.right_menu.update(&self.grid);
+        self.right_menu.update_grid(&self.grid);
     }
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.as_container();
