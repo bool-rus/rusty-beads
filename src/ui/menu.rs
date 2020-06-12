@@ -23,14 +23,14 @@ pub mod top {
         Palette(palette::Message),
     }
 
-    impl<M: Clone + From<Message> + From<palette::Message> + 'static> AsContainer<M> for TopMenu {
+    impl<M: Clone + From<Message> + 'static> AsContainer<M> for TopMenu {
         fn as_container(&mut self) -> Container<'_, M> {
             Container::new(Row::new()
                 .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
                 .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
                 .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed.into()))
                 .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed.into()))
-                .push(self.palette.as_container())
+                .push(Element::new(self.palette.as_container()).map(From::from))
                 .spacing(5))
         }
     }
