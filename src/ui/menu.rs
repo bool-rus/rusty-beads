@@ -1,5 +1,5 @@
 use crate::reimport::*;
-use super::{AsContainer, icon, palette};
+use super::{AppWidget, icon, palette};
 
 pub mod top {
     use super::*;
@@ -23,15 +23,18 @@ pub mod top {
         Palette(palette::Message),
     }
 
-    impl<M: Clone + From<Message> + 'static> AsContainer<M> for TopMenu {
-        fn as_container(&mut self) -> Container<'_, M> {
+    impl AppWidget for TopMenu {
+        type Message = Message;
+        type UpdateData = ();
+
+        fn view(&mut self) -> Element<'_, Message> {
             Container::new(Row::new()
                 .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
                 .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
                 .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed.into()))
                 .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed.into()))
-                .push(Element::new(self.palette.as_container()).map(From::from))
-                .spacing(5))
+                .push(self.palette.view().map(From::from))
+                .spacing(5)).into()
         }
     }
 
@@ -56,35 +59,39 @@ pub mod right {
         beads_scroll: scrollable::State,
     }
 
-    impl RightMenu {
-        pub fn update_grid(&mut self, grid: &Grid<Color>) {
-            if self.show_beads {
-                self.beads = grid.into();
-            }
-        }
-        pub fn update(&mut self, msg: Message) {
-            match msg {
-                Message::BeadsPressed => { self.show_beads = !self.show_beads }
-            }
-        }
-    }
-
     #[derive(Debug,Clone,Copy)]
     pub enum Message {
         BeadsPressed,
     }
 
-    impl<M: Clone + From<Message> + 'static> AsContainer<M> for RightMenu {
-        fn as_container(&mut self) -> Container<'_, M> {
+    impl AppWidget for RightMenu {
+        type Message = Message;
+        type UpdateData = Grid<Color>;
+        fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
             let buttons = Column::new().width(Length::Units(30)).push(
-                Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed.into())
+                Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
             );
             let mut row = Row::new();
             if self.show_beads {
-                row = row.push(Scrollable::new(&mut self.beads_scroll).push(self.beads.as_container()));
+                row = row.push(
+                    Scrollable::new(&mut self.beads_scroll)
+                        .push(self.beads.view().map(From::from))
+                );
             }
-            Container::new(row.push(buttons))
+            Container::new(row.push(buttons)).into()
+        }
+
+        fn update(&mut self, msg: Message) {
+            match msg {
+                Message::BeadsPressed => { self.show_beads = !self.show_beads }
+            }
+        }
+
+        fn update_data(&mut self, data: &Grid<Color>) {
+            if self.show_beads {
+                self.beads = data.into();
+            }
         }
     }
 }

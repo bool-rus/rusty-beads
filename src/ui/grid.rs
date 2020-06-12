@@ -5,7 +5,7 @@ use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};
 use iced::{Size, Align, Color};
-use super::AsContainer;
+use super::AppWidget;
 use crate::grid::Grid;
 use crate::beads::Beads;
 use crate::wrapper::Wrappable;
@@ -114,8 +114,11 @@ pub enum Message {
 }
 
 
-impl<M: Clone + From<Message> + 'static> AsContainer<M> for Grid<crate::entities::Color> {
-    fn as_container(&mut self) -> Container<'_, M> {
+impl AppWidget for Grid<crate::entities::Color> {
+    type Message = Message;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Message> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
             self.as_table()
@@ -135,13 +138,16 @@ impl<M: Clone + From<Message> + 'static> AsContainer<M> for Grid<crate::entities
                 Row::with_children(children)
                     .height(Length::Fill)
                     .into()
-            }).collect()))
+            }).collect())).into()
     }
 }
 
 
-impl<M: Clone+'static> AsContainer<M> for Beads<entities::Color> {
-    fn as_container(&mut self) -> Container<'_, M> {
+impl<'a> AppWidget for Beads<entities::Color> {
+    type Message = super::RightMenuMessage;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Self::Message> {
         let col = Column::with_children(
             self.iter().map(|(color, count)|{
                 Row::new().spacing(5).align_items(Align::Center)
@@ -150,6 +156,6 @@ impl<M: Clone+'static> AsContainer<M> for Beads<entities::Color> {
                     .into()
             }).collect()
         ).spacing(1);
-        Container::new(col)
+        Container::new(col).into()
     }
 }

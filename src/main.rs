@@ -38,6 +38,7 @@ impl Sandbox for Counter {
     fn update(&mut self, message: Message) {
         match message {
             Message::TopMenu(msg) => {
+                self.top_menu.update(msg);
                 match msg {
                     TopMenuMessage::ExportPressed => {
                         crate::io::write("grid.csv", &self.grid).unwrap();
@@ -58,6 +59,7 @@ impl Sandbox for Counter {
                 }
             }
             Message::Grid(msg) => {
+                self.grid.update(msg);
                 match msg {
                     GridMessage::GridClicked(row, col) => {
                         self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
@@ -69,10 +71,12 @@ impl Sandbox for Counter {
             }
             Message::RightMenu(msg) => { self.right_menu.update(msg) }
         }
-        self.right_menu.update_grid(&self.grid);
+        self.top_menu.update_data(&());
+        self.grid.update_data(&());
+        self.right_menu.update_data(&self.grid);
     }
     fn view(&mut self) -> Element<'_, Message> {
-        let top = self.top_menu.as_container();
+        let top = self.top_menu.view().map(From::from);
         let bottom = Container::new(Text::new("footer"));
         let left = Container::new(Column::new()
             .push(Text::new("L"))
@@ -80,7 +84,7 @@ impl Sandbox for Counter {
             .push(Text::new("F"))
             .push(Text::new("T"))
         );
-        let content = self.grid.as_container();
+        let content = Container::new(self.grid.view().map(From::from));
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
             .push(Row::new()
@@ -88,7 +92,7 @@ impl Sandbox for Counter {
                 .height(Length::Fill)
                 .push(left)
                 .push(content.height(Length::Fill).width(Length::Fill))
-                .push(self.right_menu.as_container())
+                .push(self.right_menu.view().map(From::from))
             ).push(bottom).into()
 
     }

@@ -1,6 +1,6 @@
 use crate::entities::Color;
 use crate::reimport::*;
-use crate::ui::AsContainer;
+use crate::ui::AppWidget;
 
 pub struct Palette {
     buttons: Vec<(Color, button::State)>,
@@ -22,8 +22,11 @@ impl Palette {
     }
 }
 
-impl<M: Clone + From<Message> + 'static> AsContainer<M> for Palette {
-    fn as_container(&mut self) -> Container<'_, M> {
+impl AppWidget for Palette {
+    type Message = Message;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Message> {
         Container::new(Row::with_children(
             self.buttons.iter_mut().map(|(color, state)| {
                 Button::new(
@@ -31,12 +34,12 @@ impl<M: Clone + From<Message> + 'static> AsContainer<M> for Palette {
                     Space::new(Length::Units(20), Length::Units(20)),
                 )
                     .on_press(
-                        Message::SetColor(color.clone()).into()
+                        Message::SetColor(color.clone())
                     )
                     .style(crate::ui::style::ColorButton(color.clone().into()))
                     .into()
             }).collect()
-        ))
+        )).into()
     }
 }
 
