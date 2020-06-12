@@ -8,7 +8,7 @@ mod menu;
 mod style;
 
 use crate::reimport::*;
-pub use palette::{Message as PaletteMessage, Palette};
+pub use palette::{Message as PaletteMessage};
 pub use menu::top::{Message as TopMenuMessage, TopMenu};
 pub use menu::right::{Message as RightMenuMessage, RightMenu};
 pub use grid::Message as GridMessage;
