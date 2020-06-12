@@ -41,17 +41,26 @@ impl Sandbox for Counter {
             Message::Standart(msg) => {
                 match msg {
                     StandartMessage::SetColor(color) => { self.active_color = color }
-                    StandartMessage::ExportPressed => {
-                        crate::io::write("grid.csv",&self.grid).unwrap();
+                }
+            }
+            Message::TopMenu(msg) => {
+                match msg {
+                    TopMenuMessage::ExportPressed => {
+                        crate::io::write("grid.csv", &self.grid).unwrap();
                     }
-                    StandartMessage::OpenPressed => {
+                    TopMenuMessage::OpenPressed => {
                         let grid = crate::io::read("grid.csv").unwrap();
                         self.grid = grid;
                     }
-                    StandartMessage::GrowPressed => {self.grid.grow(Default::default())}
-                    StandartMessage::ShrinkPressed => {self.grid.shrink().unwrap_or_else(|e| {
-                        println!("Error: {}", e);
-                    });}
+                    TopMenuMessage::GrowPressed => { self.grid.grow(Default::default()) }
+                    TopMenuMessage::ShrinkPressed => {
+                        self.grid.shrink().unwrap_or_else(|e| {
+                            println!("Error: {}", e);
+                        });
+                    }
+                    TopMenuMessage::Pallette(msg) => match msg {
+                        PaletteMessage::SetColor(color) => { self.active_color = color }
+                    }
                 }
             }
             Message::Grid(msg) => {

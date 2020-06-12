@@ -8,8 +8,8 @@ mod menu;
 mod style;
 
 use crate::reimport::*;
-pub use pallette::Pallette;
-pub use menu::TopMenu;
+pub use pallette::{Message as PaletteMessage, Pallette};
+pub use menu::top::{Message as TopMenuMessage, TopMenu};
 pub use menu::right::{Message as RightMenuMessage, RightMenu};
 pub use grid::Message as GridMessage;
 

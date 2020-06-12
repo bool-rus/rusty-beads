@@ -1,40 +1,52 @@
 use crate::reimport::*;
-use button::State;
-use super::pallette::Pallette;
-use crate::ui::AsContainer;
-use crate::entities::{StandartMessage, Color};
-use iced::{Svg, svg, Scrollable, scrollable};
-use crate::grid::Grid;
-use crate::beads::Beads;
-use super::icon;
+use super::{AsContainer, icon, pallette};
 
-#[derive(Default)]
-pub struct TopMenu {
-    palette: Pallette,
-    grow: State,
-    shrink: State,
-    export: State,
-    load: State,
-}
+pub mod top {
+    use super::*;
+    use pallette::Pallette;
+    use button::State;
 
-impl<M: Clone + From<StandartMessage> + 'static> AsContainer<M> for TopMenu {
-    fn as_container(&mut self) -> Container<'_, M> {
-        Container::new(Row::new()
-            .push(Button::new(&mut self.load, Text::new("Load")).on_press(StandartMessage::OpenPressed.into()))
-            .push(Button::new(&mut self.export, Text::new("Export")).on_press(StandartMessage::ExportPressed.into()))
-            .push(Button::new(&mut self.grow, Text::new("+")).on_press(StandartMessage::GrowPressed.into()))
-            .push(Button::new(&mut self.shrink, Text::new("-")).on_press(StandartMessage::ShrinkPressed.into()))
-            .push(self.palette.as_container())
-            .spacing(5))
+    #[derive(Default)]
+    pub struct TopMenu {
+        palette: Pallette,
+        grow: State,
+        shrink: State,
+        export: State,
+        load: State,
+    }
+    #[derive(Debug, Copy, Clone)]
+    pub enum Message {
+        OpenPressed,
+        ExportPressed,
+        GrowPressed,
+        ShrinkPressed,
+        Pallette(pallette::Message),
+    }
+
+    impl<M: Clone + From<Message> + From<pallette::Message> + 'static> AsContainer<M> for TopMenu {
+        fn as_container(&mut self) -> Container<'_, M> {
+            Container::new(Row::new()
+                .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
+                .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
+                .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed.into()))
+                .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed.into()))
+                .push(self.palette.as_container())
+                .spacing(5))
+        }
+    }
+
+    impl From<pallette::Message> for Message {
+        fn from(m: pallette::Message) -> Self {
+            Message::Pallette(m)
+        }
     }
 }
-
 pub mod right {
-    use crate::reimport::*;
+    use super::*;
     use crate::entities::Color;
     use crate::beads::Beads;
-    use crate::{Grid, AsContainer};
-    use crate::iced::{button,scrollable, svg, Svg};
+    use crate::Grid;
+    use crate::iced::{button, scrollable, svg, Svg, Scrollable};
 
     #[derive(Default)]
     pub struct RightMenu {
@@ -45,9 +57,6 @@ pub mod right {
     }
 
     impl RightMenu {
-        pub fn beads_pressed(&mut self) {
-            self.show_beads = !self.show_beads;
-        }
         pub fn update_grid(&mut self, grid: &Grid<Color>) {
             if self.show_beads {
                 self.beads = grid.into();
@@ -67,7 +76,7 @@ pub mod right {
 
     impl<M: Clone + From<Message> + 'static> AsContainer<M> for RightMenu {
         fn as_container(&mut self) -> Container<'_, M> {
-            let svg = Svg::new(svg::Handle::from_memory(super::icon::BEADS));
+            let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
             let buttons = Column::new().width(Length::Units(30)).push(
                 Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed.into())
             );

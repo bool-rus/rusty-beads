@@ -79,9 +79,5 @@ impl Into<iced::Color> for Color {
 
 #[derive(Debug, Clone, Copy)]
 pub enum StandartMessage {
-    OpenPressed,
-    ExportPressed,
-    GrowPressed,
-    ShrinkPressed,
     SetColor(Color),
 }
