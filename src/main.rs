@@ -21,6 +21,7 @@ struct Counter {
     top_menu: TopMenu,
     right_menu: RightMenu,
     grid: Grid<Color>,
+    right_panel: Option<RightPanel>,
     active_color: Color,
 }
 
@@ -69,11 +70,22 @@ impl Sandbox for Counter {
                     }
                 }
             }
-            Message::RightMenu(msg) => { self.right_menu.update(msg) }
+            Message::RightMenu(msg) => {
+                self.right_menu.update(msg);
+                if self.right_menu.show_beads() {
+                    self.right_panel = Some(Default::default())
+                } else {
+                    self.right_panel = None
+                }
+            }
+            Message::RightPanel(msg) => if let Some(ref mut panel) = self.right_panel { panel.update(msg) }
         }
         self.top_menu.update_data(&());
         self.grid.update_data(&());
-        self.right_menu.update_data(&self.grid);
+        self.right_menu.update_data(&());
+        if let Some(ref mut right_panel) = self.right_panel {
+            right_panel.update_data(&self.grid)
+        }
     }
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.view().map(From::from);
@@ -84,16 +96,22 @@ impl Sandbox for Counter {
             .push(Text::new("F"))
             .push(Text::new("T"))
         );
+        let right = Container::new(self.right_menu.view().map(From::from))
+            .width(Length::Units(25));
         let content = Container::new(self.grid.view().map(From::from));
+        let mut row = Row::new()
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .push(left)
+            .push(content.height(Length::Fill).width(Length::Fill));
+        if let Some(ref mut panel) = self.right_panel {
+            row = row.push(panel.view().map(From::from))
+        };
+        row = row.push(right);
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
-            .push(Row::new()
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .push(left)
-                .push(content.height(Length::Fill).width(Length::Fill))
-                .push(self.right_menu.view().map(From::from))
-            ).push(bottom).into()
+            .push(row)
+            .push(bottom).into()
 
     }
 }

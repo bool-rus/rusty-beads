@@ -55,8 +55,6 @@ pub mod right {
     pub struct RightMenu {
         beads_btn: button::State,
         show_beads: bool,
-        beads: Beads<Color>,
-        beads_scroll: scrollable::State,
     }
 
     #[derive(Debug,Clone,Copy)]
@@ -64,33 +62,25 @@ pub mod right {
         BeadsPressed,
     }
 
+    impl RightMenu {
+        pub fn show_beads(&self) -> bool {
+            self.show_beads
+        }
+    }
     impl AppWidget for RightMenu {
         type Message = Message;
-        type UpdateData = Grid<Color>;
+        type UpdateData = ();
         fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
-            let buttons = Column::new().width(Length::Units(30)).push(
+            let buttons = Column::new().width(Length::Fill).push(
                 Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
             );
-            let mut row = Row::new();
-            if self.show_beads {
-                row = row.push(
-                    Scrollable::new(&mut self.beads_scroll)
-                        .push(self.beads.view().map(From::from))
-                );
-            }
-            Container::new(row.push(buttons)).into()
+            Container::new(buttons).into()
         }
 
         fn update(&mut self, msg: Message) {
             match msg {
                 Message::BeadsPressed => { self.show_beads = !self.show_beads }
-            }
-        }
-
-        fn update_data(&mut self, data: &Grid<Color>) {
-            if self.show_beads {
-                self.beads = data.into();
             }
         }
     }
