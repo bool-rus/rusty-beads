@@ -3,14 +3,21 @@ extern crate iced_wgpu;
 
 mod icon;
 mod grid;
-mod pallette;
+mod palette;
 mod menu;
 mod style;
 
 use crate::reimport::*;
-pub use pallette::Pallette;
-pub use menu::{TopMenu,RightMenu};
+pub use palette::{Message as PaletteMessage};
+pub use menu::top::{Message as TopMenuMessage, TopMenu};
+pub use menu::right::{Message as RightMenuMessage, RightMenu};
+pub use grid::Message as GridMessage;
 
-pub trait AsContainer<M> {
-    fn as_container(&mut self) -> Container<'_, M>;
+pub trait AppWidget {
+    type Message;
+    type UpdateData;
+    fn view(&mut self) -> Element<'_, Self::Message>;
+    fn update(&mut self, _msg: Self::Message){}
+    //TODO: может, от этого лучше отказаться
+    fn update_data(&mut self, _data: &Self::UpdateData){}
 }

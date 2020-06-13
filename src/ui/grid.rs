@@ -1,11 +1,11 @@
 use crate::reimport::*;
-use crate::entities::Message;
+use crate::entities;
 
 use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};
 use iced::{Size, Align, Color};
-use super::AsContainer;
+use super::AppWidget;
 use crate::grid::Grid;
 use crate::beads::Beads;
 use crate::wrapper::Wrappable;
@@ -108,10 +108,17 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
         Element::new(self)
     }
 }
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    GridClicked(usize,usize)
+}
 
 
-impl AsContainer<Message> for Grid<crate::entities::Color> {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl AppWidget for Grid<crate::entities::Color> {
+    type Message = Message;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Message> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
             self.as_table()
@@ -122,7 +129,7 @@ impl AsContainer<Message> for Grid<crate::entities::Color> {
                     Space::new(Length::FillPortion(portions[index]),Length::Fill)
                 ));
                 children.extend(arr.iter().enumerate().map(|(col,item)| {
-                    ColorBox::new(item.clone(), Message::PlateClicked(row, col)).into()
+                    ColorBox::new(item.clone(), Message::GridClicked(row, col).into()).into()
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
@@ -131,13 +138,16 @@ impl AsContainer<Message> for Grid<crate::entities::Color> {
                 Row::with_children(children)
                     .height(Length::Fill)
                     .into()
-            }).collect()))
+            }).collect())).into()
     }
 }
 
 
-impl AsContainer<Message> for Beads<crate::entities::Color> {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl<'a> AppWidget for Beads<entities::Color> {
+    type Message = super::RightMenuMessage;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Self::Message> {
         let col = Column::with_children(
             self.iter().map(|(color, count)|{
                 Row::new().spacing(5).align_items(Align::Center)
@@ -146,6 +156,6 @@ impl AsContainer<Message> for Beads<crate::entities::Color> {
                     .into()
             }).collect()
         ).spacing(1);
-        Container::new(col)
+        Container::new(col).into()
     }
 }

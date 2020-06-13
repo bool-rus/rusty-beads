@@ -1,13 +1,17 @@
-use crate::entities::{Color, Message};
+use crate::entities::Color;
 use crate::reimport::*;
-use crate::ui::AsContainer;
+use crate::ui::AppWidget;
 
-pub struct Pallette {
+pub struct Palette {
     buttons: Vec<(Color, button::State)>,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum Message {
+    SetColor(Color),
+}
 
-impl Pallette {
+impl Palette {
     pub fn new(colors: Vec<Color>) -> Self {
         Self {
             buttons: colors.into_iter().map(|item| { (item, Default::default()) }).collect(),
@@ -18,25 +22,30 @@ impl Pallette {
     }
 }
 
-impl AsContainer<Message> for Pallette {
-    fn as_container(&mut self) -> Container<'_, Message> {
+impl AppWidget for Palette {
+    type Message = Message;
+    type UpdateData = ();
+
+    fn view(&mut self) -> Element<'_, Message> {
         Container::new(Row::with_children(
             self.buttons.iter_mut().map(|(color, state)| {
                 Button::new(
                     state,
                     Space::new(Length::Units(20), Length::Units(20)),
                 )
-                    .on_press(Message::SetColor(color.clone()))
+                    .on_press(
+                        Message::SetColor(color.clone())
+                    )
                     .style(crate::ui::style::ColorButton(color.clone().into()))
                     .into()
             }).collect()
-        ))
+        )).into()
     }
 }
 
-impl Default for Pallette {
+impl Default for Palette {
     fn default() -> Self {
-        Pallette::new(
+        Palette::new(
             vec![
                 Color {r: 0, g:0, b:0},
                 Color {r: 255, g:255, b:255},
