@@ -1,6 +1,4 @@
-extern crate iced_native;
-extern crate iced_wgpu;
-
+mod widget;
 mod icon;
 mod grid;
 mod palette;
