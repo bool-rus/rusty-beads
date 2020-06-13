@@ -14,18 +14,32 @@ use grid::Grid;
 use entities::Color;
 use message::Message;
 use ui::*;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 
-#[derive(Default)]
 struct Counter {
+    grid: Rc<RefCell<Grid<Color>>>,
     top_menu: TopMenu,
-    right_menu: RightMenu,
-    grid: Grid<Color>,
+    grid_plate: GridPlate,
     right_panel: Option<RightPanel>,
+    right_menu: RightMenu,
     active_color: Color,
 }
 
-
+impl Default for Counter {
+    fn default() -> Self {
+        let grid = Rc::new(RefCell::new(Default::default()));
+        Self {
+            grid: grid.clone(),
+            top_menu: Default::default(),
+            grid_plate: GridPlate::new(grid.clone()),
+            right_panel: None,
+            right_menu: Default::default(),
+            active_color: Default::default(),
+        }
+    }
+}
 
 impl Sandbox for Counter {
     type Message = Message;
@@ -42,15 +56,15 @@ impl Sandbox for Counter {
                 self.top_menu.update(msg);
                 match msg {
                     TopMenuMessage::ExportPressed => {
-                        crate::io::write("grid.csv", &self.grid).unwrap();
+                        crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
                     }
                     TopMenuMessage::OpenPressed => {
                         let grid = crate::io::read("grid.csv").unwrap();
-                        self.grid = grid;
+                        self.grid.borrow_mut().update_from_another(grid);
                     }
-                    TopMenuMessage::GrowPressed => { self.grid.grow(Default::default()) }
+                    TopMenuMessage::GrowPressed => { self.grid.borrow_mut().grow(Default::default()) }
                     TopMenuMessage::ShrinkPressed => {
-                        self.grid.shrink().unwrap_or_else(|e| {
+                        self.grid.borrow_mut().shrink().unwrap_or_else(|e| {
                             println!("Error: {}", e);
                         });
                     }
@@ -60,20 +74,12 @@ impl Sandbox for Counter {
                 }
             }
             Message::Grid(msg) => {
-                self.grid.update(msg);
-                match msg {
-                    GridMessage::GridClicked(row, col) => {
-                        self.grid.set(row,col,self.active_color).unwrap_or_else(|e|{
-                            println!("Error: {}", e);
-                            Default::default()
-                        });
-                    }
-                }
+                self.grid_plate.update(msg);
             }
             Message::RightMenu(msg) => {
                 self.right_menu.update(msg);
                 if self.right_menu.show_beads() {
-                    self.right_panel = Some(Default::default())
+                    self.right_panel = Some(RightPanel::new(self.grid.clone()))
                 } else {
                     self.right_panel = None
                 }
@@ -81,11 +87,9 @@ impl Sandbox for Counter {
             Message::RightPanel(msg) => if let Some(ref mut panel) = self.right_panel { panel.update(msg) }
         }
         self.top_menu.update_data(&());
-        self.grid.update_data(&());
+        self.grid_plate.update_data(&self.active_color);
         self.right_menu.update_data(&());
-        if let Some(ref mut right_panel) = self.right_panel {
-            right_panel.update_data(&self.grid)
-        }
+        //self.right_panel.update_data(&());
     }
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.view().map(From::from);
@@ -98,7 +102,7 @@ impl Sandbox for Counter {
         );
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
-        let content = Container::new(self.grid.view().map(From::from));
+        let content = Container::new(self.grid_plate.view().map(From::from));
         let mut row = Row::new()
             .width(Length::Fill)
             .height(Length::Fill)

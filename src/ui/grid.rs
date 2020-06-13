@@ -5,21 +5,35 @@ use super::widget::ColorBox;
 use crate::grid::Grid;
 use crate::beads::Beads;
 use iced::Align;
-
+use crate::entities::Color;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
     GridClicked(usize,usize)
 }
 
-impl AppWidget for Grid<crate::entities::Color> {
+pub struct GridPlate {
+    color: Color,
+    grid: Rc<RefCell<Grid<Color>>>,
+}
+
+impl GridPlate {
+    pub fn new(grid: Rc<RefCell<Grid<Color>>>) -> Self {
+        Self { grid, color: Default::default() }
+    }
+}
+
+impl AppWidget for GridPlate {
     type Message = Message;
-    type UpdateData = ();
+    type UpdateData = Color;
+
 
     fn view(&mut self) -> Element<'_, Message> {
         let portions = [2u16,1,2];
         Container::new(Column::with_children(
-            self.as_table()
+            self.grid.borrow().as_table()
                 .iter().enumerate().map(|(row, arr)| {
                 let mut children= Vec::with_capacity(arr.len() + 2);
                 let index = row % 2;
@@ -42,6 +56,18 @@ impl AppWidget for Grid<crate::entities::Color> {
                     .height(Length::Fill)
                     .into()
             }).collect())).into()
+    }
+
+    fn update(&mut self, msg: Self::Message) {
+        match msg {
+            Message::GridClicked(row, col) => {
+                self.grid.borrow_mut().set(row,col, self.color);
+            }
+        }
+    }
+
+    fn update_data(&mut self, data: &Self::UpdateData) {
+        self.color = data.clone();
     }
 }
 

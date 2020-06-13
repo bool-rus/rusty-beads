@@ -48,7 +48,7 @@ pub mod right {
     use super::*;
     use crate::entities::Color;
     use crate::beads::Beads;
-    use crate::Grid;
+    use crate::GridPlate;
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
 
     #[derive(Default)]

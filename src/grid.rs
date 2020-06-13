@@ -30,6 +30,12 @@ impl<T:Clone> Grid<T> {
             Ok(Self { width, height, data })
         }
     }
+    pub fn update_from_another(&mut self, rhs: Self) {
+        let Self {width,height,data} = rhs;
+        self.width = width;
+        self.height = height;
+        self.data = data;
+    }
     pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
         let prev = self.data
             .as_mut_slice()
