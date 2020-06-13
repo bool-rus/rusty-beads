@@ -37,7 +37,6 @@ pub mod right {
 
     impl AppWidget for RightPanel {
         type Message = Message;
-        type UpdateData = ();
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             Scrollable::new(&mut self.scroll).push(
@@ -62,7 +61,6 @@ pub mod right {
 
     impl AppWidget for BeadsWidget {
         type Message = Message;
-        type UpdateData = ();
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let beads = create_beads(self.grid.borrow().as_data());

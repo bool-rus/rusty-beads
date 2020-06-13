@@ -24,7 +24,6 @@ impl Palette {
 
 impl AppWidget for Palette {
     type Message = Message;
-    type UpdateData = ();
 
     fn view(&mut self) -> Element<'_, Message> {
         Container::new(Row::with_children(

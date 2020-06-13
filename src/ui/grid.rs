@@ -11,23 +11,22 @@ use std::cell::RefCell;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
-    GridClicked(usize,usize)
+    GridClicked(usize,usize),
+    SetColor(usize, usize, Color),
 }
 
 pub struct GridPlate {
-    color: Color,
     grid: Rc<RefCell<Grid<Color>>>,
 }
 
 impl GridPlate {
     pub fn new(grid: Rc<RefCell<Grid<Color>>>) -> Self {
-        Self { grid, color: Default::default() }
+        Self { grid }
     }
 }
 
 impl AppWidget for GridPlate {
     type Message = Message;
-    type UpdateData = Color;
 
 
     fn view(&mut self) -> Element<'_, Message> {
@@ -60,31 +59,10 @@ impl AppWidget for GridPlate {
 
     fn update(&mut self, msg: Self::Message) {
         match msg {
-            Message::GridClicked(row, col) => {
-                self.grid.borrow_mut().set(row,col, self.color);
+            Message::SetColor(row, col, color) => {
+                self.grid.borrow_mut().set(row,col, color);
             }
+            Message::GridClicked(_, _) => {/*doing nothing*/}
         }
-    }
-
-    fn update_data(&mut self, data: &Self::UpdateData) {
-        self.color = data.clone();
-    }
-}
-
-
-impl<'a> AppWidget for Beads<entities::Color> {
-    type Message = super::RightMenuMessage;
-    type UpdateData = ();
-
-    fn view(&mut self) -> Element<'_, Self::Message> {
-        let col = Column::with_children(
-            self.iter().map(|(color, count)|{
-                Row::new().spacing(5).align_items(Align::Center)
-                    .push(ColorBox::new(color.clone()))
-                    .push(Text::new(count.to_string()))
-                    .into()
-            }).collect()
-        ).spacing(1);
-        Container::new(col).into()
     }
 }

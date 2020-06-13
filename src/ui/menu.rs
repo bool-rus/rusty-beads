@@ -26,7 +26,6 @@ pub mod top {
 
     impl AppWidget for TopMenu {
         type Message = Message;
-        type UpdateData = ();
 
         fn view(&mut self) -> Element<'_, Message> {
             Container::new(Row::new()
@@ -77,7 +76,6 @@ pub mod right {
 
     impl AppWidget for RightMenu {
         type Message = Message;
-        type UpdateData = ();
         fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
             let buttons = Column::new().width(Length::Fill).push(
