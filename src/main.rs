@@ -15,14 +15,14 @@ use entities::Color;
 use message::Message;
 use ui::*;
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{RefCell, Cell};
 
 
 struct Counter {
     grid: Rc<RefCell<Grid<Color>>>,
     top_menu: TopMenu,
     grid_plate: GridPlate,
-    right_panel: Option<RightPanel>,
+    right_panel: RightPanel,
     right_menu: RightMenu,
     active_color: Color,
 }
@@ -30,12 +30,13 @@ struct Counter {
 impl Default for Counter {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
+        let right_panel_state = Rc::new(Cell::new(RightPanelState::None));
         Self {
             grid: grid.clone(),
             top_menu: Default::default(),
             grid_plate: GridPlate::new(grid.clone()),
-            right_panel: None,
-            right_menu: Default::default(),
+            right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
+            right_menu: RightMenu::new(right_panel_state.clone()),
             active_color: Default::default(),
         }
     }
@@ -78,13 +79,10 @@ impl Sandbox for Counter {
             }
             Message::RightMenu(msg) => {
                 self.right_menu.update(msg);
-                if self.right_menu.show_beads() {
-                    self.right_panel = Some(RightPanel::new(self.grid.clone()))
-                } else {
-                    self.right_panel = None
-                }
             }
-            Message::RightPanel(msg) => if let Some(ref mut panel) = self.right_panel { panel.update(msg) }
+            Message::RightPanel(msg) => {
+                self.right_panel.update(msg);
+            }
         }
         self.top_menu.update_data(&());
         self.grid_plate.update_data(&self.active_color);
@@ -107,11 +105,9 @@ impl Sandbox for Counter {
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)
-            .push(content.height(Length::Fill).width(Length::Fill));
-        if let Some(ref mut panel) = self.right_panel {
-            row = row.push(panel.view().map(From::from))
-        };
-        row = row.push(right);
+            .push(content.height(Length::Fill).width(Length::Fill))
+            .push(self.right_panel.view().map(From::from))
+            .push(right);
         Column::new().height(Length::Fill).spacing(10)
             .push(top)
             .push(row)

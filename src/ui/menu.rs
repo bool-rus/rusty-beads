@@ -1,5 +1,6 @@
 use crate::reimport::*;
 use super::{AppWidget, icon, palette};
+use super::RightPanelState;
 
 pub mod top {
     use super::*;
@@ -50,12 +51,15 @@ pub mod right {
     use crate::beads::Beads;
     use crate::GridPlate;
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
+    use std::rc::Rc;
+    use std::cell::Cell;
+    use crate::ui::panel::right::State;
 
-    #[derive(Default)]
     pub struct RightMenu {
         beads_btn: button::State,
-        show_beads: bool,
+        panel_state: Rc<Cell<RightPanelState>>,
     }
+
 
     #[derive(Debug,Clone,Copy)]
     pub enum Message {
@@ -63,10 +67,14 @@ pub mod right {
     }
 
     impl RightMenu {
-        pub fn show_beads(&self) -> bool {
-            self.show_beads
+        pub fn new(panel_state: Rc<Cell<RightPanelState>>) -> Self {
+            Self {
+                beads_btn: Default::default(),
+                panel_state,
+            }
         }
     }
+
     impl AppWidget for RightMenu {
         type Message = Message;
         type UpdateData = ();
@@ -80,7 +88,12 @@ pub mod right {
 
         fn update(&mut self, msg: Message) {
             match msg {
-                Message::BeadsPressed => { self.show_beads = !self.show_beads }
+                Message::BeadsPressed => {
+                    match self.panel_state.get() {
+                        RightPanelState::None => {self.panel_state.set(RightPanelState::Beads)},
+                        RightPanelState::Beads => {self.panel_state.set(RightPanelState::None)},
+                    }
+                }
             }
         }
     }
