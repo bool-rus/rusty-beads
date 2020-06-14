@@ -32,8 +32,14 @@ impl BeadsLineBuilder {
         match self {
             BeadsLineBuilder::LRSquare => {unimplemented!()},
             BeadsLineBuilder::RLSquare => {unimplemented!()},
-            BeadsLineBuilder::LROffset(first_offset) => {line_for_offset(table, *first_offset)},
-            BeadsLineBuilder::RLOffset(first_offset) => {unimplemented!()},
+            BeadsLineBuilder::LROffset(first_offset) => {
+                let iter = to_iter_iter(table);
+                line_for_offset(iter, *first_offset)
+            },
+            BeadsLineBuilder::RLOffset(first_offset) => {
+                let iter = to_iter_rev_iter(table);
+                line_for_offset(iter, !*first_offset)
+            },
         }
     }
 }
@@ -41,12 +47,18 @@ impl BeadsLineBuilder {
 fn to_iter_iter<T: Clone>(table: Vec<&[T]>) -> impl Iterator<Item = impl Iterator<Item=T> + '_> {
     table.into_iter().map(|it|{it.iter().map(Clone::clone)})
 }
+fn to_iter_rev_iter<T: Clone>(table: Vec<&[T]>) -> impl Iterator<Item = impl Iterator<Item=T> + '_> {
+    table.into_iter().map(|it|{it.iter().rev().map(Clone::clone)})
+}
 
-fn zip_known_first<T: Eq + Hash + Clone>(iter: impl Iterator<Item=T>, first: T) -> BeadsLine<T> {
+fn zip_line<T: Eq + Hash + Clone>(mut iter: impl Iterator<Item=T>) -> BeadsLine<T> {
+    let first;
+    if let Some(item) = iter.next() {
+        first = item;
+    } else { return BeadsLine::new(Vec::new(),HashMap::new()) }
     let mut variant = first;
-    let mut count = 0usize;
+    let mut count = 1usize;
     let mut line = Vec::new();
-
     let mut summary = HashMap::new();
     for item in iter {
         if let Some(stat) = summary.get_mut(&item) {
@@ -67,46 +79,31 @@ fn zip_known_first<T: Eq + Hash + Clone>(iter: impl Iterator<Item=T>, first: T) 
 
 
 
-fn line_for_square<T: Clone + Eq + Hash>(table: Vec<&[T]>) -> BeadsLine<T> {
-    let first = table.get(0).unwrap()[0].clone();
-    let iter = table.into_iter().map(|x|x.into_iter()).flatten();
-    zip_known_first(iter.map(Clone::clone), first)
+fn line_for_square<T: Clone + Eq + Hash>(iter: impl Iterator<Item = impl Iterator<Item=T>>) -> BeadsLine<T> {
+    let iter = iter.map(|x|x.into_iter()).flatten();
+    zip_line(iter)
 }
 
-/*
- 1|2|3|4|5|6
-            1|2|3|4|5|6
-                       6|1|2|3|4|5
-                                  6|1|2|3|4|5|
-                                             5|6|1|2|3|4
-                                                        5|6|1|2|3|4
-                                                                   4|5|6|1|2|3
-                                                                              4|5|6|1|2|3
-*/
-/*
-1|2|3|4|5|6
- 2|3|4|5|6|1
-2|3|4|5|6|1
- 3|4|5|6|1|2
-3|4|5|6|1|2
- */
-
-fn line_for_offset<T: Clone + Eq + Hash>(table: Vec<&[T]>, first_offset: bool) -> BeadsLine<T> {
-    let first = table.get(0).unwrap()[0].clone();
+fn line_for_offset<T: Clone + Eq + Hash>(iter: impl Iterator<Item = impl Iterator<Item=T>>, first_offset: bool) -> BeadsLine<T> {
     let correction = if first_offset { 0 } else { 1 };
-    let iter = table.into_iter().enumerate().map(|(i,arr)| {
-        let len = arr.len();
-        let offset = len - (((i+correction)/2) % len);
-        let chunks = vec![&arr[offset..len], &arr[0..offset]];
-        chunks.into_iter().map(|x|{ x.iter() }).flatten()
+    let iter = iter
+        .map(|iter|{iter.collect::<Vec<_>>()})
+        .enumerate()
+        .map(|(i,arr)| {
+            let arr = arr.as_slice();
+            let len = arr.len();
+            let offset = len - (((i+correction)/2) % len);
+            let mut res = Vec::with_capacity(len);
+            res.extend_from_slice(&arr[offset..len]);
+            res.extend_from_slice(&arr[0..offset]);
+            res.into_iter()
     }).flatten();
-    zip_known_first(iter.map(Clone::clone), first)
+    zip_line(iter)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::beads::line_for_square;
 
     struct Table(Vec<usize>, usize);
 
@@ -126,7 +123,7 @@ mod tests {
     fn line_square() {
         let n = 7;
         let table = Table::new(n);
-        let beads_line = line_for_square(table.table());
+        let beads_line = line_for_square(to_iter_iter(table.table()));
         let height = table.table().len();
         assert_eq!(beads_line.line().len(), n*height);
         assert_eq!(beads_line.summary().get(&3),Some(&height));
@@ -152,7 +149,7 @@ mod tests {
         let n = 4;
         let table = Table::new(n);
         let height = table.table().len();
-        let beads = line_for_offset(table.table(), true);
+        let beads = line_for_offset(to_iter_iter(table.table()), true);
         let sum:usize = beads.line().iter()
             .map(|&(i,c)|{c})
             .sum();
@@ -165,7 +162,7 @@ mod tests {
             (2,2),(3,1),(0,1),(1,1),
             (2,1),(3,1),(0,1),(1,1),
         ]);
-        let beads = line_for_offset(table.table(), false);
+        let beads = line_for_offset(to_iter_iter(table.table()), false);
 
         assert_eq!( beads.line().as_slice() , &[
             (0,1),(1,1),(2,1),
