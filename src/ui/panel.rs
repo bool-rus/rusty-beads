@@ -2,7 +2,7 @@
 pub mod right {
     use crate::reimport::*;
     use std::rc::Rc;
-    use crate::beads::{Beads, create_beads};
+    use crate::beads::{BeadsLine, BeadsLineBuilder};
     use crate::entities::Color;
     use crate::ui::AppWidget;
     use crate::grid::Grid;
@@ -63,9 +63,9 @@ pub mod right {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let beads = create_beads(self.grid.borrow().as_data());
+            let beads = BeadsLineBuilder::LROffset(true).build(self.grid.borrow().as_table());
             Column::with_children(
-                beads.iter().map(|(color, count)| {
+                beads.line().iter().map(|(color, count)| {
                     Row::new().spacing(5).align_items(Align::Center)
                         .push(ColorBox::new(color.clone()))
                         .push(Text::new(count.to_string()))

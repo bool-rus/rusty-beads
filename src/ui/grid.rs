@@ -3,7 +3,6 @@ use crate::entities;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use crate::beads::Beads;
 use iced::Align;
 use crate::entities::Color;
 use std::rc::Rc;
