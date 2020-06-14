@@ -47,8 +47,6 @@ pub mod top {
 pub mod right {
     use super::*;
     use crate::entities::Color;
-    use crate::beads::Beads;
-    use crate::GridPlate;
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
     use std::rc::Rc;
     use std::cell::Cell;
@@ -77,7 +75,7 @@ pub mod right {
     impl AppWidget for RightMenu {
         type Message = Message;
         fn view(&mut self) -> Element<'_, Message> {
-            let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
+            let svg = Svg::new(svg::Handle::from_memory(icon::BEADS_LINE));
             let buttons = Column::new().width(Length::Fill).push(
                 Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
             );
