@@ -63,7 +63,7 @@ pub mod right {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let beads = BeadsLineBuilder::LROffset(true).build(self.grid.borrow().as_table());
+            let beads = BeadsLineBuilder::RLOffset(true).build(self.grid.borrow().as_table());
             Column::with_children(
                 beads.line().iter().map(|(color, count)| {
                     Row::new().spacing(5).align_items(Align::Center)
