@@ -7,10 +7,10 @@ use self::quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 
-pub fn write(file: &str, content: &Grid<Color>) -> std::io::Result<()> {
+pub fn write(file: &str, table: Vec<&[Color]>) -> std::io::Result<()> {
 
     let mut file = File::create(file)?;
-    for row in content.as_table().into_iter() {
+    for row in table.into_iter() {
         let mut first = true;
         for item in row.iter() {
             if first {

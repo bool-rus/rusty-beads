@@ -1,10 +1,11 @@
-use crate::ui::{GridMessage, RightMenuMessage, TopMenuMessage, PaletteMessage};
+use crate::ui::{GridMessage, RightMenuMessage, TopMenuMessage, PaletteMessage, RightPanelMessage};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
     Grid(GridMessage),
     RightMenu(RightMenuMessage),
     TopMenu(TopMenuMessage),
+    RightPanel(RightPanelMessage),
 }
 
 impl From<TopMenuMessage> for Message {
@@ -25,8 +26,8 @@ impl From<GridMessage> for Message {
     }
 }
 
-impl From<PaletteMessage> for Message {
-    fn from(m: PaletteMessage) -> Self {
-        Message::TopMenu(TopMenuMessage::Palette(m))
+impl From<RightPanelMessage> for Message {
+    fn from(m: RightPanelMessage) -> Self {
+        Message::RightPanel(m)
     }
 }

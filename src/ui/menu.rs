@@ -1,5 +1,6 @@
 use crate::reimport::*;
 use super::{AppWidget, icon, palette};
+use super::RightPanelState;
 
 pub mod top {
     use super::*;
@@ -25,7 +26,6 @@ pub mod top {
 
     impl AppWidget for TopMenu {
         type Message = Message;
-        type UpdateData = ();
 
         fn view(&mut self) -> Element<'_, Message> {
             Container::new(Row::new()
@@ -48,49 +48,50 @@ pub mod right {
     use super::*;
     use crate::entities::Color;
     use crate::beads::Beads;
-    use crate::Grid;
+    use crate::GridPlate;
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
+    use std::rc::Rc;
+    use std::cell::Cell;
+    use crate::ui::panel::right::State;
 
-    #[derive(Default)]
     pub struct RightMenu {
         beads_btn: button::State,
-        show_beads: bool,
-        beads: Beads<Color>,
-        beads_scroll: scrollable::State,
+        panel_state: Rc<Cell<RightPanelState>>,
     }
+
 
     #[derive(Debug,Clone,Copy)]
     pub enum Message {
         BeadsPressed,
     }
 
+    impl RightMenu {
+        pub fn new(panel_state: Rc<Cell<RightPanelState>>) -> Self {
+            Self {
+                beads_btn: Default::default(),
+                panel_state,
+            }
+        }
+    }
+
     impl AppWidget for RightMenu {
         type Message = Message;
-        type UpdateData = Grid<Color>;
         fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS));
-            let buttons = Column::new().width(Length::Units(30)).push(
+            let buttons = Column::new().width(Length::Fill).push(
                 Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
             );
-            let mut row = Row::new();
-            if self.show_beads {
-                row = row.push(
-                    Scrollable::new(&mut self.beads_scroll)
-                        .push(self.beads.view().map(From::from))
-                );
-            }
-            Container::new(row.push(buttons)).into()
+            Container::new(buttons).into()
         }
 
         fn update(&mut self, msg: Message) {
             match msg {
-                Message::BeadsPressed => { self.show_beads = !self.show_beads }
-            }
-        }
-
-        fn update_data(&mut self, data: &Grid<Color>) {
-            if self.show_beads {
-                self.beads = data.into();
+                Message::BeadsPressed => {
+                    match self.panel_state.get() {
+                        RightPanelState::None => {self.panel_state.set(RightPanelState::Beads)},
+                        RightPanelState::Beads => {self.panel_state.set(RightPanelState::None)},
+                    }
+                }
             }
         }
     }
