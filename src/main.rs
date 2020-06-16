@@ -128,6 +128,6 @@ fn main() {
         },
         flags: (),
         default_font: None,
-        antialiasing: true,
+        antialiasing: false,
     });
 }
