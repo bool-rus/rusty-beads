@@ -56,10 +56,11 @@ fn zip_line<T: Eq + Hash + Clone>(mut iter: impl Iterator<Item=T>) -> BeadsLine<
     if let Some(item) = iter.next() {
         first = item;
     } else { return BeadsLine::new(Vec::new(),HashMap::new()) }
-    let mut variant = first;
+    let mut variant = first.clone();
     let mut count = 1usize;
     let mut line = Vec::new();
     let mut summary = HashMap::new();
+    summary.insert(first, 1usize);
     for item in iter {
         if let Some(stat) = summary.get_mut(&item) {
             *stat += 1;
