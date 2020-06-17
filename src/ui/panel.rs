@@ -8,6 +8,7 @@ pub mod right {
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
     use std::cell::{RefCell, Cell};
+    use std::hash::Hash;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -64,14 +65,28 @@ pub mod right {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let beads = BeadsLineBuilder::RLOffset(true).build(self.grid.borrow().as_table());
-            Column::with_children(
+            let mut sorted_summary: Vec<_> = beads.summary().iter().collect();
+            sorted_summary.sort_unstable_by_key(|(&color, _)|{color.to_string()});
+            let summary = Column::with_children(sorted_summary.iter().map(|(&color, &count)|{
+                Row::new().spacing(5)
+                    .push(ColorBox::new(color))
+                    .push(Text::new(count.to_string()))
+                    .into()
+            }).collect()).into();
+            let line = Column::with_children(
                 beads.line().iter().map(|(color, count)| {
                     Row::new().spacing(5).align_items(Align::Center)
                         .push(ColorBox::new(color.clone()))
                         .push(Text::new(count.to_string()))
                         .into()
                 }).collect()
-            ).spacing(1).into()
+            ).spacing(1).into();
+            Column::with_children(vec![
+                Text::new("Summary").into(),
+                summary,
+                Text::new("Scheme").into(),
+                line
+            ]).into()
         }
     }
 }
