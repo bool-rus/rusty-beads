@@ -86,14 +86,15 @@ pub mod right {
     #[derive(Debug)]
     struct BeadsWidget {
         line: BeadsLine<Color>,
+        checkboxes: Vec<bool>,
     }
 
     impl BeadsWidget {
         fn new(line: BeadsLine<Color>) -> Self {
-            Self {line}
+            Self {checkboxes: vec![false; line.line().len()], line}
         }
         fn empty() -> Self {
-            Self {line: BeadsLineBuilder::Empty.build(Vec::new())}
+            Self {line: BeadsLineBuilder::Empty.build(Vec::new()), checkboxes: Vec::new()}
         }
     }
 
@@ -110,8 +111,11 @@ pub mod right {
                     .into()
             }).collect()).into();
             let line = Column::with_children(
-                self.line.line().iter().map(|(color, count)| {
+                self.line.line().iter()
+                    .zip(self.checkboxes.iter().enumerate())
+                    .map(|((color, count), (i,checked))| {
                     Row::new().spacing(5).align_items(Align::Center)
+                        .push(Checkbox::new(*checked, String::new(), move |_x|Message::Toggle(i)))
                         .push(ColorBox::new(color.clone()))
                         .push(Text::new(count.to_string()))
                         .into()
@@ -123,6 +127,18 @@ pub mod right {
                 Text::new("Scheme").into(),
                 line
             ]).into()
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::Menu(_) => {},
+                Message::GridChanged => {},
+                Message::Toggle(i) => {
+                    //TODO: обработать none
+                    let checked = self.checkboxes.get_mut(i).unwrap();
+                    *checked = !*checked;
+                },
+            }
         }
     }
 }
