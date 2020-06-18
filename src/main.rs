@@ -36,7 +36,7 @@ impl Default for Counter {
             top_menu: Default::default(),
             grid_plate: GridPlate::new(grid.clone()),
             right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
-            right_menu: RightMenu::new(right_panel_state.clone()),
+            right_menu: RightMenu::default(),
             active_color: Default::default(),
         }
     }
@@ -62,12 +62,17 @@ impl Sandbox for Counter {
                     TopMenuMessage::OpenPressed => {
                         let grid = crate::io::read("grid.csv").unwrap();
                         self.grid.borrow_mut().update_from_another(grid);
+                        self.right_panel.update(RightPanelMessage::GridChanged);
                     }
-                    TopMenuMessage::GrowPressed => { self.grid.borrow_mut().grow(Default::default()) }
+                    TopMenuMessage::GrowPressed => {
+                        self.grid.borrow_mut().grow(Default::default()) ;
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
                     TopMenuMessage::ShrinkPressed => {
                         self.grid.borrow_mut().shrink().unwrap_or_else(|e| {
                             println!("Error: {}", e);
                         });
+                        self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
@@ -82,9 +87,11 @@ impl Sandbox for Counter {
                     },
                     _ => {}
                 }
+                self.right_panel.update(RightPanelMessage::GridChanged);
             }
             Message::RightMenu(msg) => {
                 self.right_menu.update(msg);
+                self.right_panel.update(msg.into());
             }
             Message::RightPanel(msg) => {
                 self.right_panel.update(msg);

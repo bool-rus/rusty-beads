@@ -50,46 +50,35 @@ pub mod right {
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
     use std::rc::Rc;
     use std::cell::Cell;
-    use crate::ui::panel::right::State;
 
+    #[derive(Default)]
     pub struct RightMenu {
         beads_btn: button::State,
-        panel_state: Rc<Cell<RightPanelState>>,
+        beads_showed: bool,
     }
 
 
     #[derive(Debug,Clone,Copy)]
     pub enum Message {
-        BeadsPressed,
-    }
-
-    impl RightMenu {
-        pub fn new(panel_state: Rc<Cell<RightPanelState>>) -> Self {
-            Self {
-                beads_btn: Default::default(),
-                panel_state,
-            }
-        }
+        ShowBeads,
+        Hide,
     }
 
     impl AppWidget for RightMenu {
         type Message = Message;
         fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS_LINE));
+            let msg = if self.beads_showed { Message::Hide } else { Message::ShowBeads };
             let buttons = Column::new().width(Length::Fill).push(
-                Button::new(&mut self.beads_btn, svg).on_press(Message::BeadsPressed)
+                Button::new(&mut self.beads_btn, svg).on_press(msg)
             );
             Container::new(buttons).into()
         }
 
         fn update(&mut self, msg: Message) {
             match msg {
-                Message::BeadsPressed => {
-                    match self.panel_state.get() {
-                        RightPanelState::None => {self.panel_state.set(RightPanelState::Beads)},
-                        RightPanelState::Beads => {self.panel_state.set(RightPanelState::None)},
-                    }
-                }
+                Message::ShowBeads => { self.beads_showed = true },
+                Message::Hide => { self.beads_showed = false },
             }
         }
     }
