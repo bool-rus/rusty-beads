@@ -50,8 +50,8 @@ pub mod right {
     use crate::iced::{button, scrollable, svg, Svg, Scrollable};
     use std::rc::Rc;
     use std::cell::Cell;
-    use crate::ui::panel::right::State;
 
+    #[derive(Default)]
     pub struct RightMenu {
         beads_btn: button::State,
         beads_showed: bool,
@@ -62,15 +62,6 @@ pub mod right {
     pub enum Message {
         ShowBeads,
         Hide,
-    }
-
-    impl RightMenu {
-        pub fn new(panel_state: Rc<Cell<RightPanelState>>) -> Self {
-            Self {
-                beads_btn: Default::default(),
-                beads_showed: false,
-            }
-        }
     }
 
     impl AppWidget for RightMenu {

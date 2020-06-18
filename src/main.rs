@@ -36,7 +36,7 @@ impl Default for Counter {
             top_menu: Default::default(),
             grid_plate: GridPlate::new(grid.clone()),
             right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
-            right_menu: RightMenu::new(right_panel_state.clone()),
+            right_menu: RightMenu::default(),
             active_color: Default::default(),
         }
     }
