@@ -1,12 +1,10 @@
 use crate::reimport::*;
-use crate::entities;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use iced::Align;
 use crate::entities::Color;
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{RefCell, Cell};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
@@ -16,11 +14,12 @@ pub enum Message {
 
 pub struct GridPlate {
     grid: Rc<RefCell<Grid<Color>>>,
+    mouse_hold: Rc<Cell<bool>>,
 }
 
 impl GridPlate {
-    pub fn new(grid: Rc<RefCell<Grid<Color>>>) -> Self {
-        Self { grid }
+    pub fn new(grid: Rc<RefCell<Grid<Color>>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+        Self { grid, mouse_hold }
     }
 }
 
@@ -39,12 +38,14 @@ impl AppWidget for GridPlate {
                     Space::new(Length::FillPortion(portions[index]),Length::Fill)
                 ));
                 children.extend(arr.iter().enumerate().map(|(col,item)| {
-                    ColorBox::new(item.clone())
+                    let mut widget = ColorBox::new(item.clone())
                         .width(Length::FillPortion(2))
                         .height(Length::FillPortion(2))
-                        .on_press(Message::GridClicked(row, col)
-                            .into()
-                        ).into()
+                        .on_press(Message::GridClicked(row, col).into());
+                    if self.mouse_hold.get() {
+                        widget = widget.on_over(Message::GridClicked(row,col))
+                    }
+                    widget.into()
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
@@ -61,7 +62,7 @@ impl AppWidget for GridPlate {
             Message::SetColor(row, col, color) => {
                 self.grid.borrow_mut().set(row,col, color);
             }
-            Message::GridClicked(_, _) => {/*doing nothing*/}
+            _ => {/*doing nothing*/}
         }
     }
 }

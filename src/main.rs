@@ -25,19 +25,22 @@ struct Counter {
     right_panel: RightPanel,
     right_menu: RightMenu,
     active_color: Color,
+    mouse_hold: Rc<Cell<bool>>,
 }
 
 impl Default for Counter {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
         let right_panel_state = Rc::new(Cell::new(RightPanelState::None));
+        let mouse_hold = Rc::new(Cell::new(false));
         Self {
             grid: grid.clone(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(grid.clone()),
+            grid_plate: GridPlate::new(grid.clone(), mouse_hold.clone()),
             right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
             right_menu: RightMenu::default(),
             active_color: Default::default(),
+            mouse_hold,
         }
     }
 }
@@ -111,7 +114,8 @@ impl Sandbox for Counter {
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));
-        let mut row = Row::new()
+        let row = Row::new()
+            .push(Element::new(ui::MouseListener::new(self.mouse_hold.clone())))
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)
