@@ -1,3 +1,5 @@
+use super::menu::right::Message as RightMenuMessage;
+
 
 pub mod right {
     use crate::reimport::*;
@@ -8,30 +10,49 @@ pub mod right {
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
     use std::cell::{RefCell, Cell};
+    use super::RightMenuMessage as MenuMsg;
     use std::hash::Hash;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        Beads
+        Menu(MenuMsg),
+        GridChanged,
+        Toggle(usize),
     }
-    #[derive(Debug, Copy, Clone)]
+
+    impl From<MenuMsg> for Message {
+        fn from(msg: MenuMsg) -> Self {
+            Message::Menu(msg)
+        }
+    }
+
+    #[derive(Debug)]
     pub enum State {
         None,
-        Beads,
+        Beads(BeadsWidget),
     }
 
     pub struct RightPanel {
-        beads: BeadsWidget,
+        grid: Rc<RefCell<Grid<Color>>>,
         scroll: scrollable::State,
-        state: Rc<Cell<State>>,
+        state: State,
     }
 
     impl RightPanel {
         pub fn new(grid: Rc<RefCell<Grid<Color>>>, state: Rc<Cell<State>>) -> Self {
             Self {
-                beads: BeadsWidget {grid},
+                grid,
                 scroll: Default::default(),
-                state,
+                state: State::None,
+            }
+        }
+        pub fn refresh(&mut self) {
+            match self.state {
+                State::None => {},
+                State::Beads(_) => {
+                    let line = BeadsLineBuilder::RLOffset(true).build(self.grid.borrow().as_table());
+                    self.state = State::Beads(BeadsWidget::new(line))
+                },
             }
         }
     }
@@ -41,31 +62,46 @@ pub mod right {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             Scrollable::new(&mut self.scroll).push(
-                match self.state.get() {
+                match self.state {
                     State::None => {Space::new(Length::Units(0), Length::Units(0)).into()},
-                    State::Beads => {self.beads.view()},
+                    State::Beads(ref mut widget) => {widget.view()},
                 })
                 .into()
         }
 
         fn update(&mut self, msg: Self::Message) {
-            match self.state.get() {
-                State::None => {},
-                State::Beads => {self.beads.update(msg)},
+            match (&mut self.state, msg) {
+                (_, Message::Menu(MenuMsg::Hide)) => {self.state = State::None},
+                (_, Message::Menu(MenuMsg::ShowBeads)) => {
+                    self.state = State::Beads(BeadsWidget::empty());
+                    self.refresh();
+                },
+                (_, Message::GridChanged) => { self.refresh() },
+                (State::Beads(ref mut widget), msg) => {widget.update(msg)},
+                (State::None, _) => {},
+                (_, Message::Toggle(_)) => {}
             }
         }
     }
-
+    #[derive(Debug)]
     struct BeadsWidget {
-        pub grid: Rc<RefCell<Grid<Color>>>,
+        line: BeadsLine<Color>,
+    }
+
+    impl BeadsWidget {
+        fn new(line: BeadsLine<Color>) -> Self {
+            Self {line}
+        }
+        fn empty() -> Self {
+            Self {line: BeadsLineBuilder::Empty.build(Vec::new())}
+        }
     }
 
     impl AppWidget for BeadsWidget {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let beads = BeadsLineBuilder::RLOffset(true).build(self.grid.borrow().as_table());
-            let mut sorted_summary: Vec<_> = beads.summary().iter().collect();
+            let mut sorted_summary: Vec<_> = self.line.summary().iter().collect();
             sorted_summary.sort_unstable_by_key(|(&color, _)|{color.to_string()});
             let summary = Column::with_children(sorted_summary.iter().map(|(&color, &count)|{
                 Row::new().spacing(5)
@@ -74,7 +110,7 @@ pub mod right {
                     .into()
             }).collect()).into();
             let line = Column::with_children(
-                beads.line().iter().map(|(color, count)| {
+                self.line.line().iter().map(|(color, count)| {
                     Row::new().spacing(5).align_items(Align::Center)
                         .push(ColorBox::new(color.clone()))
                         .push(Text::new(count.to_string()))

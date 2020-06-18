@@ -1,6 +1,8 @@
 pub use iced::{
     button,
     scrollable,
+    checkbox,
+    Checkbox,
     Button,
     Text,
     Column,
