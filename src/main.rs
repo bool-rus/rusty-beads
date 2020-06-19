@@ -24,6 +24,7 @@ struct Counter {
     grid_plate: GridPlate,
     right_panel: RightPanel,
     right_menu: RightMenu,
+    left_menu: LeftMenu,
     active_color: Color,
     mouse_hold: Rc<Cell<bool>>,
 }
@@ -39,6 +40,7 @@ impl Default for Counter {
             grid_plate: GridPlate::new(grid.clone(), mouse_hold.clone()),
             right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
             right_menu: RightMenu::default(),
+            left_menu: LeftMenu::default(),
             active_color: Default::default(),
             mouse_hold,
         }
@@ -81,7 +83,10 @@ impl Sandbox for Counter {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }
                 }
-            }
+            },
+            Message::LeftMenu(msg) => {
+                //TODO: implement me
+            },
             Message::Grid(msg) => {
                 self.grid_plate.update(msg);
                 match msg {
@@ -91,26 +96,22 @@ impl Sandbox for Counter {
                     _ => {}
                 }
                 self.right_panel.update(RightPanelMessage::GridChanged);
-            }
+            },
             Message::RightMenu(msg) => {
                 self.right_menu.update(msg);
                 self.right_panel.update(msg.into());
-            }
+            },
             Message::RightPanel(msg) => {
                 self.right_panel.update(msg);
-            }
+            },
         }
     }
 
     fn view(&mut self) -> Element<'_, Message> {
         let top = self.top_menu.view().map(From::from);
         let bottom = Container::new(Text::new("footer"));
-        let left = Container::new(Column::new()
-            .push(Text::new("L"))
-            .push(Text::new("E"))
-            .push(Text::new("F"))
-            .push(Text::new("T"))
-        );
+        let left = Container::new(self.left_menu.view().map(From::from))
+            .width(Length::Units(25));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));
