@@ -12,6 +12,7 @@ pub use menu::top::{Message as TopMenuMessage, TopMenu};
 pub use menu::right::{Message as RightMenuMessage, RightMenu};
 pub use panel::right::{Message as RightPanelMessage, RightPanel, State as RightPanelState};
 pub use grid::{Message as GridMessage, GridPlate};
+pub use widget::MouseListener;
 
 pub trait AppWidget {
     type Message;
