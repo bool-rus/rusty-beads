@@ -13,6 +13,7 @@ pub enum Message {
     SetColor(usize, usize, Color),
     GridAction(GridAction),
     Undo,
+    Redo,
 }
 
 pub struct GridPlate {
@@ -20,11 +21,70 @@ pub struct GridPlate {
     mouse_hold: Rc<Cell<bool>>,
     first_offset: Rc<Cell<bool>>,
     undo: VecDeque<Message>,
+    redo: VecDeque<Message>,
+    btn_undo: button::State,
+    btn_redo: button::State,
 }
 
 impl GridPlate {
     pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>, mouse_hold: Rc<Cell<bool>>) -> Self {
-        Self { grid, mouse_hold , first_offset, undo: VecDeque::with_capacity(1000) }
+        Self {
+            grid,
+            mouse_hold ,
+            first_offset,
+            undo: VecDeque::with_capacity(1000),
+            redo: VecDeque::with_capacity(1000),
+            btn_undo: Default::default(),
+            btn_redo: Default::default(),
+        }
+    }
+    fn update_impl(&mut self, msg: Message, log_undo: bool) -> Result<(), String> {
+        let undo = match msg {
+            Message::SetColor(row, col, color) => {
+                let prev_color = self.grid.borrow_mut().set(row,col, color)?;
+                if prev_color != color {
+                    Some(Message::SetColor(row, col, prev_color))
+                } else { None }
+            }
+            Message::GridAction(action) => {
+                match action {
+                    GridAction::Add(side) => {
+                        if matches!(side, Side::Top) {
+                            self.first_offset.set(!self.first_offset.get());
+                        }
+                        self.grid.borrow_mut().grow(side, Color::default());
+                        Some(Message::GridAction(GridAction::Remove(side)))
+                    },
+                    GridAction::Remove(side) => {
+                        if matches!(side, Side::Top) {
+                            self.first_offset.set(!self.first_offset.get());
+                        }
+                        self.grid.borrow_mut().shrink(side);
+                        Some(Message::GridAction(GridAction::Add(side)))
+                    },
+                }
+            }
+            Message::Undo  => match self.undo.pop_front() {
+                Some(msg) => {
+                    self.update_impl(msg, false);
+                    None
+                }
+                None => None
+            }
+            Message::Redo => match self.redo.pop_front() {
+                Some(msg) => {
+                    self.update_impl(msg, true);
+                    None
+                }
+                None => None
+            }
+            _ => {None}
+        };
+        let deque = if log_undo { &mut self.undo } else { &mut self.redo };
+        if let Some(undo) = undo {
+            deque.push_front(undo);
+        }
+        Ok(())
     }
 }
 
@@ -59,40 +119,13 @@ impl AppWidget for GridPlate {
                 Row::with_children(children)
                     .height(Length::Fill)
                     .into()
-            }).collect())).into()
+            }).collect())
+            .push(Button::new(&mut self.btn_undo, Text::new("undo")).on_press(Message::Undo))
+            .push(Button::new(&mut self.btn_redo, Text::new("redo")).on_press(Message::Redo))
+        ).into()
     }
 
     fn update(&mut self, msg: Self::Message) {
-        match msg {
-            Message::SetColor(row, col, color) => {
-                //TODO: process Err
-                let prev_color = self.grid.borrow_mut().set(row,col, color).unwrap();
-                if prev_color != color {
-                    self.undo.push_front(Message::SetColor(row, col, prev_color));
-                }
-            }
-            Message::GridAction(action) => {
-                match action {
-                    GridAction::Add(side) => {
-                        if matches!(side, Side::Top) {
-                            self.first_offset.set(!self.first_offset.get());
-                        }
-                        self.grid.borrow_mut().grow(side, Color::default());
-                        self.undo.push_front(Message::GridAction(GridAction::Remove(side)));
-                    },
-                    GridAction::Remove(side) => {
-                        if matches!(side, Side::Top) {
-                            self.first_offset.set(!self.first_offset.get());
-                        }
-                        self.grid.borrow_mut().shrink(side);
-                        self.undo.push_front(Message::GridAction(GridAction::Add(side)));
-                    },
-                }
-            }
-            Message::Undo  => if let Some(msg) = self.undo.pop_front() {
-                self.update(msg);
-            }
-            _ => {/*doing nothing*/}
-        }
+        self.update_impl(msg, true);
     }
 }
