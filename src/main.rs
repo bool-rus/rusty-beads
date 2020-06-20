@@ -70,11 +70,11 @@ impl Sandbox for Counter {
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::GrowPressed => {
-                        self.grid.borrow_mut().grow(Default::default()) ;
+                        self.grid.borrow_mut().grow_deprecated(Default::default()) ;
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::ShrinkPressed => {
-                        self.grid.borrow_mut().shrink().unwrap_or_else(|e| {
+                        self.grid.borrow_mut().shrink_deprecated().unwrap_or_else(|e| {
                             println!("Error: {}", e);
                         });
                         self.right_panel.update(RightPanelMessage::GridChanged);
@@ -85,7 +85,12 @@ impl Sandbox for Counter {
                 }
             },
             Message::LeftMenu(msg) => {
-                //TODO: implement me
+                self.left_menu.update(msg);
+                match msg {
+                    LeftMenuMessage::GridAction(action) => {
+                        self.grid_plate.update(GridMessage::GridAction(action));
+                    },
+                }
             },
             Message::Grid(msg) => {
                 self.grid_plate.update(msg);

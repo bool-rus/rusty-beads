@@ -75,3 +75,11 @@ impl Into<iced::Color> for Color {
         iced::Color::from_rgb8(r,g,b)
     }
 }
+#[derive(Debug, Copy, Clone)]
+pub enum Side { Top, Left, Right, Bottom }
+
+#[derive(Debug, Copy, Clone)]
+pub enum GridAction {
+    Add(Side),
+    Remove(Side)
+}

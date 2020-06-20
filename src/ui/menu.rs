@@ -88,17 +88,11 @@ pub mod left {
     use super::*;
     use button::State;
     use iced::{Svg, svg};
+    use crate::entities::{GridAction, Side};
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        AddTop,
-        AddLeft,
-        AddRight,
-        AddBottom,
-        RemoveTop,
-        RemoveLeft,
-        RemoveRight,
-        RemoveBottom,
+        GridAction(GridAction)
     }
 
     #[derive(Default)]
@@ -121,15 +115,24 @@ pub mod left {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
+            let add_top = Message::GridAction(GridAction::Add(Side::Top));
+            let add_left = Message::GridAction(GridAction::Add(Side::Left));
+            let add_right = Message::GridAction(GridAction::Add(Side::Right));
+            let add_bottom = Message::GridAction(GridAction::Add(Side::Bottom));
+            let remove_top = Message::GridAction(GridAction::Remove(Side::Top));
+            let remove_left = Message::GridAction(GridAction::Remove(Side::Left));
+            let remove_right = Message::GridAction(GridAction::Remove(Side::Right));
+            let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
+
             Column::new().width(Length::Fill).spacing(5)
-                .push(Button::new(&mut self.add_top, svg(icon::ADD_TOP_ROW)).on_press(Message::AddTop))
-                .push(Button::new(&mut self.add_left, svg(icon::ADD_LEFT_COLUMN)).on_press(Message::AddLeft))
-                .push(Button::new(&mut self.add_right, svg(icon::ADD_RIGHT_COLUMN)).on_press(Message::AddRight))
-                .push(Button::new(&mut self.add_bottom, svg(icon::ADD_BOTTOM_ROW)).on_press(Message::AddBottom))
-                .push(Button::new(&mut self.remove_top, svg(icon::REMOVE_TOP_ROW)).on_press(Message::RemoveTop))
-                .push(Button::new(&mut self.remove_left, svg(icon::REMOVE_LEFT_COLUMN)).on_press(Message::RemoveLeft))
-                .push(Button::new(&mut self.remove_right, svg(icon::REMOVE_RIGHT_COLUMN)).on_press(Message::RemoveRight))
-                .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(Message::RemoveBottom))
+                .push(Button::new(&mut self.add_top, svg(icon::ADD_TOP_ROW)).on_press(add_top))
+                .push(Button::new(&mut self.add_left, svg(icon::ADD_LEFT_COLUMN)).on_press(add_left))
+                .push(Button::new(&mut self.add_right, svg(icon::ADD_RIGHT_COLUMN)).on_press(add_right))
+                .push(Button::new(&mut self.add_bottom, svg(icon::ADD_BOTTOM_ROW)).on_press(add_bottom))
+                .push(Button::new(&mut self.remove_top, svg(icon::REMOVE_TOP_ROW)).on_press(remove_top))
+                .push(Button::new(&mut self.remove_left, svg(icon::REMOVE_LEFT_COLUMN)).on_press(remove_left))
+                .push(Button::new(&mut self.remove_right, svg(icon::REMOVE_RIGHT_COLUMN)).on_press(remove_right))
+                .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(remove_bottom))
                 .into()
         }
     }
