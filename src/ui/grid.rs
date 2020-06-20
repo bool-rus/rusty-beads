@@ -22,8 +22,6 @@ pub struct GridPlate {
     first_offset: Rc<Cell<bool>>,
     undo: VecDeque<Message>,
     redo: VecDeque<Message>,
-    btn_undo: button::State,
-    btn_redo: button::State,
 }
 
 impl GridPlate {
@@ -34,8 +32,6 @@ impl GridPlate {
             first_offset,
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
-            btn_undo: Default::default(),
-            btn_redo: Default::default(),
         }
     }
     fn update_impl(&mut self, msg: Message, log_undo: bool) -> Result<(), String> {
@@ -78,7 +74,10 @@ impl GridPlate {
                 }
                 None => None
             }
-            _ => {None}
+            Message::GridClicked(..) => {
+                self.redo.clear();
+                None
+            }
         };
         let deque = if log_undo { &mut self.undo } else { &mut self.redo };
         if let Some(undo) = undo {
@@ -120,8 +119,6 @@ impl AppWidget for GridPlate {
                     .height(Length::Fill)
                     .into()
             }).collect())
-            .push(Button::new(&mut self.btn_undo, Text::new("undo")).on_press(Message::Undo))
-            .push(Button::new(&mut self.btn_redo, Text::new("redo")).on_press(Message::Redo))
         ).into()
     }
 
