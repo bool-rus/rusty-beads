@@ -2,7 +2,7 @@ use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use crate::entities::Color;
+use crate::entities::{Color, GridAction, Side};
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 
@@ -10,16 +10,18 @@ use std::cell::{RefCell, Cell};
 pub enum Message {
     GridClicked(usize,usize),
     SetColor(usize, usize, Color),
+    GridAction(GridAction)
 }
 
 pub struct GridPlate {
     grid: Rc<RefCell<Grid<Color>>>,
     mouse_hold: Rc<Cell<bool>>,
+    first_offset: Rc<Cell<bool>>,
 }
 
 impl GridPlate {
-    pub fn new(grid: Rc<RefCell<Grid<Color>>>, mouse_hold: Rc<Cell<bool>>) -> Self {
-        Self { grid, mouse_hold }
+    pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+        Self { grid, mouse_hold , first_offset }
     }
 }
 
@@ -28,7 +30,7 @@ impl AppWidget for GridPlate {
 
 
     fn view(&mut self) -> Element<'_, Message> {
-        let portions = [2u16,1,2];
+        let portions = if self.first_offset.get() { [2u16,1,2] } else { [1u16,2,1] };
         Container::new(Column::with_children(
             self.grid.borrow().as_table()
                 .iter().enumerate().map(|(row, arr)| {
@@ -61,6 +63,22 @@ impl AppWidget for GridPlate {
         match msg {
             Message::SetColor(row, col, color) => {
                 self.grid.borrow_mut().set(row,col, color);
+            }
+            Message::GridAction(action) => {
+                match action {
+                    GridAction::Add(side) => {
+                        if matches!(side, Side::Top) {
+                            self.first_offset.set(!self.first_offset.get());
+                        }
+                        self.grid.borrow_mut().grow(side, Color::default());
+                    },
+                    GridAction::Remove(side) => {
+                        if matches!(side, Side::Top) {
+                            self.first_offset.set(!self.first_offset.get());
+                        }
+                        self.grid.borrow_mut().shrink(side);
+                    },
+                }
             }
             _ => {/*doing nothing*/}
         }

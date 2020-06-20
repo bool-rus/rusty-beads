@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10.0" height="10"/>
+  </defs>
+  <rect x="10" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <rect x="40" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <rect x="70" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <path d="M 45 10 H 65 V 25 H 80 V 45 H 65 V 60 H 45 V 45 H 30 V 25 H 45 Z" style="fill: rgb(2, 190, 24);" bx:shape="cross 30 10 50 50 20 20 0.5 1@7662b830"/>
+</svg>

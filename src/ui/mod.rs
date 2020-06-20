@@ -10,6 +10,7 @@ use crate::reimport::*;
 pub use palette::{Message as PaletteMessage};
 pub use menu::top::{Message as TopMenuMessage, TopMenu};
 pub use menu::right::{Message as RightMenuMessage, RightMenu};
+pub use menu::left::{Message as LeftMenuMessage, Menu as LeftMenu};
 pub use panel::right::{Message as RightPanelMessage, RightPanel, State as RightPanelState};
 pub use grid::{Message as GridMessage, GridPlate};
 pub use widget::MouseListener;

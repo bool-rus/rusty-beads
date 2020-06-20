@@ -24,6 +24,7 @@ struct Counter {
     grid_plate: GridPlate,
     right_panel: RightPanel,
     right_menu: RightMenu,
+    left_menu: LeftMenu,
     active_color: Color,
     mouse_hold: Rc<Cell<bool>>,
 }
@@ -31,14 +32,15 @@ struct Counter {
 impl Default for Counter {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
-        let right_panel_state = Rc::new(Cell::new(RightPanelState::None));
+        let first_offset = Rc::new(Cell::new(false));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
             grid: grid.clone(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(grid.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
+            grid_plate: GridPlate::new(grid.clone(), first_offset.clone(), mouse_hold.clone()),
+            right_panel: RightPanel::new(grid.clone(), first_offset.clone()),
             right_menu: RightMenu::default(),
+            left_menu: LeftMenu::default(),
             active_color: Default::default(),
             mouse_hold,
         }
@@ -67,21 +69,24 @@ impl Sandbox for Counter {
                         self.grid.borrow_mut().update_from_another(grid);
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
-                    TopMenuMessage::GrowPressed => {
-                        self.grid.borrow_mut().grow(Default::default()) ;
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::ShrinkPressed => {
-                        self.grid.borrow_mut().shrink().unwrap_or_else(|e| {
-                            println!("Error: {}", e);
-                        });
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }
+                    TopMenuMessage::GridAction(action) => {
+                        self.grid_plate.update(GridMessage::GridAction(action));
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
                 }
-            }
+            },
+            Message::LeftMenu(msg) => {
+                self.left_menu.update(msg);
+                match msg {
+                    LeftMenuMessage::GridAction(action) => {
+                        self.grid_plate.update(GridMessage::GridAction(action));
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    },
+                }
+            },
             Message::Grid(msg) => {
                 self.grid_plate.update(msg);
                 match msg {
@@ -91,26 +96,23 @@ impl Sandbox for Counter {
                     _ => {}
                 }
                 self.right_panel.update(RightPanelMessage::GridChanged);
-            }
+            },
             Message::RightMenu(msg) => {
                 self.right_menu.update(msg);
                 self.right_panel.update(msg.into());
-            }
+            },
             Message::RightPanel(msg) => {
                 self.right_panel.update(msg);
-            }
+            },
         }
     }
 
     fn view(&mut self) -> Element<'_, Message> {
-        let top = self.top_menu.view().map(From::from);
+        let top = Container::new(self.top_menu.view().map(From::from))
+            .height(Length::Units(30));
         let bottom = Container::new(Text::new("footer"));
-        let left = Container::new(Column::new()
-            .push(Text::new("L"))
-            .push(Text::new("E"))
-            .push(Text::new("F"))
-            .push(Text::new("T"))
-        );
+        let left = Container::new(self.left_menu.view().map(From::from))
+            .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));

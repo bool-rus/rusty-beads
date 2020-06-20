@@ -26,19 +26,21 @@ impl AppWidget for Palette {
     type Message = Message;
 
     fn view(&mut self) -> Element<'_, Message> {
-        Container::new(Row::with_children(
-            self.buttons.iter_mut().map(|(color, state)| {
-                Button::new(
-                    state,
-                    Space::new(Length::Units(20), Length::Units(20)),
-                )
-                    .on_press(
-                        Message::SetColor(color.clone())
-                    )
-                    .style(crate::ui::style::ColorButton(color.clone().into()))
-                    .into()
-            }).collect()
-        )).into()
+        let mut rows = [Vec::new(), Vec::new()];
+        self.buttons.iter_mut().enumerate().for_each(|(i, (color, state))|{
+            let index = i % 2;
+            rows[index].push(Button::new(
+                state,
+                Space::new(Length::Units(7), Length::Units(5)),
+            ).on_press(Message::SetColor(color.clone()))
+                .style(crate::ui::style::ColorButton(color.clone().into()))
+                .into());
+        });
+        let [top, bot] = rows;
+        Column::new()
+            .push(Row::with_children(top))
+            .push(Row::with_children(bot))
+            .into()
     }
 }
 
@@ -46,6 +48,7 @@ impl Default for Palette {
     fn default() -> Self {
         Palette::new(vec![
             Color { r: 0x61 ,   g: 0x00,    b: 0x00 },
+            Color { r: 0xff,    g: 0x00,    b: 0x88 },
             Color { r: 0x98,    g: 0x02,    b: 0x2f },
             Color { r: 0xcf,    g: 0x32,    b: 0x00 },
             Color { r: 0xff,    g: 0x32,    b: 0x32 },
