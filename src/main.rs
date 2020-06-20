@@ -72,6 +72,10 @@ impl Sandbox for Counter {
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }
+                    TopMenuMessage::GridAction(action) => {
+                        self.grid_plate.update(GridMessage::GridAction(action));
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
                 }
             },
             Message::LeftMenu(msg) => {
@@ -104,10 +108,11 @@ impl Sandbox for Counter {
     }
 
     fn view(&mut self) -> Element<'_, Message> {
-        let top = self.top_menu.view().map(From::from);
+        let top = Container::new(self.top_menu.view().map(From::from))
+            .height(Length::Units(30));
         let bottom = Container::new(Text::new("footer"));
         let left = Container::new(self.left_menu.view().map(From::from))
-            .width(Length::Units(35));
+            .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));

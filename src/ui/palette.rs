@@ -31,7 +31,7 @@ impl AppWidget for Palette {
             let index = i % 2;
             rows[index].push(Button::new(
                 state,
-                Space::new(Length::Units(7), Length::Units(7)),
+                Space::new(Length::Units(7), Length::Units(5)),
             ).on_press(Message::SetColor(color.clone()))
                 .style(crate::ui::style::ColorButton(color.clone().into()))
                 .into());
