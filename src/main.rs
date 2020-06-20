@@ -76,6 +76,14 @@ impl Sandbox for App {
                         self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
+                    TopMenuMessage::Undo => {
+                        self.grid_plate.update(GridMessage::Undo);
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
+                    TopMenuMessage::Redo => {
+                        self.grid_plate.update(GridMessage::Redo);
+                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
                 }
             },
             Message::LeftMenu(msg) => {

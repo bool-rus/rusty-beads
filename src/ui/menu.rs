@@ -14,6 +14,8 @@ pub mod top {
         palette: Palette,
         export: State,
         load: State,
+        undo: State,
+        redo: State,
         add_left: State,
         remove_left: State,
         remove_right: State,
@@ -25,6 +27,8 @@ pub mod top {
         ExportPressed,
         Palette(palette::Message),
         GridAction(GridAction),
+        Undo,
+        Redo,
     }
 
     impl AppWidget for TopMenu {
@@ -34,6 +38,18 @@ pub mod top {
             Container::new(Row::new()
                 .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
                 .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
+                .push(
+                    Button::new(
+                        &mut self.undo,
+                        Svg::new(svg::Handle::from_memory(icon::UNDO))
+                    ).on_press(Message::Undo)
+                )
+                .push(
+                    Button::new(
+                        &mut self.redo,
+                        Svg::new(svg::Handle::from_memory(icon::REDO))
+                    ).on_press(Message::Redo)
+                )
                 .push(Button::new(
                     &mut self.add_left,
                     Svg::new(svg::Handle::from_memory(icon::ADD_LEFT_COLUMN)))
