@@ -18,7 +18,7 @@ use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 
 
-struct Counter {
+struct App {
     grid: Rc<RefCell<Grid<Color>>>,
     top_menu: TopMenu,
     grid_plate: GridPlate,
@@ -29,7 +29,7 @@ struct Counter {
     mouse_hold: Rc<Cell<bool>>,
 }
 
-impl Default for Counter {
+impl Default for App {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
         let first_offset = Rc::new(Cell::new(false));
@@ -47,14 +47,14 @@ impl Default for Counter {
     }
 }
 
-impl Sandbox for Counter {
+impl Sandbox for App {
     type Message = Message;
 
     fn new() -> Self {
         Default::default()
     }
     fn title(&self) -> String {
-        "test-title".into()
+        "Beads and threads by Bool".into()
     }
     fn update(&mut self, message: Message) {
         match message {
@@ -133,7 +133,7 @@ impl Sandbox for Counter {
 }
 
 fn main() {
-    Counter::run(Settings {
+    App::run(Settings {
         window: iced::window::Settings {
             size: (480, 480),
             resizable: true,
