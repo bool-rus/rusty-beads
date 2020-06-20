@@ -5,23 +5,26 @@ use crate::grid::Grid;
 use crate::entities::{Color, GridAction, Side};
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
+use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
     GridClicked(usize,usize),
     SetColor(usize, usize, Color),
-    GridAction(GridAction)
+    GridAction(GridAction),
+    Undo,
 }
 
 pub struct GridPlate {
     grid: Rc<RefCell<Grid<Color>>>,
     mouse_hold: Rc<Cell<bool>>,
     first_offset: Rc<Cell<bool>>,
+    undo: VecDeque<Message>,
 }
 
 impl GridPlate {
     pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>, mouse_hold: Rc<Cell<bool>>) -> Self {
-        Self { grid, mouse_hold , first_offset }
+        Self { grid, mouse_hold , first_offset, undo: VecDeque::with_capacity(1000) }
     }
 }
 
@@ -62,7 +65,11 @@ impl AppWidget for GridPlate {
     fn update(&mut self, msg: Self::Message) {
         match msg {
             Message::SetColor(row, col, color) => {
-                self.grid.borrow_mut().set(row,col, color);
+                //TODO: process Err
+                let prev_color = self.grid.borrow_mut().set(row,col, color).unwrap();
+                if prev_color != color {
+                    self.undo.push_front(Message::SetColor(row, col, prev_color));
+                }
             }
             Message::GridAction(action) => {
                 match action {
@@ -71,14 +78,19 @@ impl AppWidget for GridPlate {
                             self.first_offset.set(!self.first_offset.get());
                         }
                         self.grid.borrow_mut().grow(side, Color::default());
+                        self.undo.push_front(Message::GridAction(GridAction::Remove(side)));
                     },
                     GridAction::Remove(side) => {
                         if matches!(side, Side::Top) {
                             self.first_offset.set(!self.first_offset.get());
                         }
                         self.grid.borrow_mut().shrink(side);
+                        self.undo.push_front(Message::GridAction(GridAction::Add(side)));
                     },
                 }
+            }
+            Message::Undo  => if let Some(msg) = self.undo.pop_front() {
+                self.update(msg);
             }
             _ => {/*doing nothing*/}
         }
