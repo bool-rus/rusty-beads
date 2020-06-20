@@ -12,6 +12,7 @@ pub enum Message {
     GridClicked(usize,usize),
     SetColor(usize, usize, Color),
     GridAction(GridAction),
+    Rotate(isize),
     Undo,
     Redo,
 }
@@ -22,6 +23,9 @@ pub struct GridPlate {
     first_offset: Rc<Cell<bool>>,
     undo: VecDeque<Message>,
     redo: VecDeque<Message>,
+    rotation: isize,
+    rot_l: button::State,
+    rot_r: button::State,
 }
 
 impl GridPlate {
@@ -32,6 +36,9 @@ impl GridPlate {
             first_offset,
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
+            rotation: 0,
+            rot_l: Default::default(),
+            rot_r: Default::default(),
         }
     }
     fn update_impl(&mut self, msg: Message, log_undo: bool) -> Result<(), String> {
@@ -77,6 +84,10 @@ impl GridPlate {
             Message::GridClicked(..) => {
                 self.redo.clear();
                 None
+            },
+            Message::Rotate(rotation) => {
+                self.rotation += rotation;
+                None
             }
         };
         let deque = if log_undo { &mut self.undo } else { &mut self.redo };
@@ -87,21 +98,37 @@ impl GridPlate {
     }
 }
 
+fn normalize_rotation(rot: isize, width: usize) -> usize {
+    let width = width as isize;
+    let modulo = rot % width;
+    if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
+}
+
 impl AppWidget for GridPlate {
     type Message = Message;
 
 
     fn view(&mut self) -> Element<'_, Message> {
         let portions = if self.first_offset.get() { [2u16,1,2] } else { [1u16,2,1] };
+        let grid = self.grid.borrow();
+        let table = grid.as_table();
+        let width = table.get(0).unwrap().len();
+        let range = 0..width;
+        let rotation = normalize_rotation(self.rotation, width);
+
         Container::new(Column::with_children(
-            self.grid.borrow().as_table()
-                .iter().enumerate().map(|(row, arr)| {
+            table.iter().enumerate().map(|(row, arr)| {
                 let mut children= Vec::with_capacity(arr.len() + 2);
                 let index = row % 2;
                 children.push(Element::from(
                     Space::new(Length::FillPortion(portions[index]),Length::Fill)
                 ));
-                children.extend(arr.iter().enumerate().map(|(col,item)| {
+                let iter = arr.iter()
+                    .cycle()
+                    .zip(range.clone().into_iter().cycle())
+                    .skip(rotation)
+                    .zip(range.clone().into_iter());
+                children.extend(iter.map(|((item, col), _)| {
                     let mut widget = ColorBox::new(item.clone())
                         .width(Length::FillPortion(2))
                         .height(Length::FillPortion(2))
@@ -119,6 +146,8 @@ impl AppWidget for GridPlate {
                     .height(Length::Fill)
                     .into()
             }).collect())
+            .push(Button::new(&mut self.rot_l, Text::new("<")).on_press(Message::Rotate(-1)))
+            .push(Button::new(&mut self.rot_r, Text::new(">")).on_press(Message::Rotate(1)))
         ).into()
     }
 
