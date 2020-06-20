@@ -10,8 +10,6 @@ pub mod top {
     #[derive(Default)]
     pub struct TopMenu {
         palette: Palette,
-        grow: State,
-        shrink: State,
         export: State,
         load: State,
     }
@@ -19,8 +17,6 @@ pub mod top {
     pub enum Message {
         OpenPressed,
         ExportPressed,
-        GrowPressed,
-        ShrinkPressed,
         Palette(palette::Message),
     }
 
@@ -31,8 +27,6 @@ pub mod top {
             Container::new(Row::new()
                 .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
                 .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
-                .push(Button::new(&mut self.grow, Text::new("+")).on_press(Message::GrowPressed.into()))
-                .push(Button::new(&mut self.shrink, Text::new("-")).on_press(Message::ShrinkPressed.into()))
                 .push(self.palette.view().map(From::from))
                 .spacing(5)).into()
         }

@@ -69,16 +69,6 @@ impl Sandbox for Counter {
                         self.grid.borrow_mut().update_from_another(grid);
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
-                    TopMenuMessage::GrowPressed => {
-                        self.grid.borrow_mut().grow_deprecated(Default::default()) ;
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::ShrinkPressed => {
-                        self.grid.borrow_mut().shrink_deprecated().unwrap_or_else(|e| {
-                            println!("Error: {}", e);
-                        });
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }

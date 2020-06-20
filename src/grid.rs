@@ -67,43 +67,6 @@ impl<T:Clone> Grid<T> {
             Ok(self.width - 1)
         }
     }
-    pub fn grow_deprecated(&mut self, value: T) {
-        let width = self.width + 2;
-        let height = self.height + 2;
-        let mut data = Vec::with_capacity(width * height);
-        for _ in 0..width {
-            data.push(value.clone());
-        }
-        self.as_table().into_iter().for_each(|row|{
-            data.push(value.clone());
-            data.extend_from_slice(row);
-            data.push(value.clone());
-        });
-        for _ in 0..width {
-            data.push(value.clone());
-        }
-        self.width = width;
-        self.height = height;
-        self.data = data;
-    }
-    pub fn shrink_deprecated(&mut self) -> Result<(), String>{
-        if self.height < 4 || self.width < 4 {
-            return Err("Cannot shrink".to_owned())
-        }
-        let width = self.width - 2;
-        let height = self.height - 2;
-        let mut data = Vec::with_capacity(width*height);
-        let table = self.as_table();
-        let table = table.as_slice();
-        let len = table.len();
-        &table[1..len-1].iter().for_each(|row|{
-            data.extend_from_slice(&row[1..row.len()-1]);
-        });
-        self.width = width;
-        self.height = height;
-        self.data = data;
-        Ok(())
-    }
     pub fn grow(&mut self, side: Side, value: T) {
         match side {
             Side::Top => {
