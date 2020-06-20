@@ -117,7 +117,7 @@ impl Sandbox for Counter {
         let top = self.top_menu.view().map(From::from);
         let bottom = Container::new(Text::new("footer"));
         let left = Container::new(self.left_menu.view().map(From::from))
-            .width(Length::Units(25));
+            .width(Length::Units(35));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));

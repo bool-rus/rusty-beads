@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-  <rect x="200" y="20.685" width="100" height="300" style="stroke-width: 4px; paint-order: fill; stroke: rgb(7, 8, 7); stroke-miterlimit: 1; fill: none;" transform="matrix(-0.002306, 0.999997, -0.999997, -0.002306, 351.663544, 0.048612)"/>
-  <rect x="200.203" y="120.032" width="100" height="100" style="stroke-width: 4px; paint-order: fill; stroke: rgb(7, 8, 7); stroke-miterlimit: 1; fill: none;" transform="matrix(-0.002306, 0.999997, -0.999997, -0.002306, 351.663544, 0.048612)"/>
-  <rect x="27.359" y="163.013" width="141.321" height="28.444" style="fill: rgb(12, 155, 9);" transform="matrix(-0.002306, 0.999997, -0.999997, -0.002306, 351.663544, 0.048612)"/>
-  <rect x="158.679" y="216.367" width="141.321" height="28.444" style="fill: rgb(12, 155, 9);" transform="matrix(-0.999999, -0.001574, 0.001574, -0.999999, 400.775726, 330.003601)"/>
+<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10.0" height="10"/>
+  </defs>
+  <rect x="10" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <rect x="40" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <rect x="70" y="70" width="30" height="30" style="stroke: rgb(1, 1, 1); stroke-width: 8px; fill: none;"/>
+  <path d="M 45 10 H 65 V 25 H 80 V 45 H 65 V 60 H 45 V 45 H 30 V 25 H 45 Z" style="fill: rgb(2, 190, 24);" bx:shape="cross 30 10 50 50 20 20 0.5 1@7662b830"/>
 </svg>
