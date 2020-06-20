@@ -32,13 +32,13 @@ struct Counter {
 impl Default for Counter {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
-        let right_panel_state = Rc::new(Cell::new(RightPanelState::None));
+        let first_offset = Rc::new(Cell::new(false));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
             grid: grid.clone(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(grid.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new(grid.clone(), right_panel_state.clone()),
+            grid_plate: GridPlate::new(grid.clone(), first_offset.clone(), mouse_hold.clone()),
+            right_panel: RightPanel::new(grid.clone(), first_offset.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             active_color: Default::default(),
@@ -89,6 +89,7 @@ impl Sandbox for Counter {
                 match msg {
                     LeftMenuMessage::GridAction(action) => {
                         self.grid_plate.update(GridMessage::GridAction(action));
+                        self.right_panel.update(RightPanelMessage::GridChanged);
                     },
                 }
             },

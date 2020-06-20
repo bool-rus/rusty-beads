@@ -36,21 +36,23 @@ pub mod right {
         grid: Rc<RefCell<Grid<Color>>>,
         scroll: scrollable::State,
         state: State,
+        first_offset: Rc<Cell<bool>>,
     }
 
     impl RightPanel {
-        pub fn new(grid: Rc<RefCell<Grid<Color>>>, state: Rc<Cell<State>>) -> Self {
+        pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>) -> Self {
             Self {
                 grid,
                 scroll: Default::default(),
                 state: State::None,
+                first_offset,
             }
         }
         pub fn refresh(&mut self) {
             match self.state {
                 State::None => {},
                 State::Beads(_) => {
-                    let line = BeadsLineBuilder::RLOffset(true).build(self.grid.borrow().as_table());
+                    let line = BeadsLineBuilder::RLOffset(self.first_offset.get()).build(self.grid.borrow().as_table());
                     self.state = State::Beads(BeadsWidget::new(line))
                 },
             }
