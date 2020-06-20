@@ -109,7 +109,9 @@ impl AppWidget for GridPlate {
 
 
     fn view(&mut self) -> Element<'_, Message> {
-        let portions = if self.first_offset.get() { [2u16,1,2] } else { [1u16,2,1] };
+        let full = Length::FillPortion(2);
+        let half = Length::FillPortion(1);
+        let portions = if self.first_offset.get() { [full,half,full] } else { [half,full,half] };
         let grid = self.grid.borrow();
         let table = grid.as_table();
         let width = table.get(0).unwrap().len();
@@ -121,7 +123,7 @@ impl AppWidget for GridPlate {
                 let mut children= Vec::with_capacity(arr.len() + 2);
                 let index = row % 2;
                 children.push(Element::from(
-                    Space::new(Length::FillPortion(portions[index]),Length::Fill)
+                    Space::new(portions[index],Length::Fill)
                 ));
                 let iter = arr.iter()
                     .cycle()
@@ -130,8 +132,8 @@ impl AppWidget for GridPlate {
                     .zip(range.clone().into_iter());
                 children.extend(iter.map(|((item, col), _)| {
                     let mut widget = ColorBox::new(item.clone())
-                        .width(Length::FillPortion(2))
-                        .height(Length::FillPortion(2))
+                        .width(full)
+                        .height(Length::Fill)
                         .on_press(Message::GridClicked(row, col).into());
                     if self.mouse_hold.get() {
                         widget = widget.on_over(Message::GridClicked(row,col))
@@ -140,7 +142,7 @@ impl AppWidget for GridPlate {
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
-                    Space::new(Length::FillPortion(portions[index+1]),Length::Fill).into()
+                    Space::new(portions[index+1],Length::Fill).into()
                 );
                 Row::with_children(children)
                     .height(Length::Fill)
