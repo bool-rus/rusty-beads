@@ -16,6 +16,7 @@ use message::Message;
 use ui::*;
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
+use std::num::NonZeroUsize;
 
 
 struct App {
@@ -26,6 +27,7 @@ struct App {
     right_menu: RightMenu,
     left_menu: LeftMenu,
     active_color: Color,
+    left_panel: LeftPanel,
     mouse_hold: Rc<Cell<bool>>,
 }
 
@@ -43,6 +45,7 @@ impl Default for App {
             left_menu: LeftMenu::default(),
             active_color: Default::default(),
             mouse_hold,
+            left_panel: Default::default(),
         }
     }
 }
@@ -88,6 +91,7 @@ impl Sandbox for App {
             },
             Message::LeftMenu(msg) => {
                 self.left_menu.update(msg);
+                self.left_panel.update(LeftPanelMessage::Menu(msg));
                 match msg {
                     LeftMenuMessage::GridAction(action) => {
                         self.grid_plate.update(GridMessage::GridAction(action));
@@ -99,6 +103,13 @@ impl Sandbox for App {
                     LeftMenuMessage::ZoomOut => {
                         self.grid_plate.update(GridMessage::ZoomOut);
                     }
+                    LeftMenuMessage::ToggleResize => {
+                        let grid = self.grid.borrow();
+                        use LeftPanelMessage::*;
+                        self.left_panel.update(InputWidth(grid.width()));
+                        self.left_panel.update(InputHeight(grid.height()));
+                    }
+                    _ => {}
                 }
             },
             Message::Grid(msg) => {
@@ -118,13 +129,22 @@ impl Sandbox for App {
             Message::RightPanel(msg) => {
                 self.right_panel.update(msg);
             },
+            Message::LeftPanel(msg) => {
+                self.left_panel.update(msg);
+                if let LeftPanelMessage::Resize(width, height) = msg {
+                    if let (Some(width), Some(height)) =
+                    (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
+                        self.grid.borrow_mut().resize(width, height);
+                    }
+                }
+            }
         }
     }
 
     fn view(&mut self) -> Element<'_, Message> {
         let top = Container::new(self.top_menu.view().map(From::from))
             .height(Length::Units(30));
-        let bottom = Container::new(Text::new("footer"));
+        let bottom = Container::new(Text::new(""));
         let left = Container::new(self.left_menu.view().map(From::from))
             .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
@@ -135,6 +155,7 @@ impl Sandbox for App {
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)
+            .push(self.left_panel.view().map(From::from))
             .push(content.height(Length::Fill).width(Length::Fill))
             .push(self.right_panel.view().map(From::from))
             .push(right);
