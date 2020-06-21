@@ -144,7 +144,7 @@ impl Sandbox for App {
     fn view(&mut self) -> Element<'_, Message> {
         let top = Container::new(self.top_menu.view().map(From::from))
             .height(Length::Units(30));
-        let bottom = Container::new(Text::new("footer"));
+        let bottom = Container::new(Text::new(""));
         let left = Container::new(self.left_menu.view().map(From::from))
             .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
