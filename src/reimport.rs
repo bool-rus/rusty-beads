@@ -2,6 +2,7 @@ pub use iced::{
     button,
     scrollable,
     slider,
+    text_input,
     checkbox,
     Checkbox,
     Button,
@@ -19,4 +20,5 @@ pub use iced::{
     Scrollable,
     Align,
     Slider,
+    TextInput,
 };

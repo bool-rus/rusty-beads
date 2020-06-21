@@ -26,6 +26,7 @@ struct App {
     right_menu: RightMenu,
     left_menu: LeftMenu,
     active_color: Color,
+    left_panel: LeftPanel,
     mouse_hold: Rc<Cell<bool>>,
 }
 
@@ -43,6 +44,7 @@ impl Default for App {
             left_menu: LeftMenu::default(),
             active_color: Default::default(),
             mouse_hold,
+            left_panel: Default::default(),
         }
     }
 }
@@ -118,6 +120,9 @@ impl Sandbox for App {
             Message::RightPanel(msg) => {
                 self.right_panel.update(msg);
             },
+            Message::LeftPanel(msg) => {
+                self.left_panel.update(msg);
+            }
         }
     }
 
@@ -135,6 +140,7 @@ impl Sandbox for App {
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)
+            .push(self.left_panel.view().map(From::from))
             .push(content.height(Length::Fill).width(Length::Fill))
             .push(self.right_panel.view().map(From::from))
             .push(right);
