@@ -149,7 +149,7 @@ impl Sandbox for App {
 fn main() {
     App::run(Settings {
         window: iced::window::Settings {
-            size: (480, 480),
+            size: (550, 480),
             resizable: true,
             decorations: true,
         },

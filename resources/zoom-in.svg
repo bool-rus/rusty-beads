@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="3" height="3"/>
+  </defs>
+  <rect x="40.61" y="80" width="33.841" height="20" style="" transform="matrix(0.716284, 0.697809, -0.697809, 0.716284, 113.496696, -12.580974)"/>
+  <circle style="stroke-width: 7px; stroke: rgb(7, 184, 21); fill: none;" cx="48.981" cy="48.44" r="43.273"/>
+  <path d="M 39.254 23.713 H 59.254 V 38.713 H 74.254 V 58.713 H 59.254 V 73.713 H 39.254 V 58.713 H 24.254 V 38.713 H 39.254 Z" style="fill: rgb(14, 142, 0);" bx:shape="cross 24.254 23.713 50 50 20 20 0.5 1@fbb06eab"/>
+</svg>
