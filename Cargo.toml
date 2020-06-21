@@ -1,11 +1,11 @@
 [package]
 name = "beads-and-threads"
-version = "0.0.0"
+version = "1.0.0"
 authors = ["Serge Barinov <bool.rus@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-iced='*'
+iced = {version = '*', features=["svg"]}
 iced_native = '*'
 iced_wgpu = '*'
 quick-csv = "*"

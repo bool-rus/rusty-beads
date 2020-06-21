@@ -1,5 +1,10 @@
 pub use iced::{
     button,
+    scrollable,
+    slider,
+    text_input,
+    checkbox,
+    Checkbox,
     Button,
     Text,
     Column,
@@ -12,4 +17,8 @@ pub use iced::{
     Container,
     Point,
     Background,
+    Scrollable,
+    Align,
+    Slider,
+    TextInput,
 };

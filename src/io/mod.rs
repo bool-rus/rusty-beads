@@ -1,16 +1,16 @@
 extern crate quick_csv;
-use crate::field::Grid;
-use crate::lib::Color;
+use crate::grid::Grid;
+use crate::entities::Color;
 use std::fs::File;
 use std::io::Write;
 use self::quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 
-pub fn write(file: &str, content: &Grid<Color>) -> std::io::Result<()> {
+pub fn write(file: &str, table: Vec<&[Color]>) -> std::io::Result<()> {
 
     let mut file = File::create(file)?;
-    for row in content.as_table().into_iter() {
+    for row in table.into_iter() {
         let mut first = true;
         for item in row.iter() {
             if first {

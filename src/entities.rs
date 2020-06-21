@@ -4,7 +4,7 @@ use std::str::{FromStr};
 use std::num::ParseIntError;
 
 
-#[derive(Clone, Hash, Copy, Debug)]
+#[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -37,6 +37,12 @@ pub enum ParseColorError {
     Encoding,
 }
 
+impl From<ParseIntError> for ParseColorError {
+    fn from(e: ParseIntError) -> Self {
+        ParseColorError::Parse(e)
+    }
+}
+
 impl FromStr for Color {
     type Err = ParseColorError;
 
@@ -48,11 +54,10 @@ impl FromStr for Color {
         } else if !s.starts_with('#') {
             Err(ParseColorError::WrongFirstSymbol)
         } else {
-            let map_e = |e| { ParseColorError::Parse(e) };
             Ok(Self {
-                r: u8::from_str_radix(&s[1..3], 16).map_err(map_e)?,
-                g: u8::from_str_radix(&s[3..5], 16).map_err(map_e)?,
-                b: u8::from_str_radix(&s[5..7], 16).map_err(map_e)?,
+                r: u8::from_str_radix(&s[1..3], 16)?,
+                g: u8::from_str_radix(&s[3..5], 16)?,
+                b: u8::from_str_radix(&s[5..7], 16)?,
             })
         }
     }
@@ -70,14 +75,11 @@ impl Into<iced::Color> for Color {
         iced::Color::from_rgb8(r,g,b)
     }
 }
+#[derive(Debug, Copy, Clone)]
+pub enum Side { Top, Left, Right, Bottom }
 
-
-#[derive(Debug, Clone, Copy)]
-pub enum Message {
-    OpenPressed,
-    ExportPressed,
-    GrowPressed,
-    ShrinkPressed,
-    PlateClicked(usize, usize),
-    SetColor(Color)
+#[derive(Debug, Copy, Clone)]
+pub enum GridAction {
+    Add(Side),
+    Remove(Side)
 }
