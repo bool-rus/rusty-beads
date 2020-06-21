@@ -12,3 +12,6 @@ pub const REMOVE_BOTTOM_ROW: &[u8] = include_bytes!("../../resources/remove-bott
 
 pub const UNDO: &[u8] = include_bytes!("../../resources/undo.svg");
 pub const REDO: &[u8] = include_bytes!("../../resources/redo.svg");
+
+pub const ZOOM_IN: &[u8] = include_bytes!("../../resources/zoom-in.svg");
+pub const ZOOM_OUT: &[u8] = include_bytes!("../../resources/zoom-out.svg");

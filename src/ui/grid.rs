@@ -14,6 +14,8 @@ pub enum Message {
     GridAction(GridAction),
     Rotate(isize),
     SetRotation(f32),
+    ZoomIn,
+    ZoomOut,
     Undo,
     Redo,
 }
@@ -27,6 +29,7 @@ pub struct GridPlate {
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
+    half_size: u16,
     rot_l: button::State,
     rot_r: button::State,
 }
@@ -40,6 +43,7 @@ impl GridPlate {
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
             rotation: 0,
+            half_size: 5,
             slider: Default::default(),
             scroll: Default::default(),
             rot_l: Default::default(),
@@ -100,6 +104,16 @@ impl GridPlate {
                 self.rotation = rotation.round() as isize;
                 None
             }
+            Message::ZoomIn => {
+                self.half_size += 1;
+                None
+            }
+            Message::ZoomOut => {
+                if self.half_size > 1 {
+                    self.half_size -= 1;
+                }
+                None
+            }
         };
         let deque = if log_undo { &mut self.undo } else { &mut self.redo };
         if let Some(undo) = undo {
@@ -120,8 +134,8 @@ impl AppWidget for GridPlate {
 
 
     fn view(&mut self) -> Element<'_, Message> {
-        let full = Length::Units(20);
-        let half = Length::Units(10);
+        let full = Length::Units(self.half_size * 2);
+        let half = Length::Units(self.half_size);
         let portions = if self.first_offset.get() { [full,half,full] } else { [half,full,half] };
         let grid = self.grid.borrow();
         let width = grid.width();
