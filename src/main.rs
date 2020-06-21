@@ -16,6 +16,7 @@ use message::Message;
 use ui::*;
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
+use std::num::NonZeroUsize;
 
 
 struct App {
@@ -90,6 +91,7 @@ impl Sandbox for App {
             },
             Message::LeftMenu(msg) => {
                 self.left_menu.update(msg);
+                self.left_panel.update(LeftPanelMessage::Menu(msg));
                 match msg {
                     LeftMenuMessage::GridAction(action) => {
                         self.grid_plate.update(GridMessage::GridAction(action));
@@ -101,6 +103,7 @@ impl Sandbox for App {
                     LeftMenuMessage::ZoomOut => {
                         self.grid_plate.update(GridMessage::ZoomOut);
                     }
+                    _ => {}
                 }
             },
             Message::Grid(msg) => {
@@ -122,6 +125,12 @@ impl Sandbox for App {
             },
             Message::LeftPanel(msg) => {
                 self.left_panel.update(msg);
+                if let LeftPanelMessage::Resize(width, height) = msg {
+                    if let (Some(width), Some(height)) =
+                    (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
+                        self.grid.borrow_mut().resize(width, height);
+                    }
+                }
             }
         }
     }

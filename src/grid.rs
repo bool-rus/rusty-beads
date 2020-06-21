@@ -143,6 +143,43 @@ impl<T:Clone> Grid<T> {
     }
 }
 
+fn lr_side(i: usize) -> Side {
+    if i % 2 == 0 { Side::Right } else { Side::Left }
+}
+
+fn tb_side(i: usize) -> Side {
+    if i % 2 == 0 { Side::Bottom } else { Side::Top }
+}
+
+impl<T: Clone + Default> Grid<T> {
+    pub fn resize(&mut self, width: NonZeroUsize, height: NonZeroUsize) {
+        let width = width.get();
+        let height = height.get();
+        if width > self.width {
+            let delta = width - self.width;
+            for i in 0..delta {
+                self.grow(lr_side(i), Default::default());
+            }
+        } else {
+            let delta = self.width - width;
+            for i in 0..delta {
+                self.shrink(lr_side(i));
+            }
+        }
+        if height > self.height {
+            let delta = height - self.height;
+            for i in 0..delta {
+                self.grow(tb_side(i), Default::default());
+            }
+        } else {
+            let delta = self.height - height;
+            for i in 0..delta {
+                self.shrink(tb_side(i));
+            }
+        }
+    }
+}
+
 
 
 impl<T: Default + Clone> Default for Grid<T> {

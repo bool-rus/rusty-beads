@@ -27,7 +27,7 @@ pub mod left {
 
     impl Default for Panel {
         fn default() -> Self {
-            Self {state:State::Resize(Default::default())}
+            Self { state:State::None }
         }
     }
 
@@ -42,9 +42,24 @@ pub mod left {
         }
 
         fn update(&mut self, msg: Self::Message) {
-            match self.state {
-                State::None => {},
-                State::Resize(ref mut widget) => { widget.update(msg); },
+            match msg {
+                Message::Menu(msg) => {
+                    match msg {
+                        MenuMsg::ToggleResize => {
+                            match self.state {
+                                State::None => {self.state = State::Resize(Default::default())},
+                                State::Resize(_) => {self.state = State::None},
+                            }
+                        },
+                        _ => {}
+                    }
+                },
+                msg => {
+                    match self.state {
+                        State::None => {},
+                        State::Resize(ref mut widget) => {widget.update(msg)},
+                    }
+                }
             }
         }
     }
@@ -96,8 +111,8 @@ pub mod left {
                 Message::Resize(_, _) => {/* top level process */},
                 Message::InputWidth(s) => { self.width = s.to_string(); },
                 Message::InputHeight(s) => { self.height = s.to_string(); },
-                Message::WrongValue => {}
-                Message::Menu(_) => {}
+                Message::WrongValue => {},
+                _ => {}
             }
         }
     }
