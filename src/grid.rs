@@ -32,6 +32,12 @@ impl<T:Clone> Grid<T> {
             Ok(Self { width, height, data })
         }
     }
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    pub fn height(&self) -> usize {
+        self.height
+    }
     pub fn update_from_another(&mut self, rhs: Self) {
         let Self {width,height,data} = rhs;
         self.width = width;

@@ -1,6 +1,7 @@
 pub use iced::{
     button,
     scrollable,
+    slider,
     checkbox,
     Checkbox,
     Button,
@@ -17,4 +18,5 @@ pub use iced::{
     Background,
     Scrollable,
     Align,
+    Slider,
 };

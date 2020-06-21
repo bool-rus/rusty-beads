@@ -13,6 +13,7 @@ pub enum Message {
     SetColor(usize, usize, Color),
     GridAction(GridAction),
     Rotate(isize),
+    SetRotation(f32),
     Undo,
     Redo,
 }
@@ -24,6 +25,8 @@ pub struct GridPlate {
     undo: VecDeque<Message>,
     redo: VecDeque<Message>,
     rotation: isize,
+    scroll: scrollable::State,
+    slider: slider::State,
     rot_l: button::State,
     rot_r: button::State,
 }
@@ -37,6 +40,8 @@ impl GridPlate {
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
             rotation: 0,
+            slider: Default::default(),
+            scroll: Default::default(),
             rot_l: Default::default(),
             rot_r: Default::default(),
         }
@@ -89,6 +94,12 @@ impl GridPlate {
                 self.rotation += rotation;
                 None
             }
+            Message::SetRotation(rotation) => {
+                let width = self.grid.borrow().width() as f32;
+                let rotation = width*rotation;
+                self.rotation = rotation.round() as isize;
+                None
+            }
         };
         let deque = if log_undo { &mut self.undo } else { &mut self.redo };
         if let Some(undo) = undo {
@@ -109,21 +120,19 @@ impl AppWidget for GridPlate {
 
 
     fn view(&mut self) -> Element<'_, Message> {
-        let full = Length::FillPortion(2);
-        let half = Length::FillPortion(1);
+        let full = Length::Units(20);
+        let half = Length::Units(10);
         let portions = if self.first_offset.get() { [full,half,full] } else { [half,full,half] };
         let grid = self.grid.borrow();
-        let table = grid.as_table();
-        let width = table.get(0).unwrap().len();
+        let width = grid.width();
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
-
-        Container::new(Column::with_children(
-            table.iter().enumerate().map(|(row, arr)| {
+        let grid = Column::with_children(
+            grid.as_table().iter().enumerate().map(|(row, arr)| {
                 let mut children= Vec::with_capacity(arr.len() + 2);
                 let index = row % 2;
                 children.push(Element::from(
-                    Space::new(portions[index],Length::Fill)
+                    Space::new(portions[index],full)
                 ));
                 let iter = arr.iter()
                     .cycle()
@@ -133,7 +142,7 @@ impl AppWidget for GridPlate {
                 children.extend(iter.map(|((item, col), _)| {
                     let mut widget = ColorBox::new(item.clone())
                         .width(full)
-                        .height(Length::Fill)
+                        .height(full)
                         .on_press(Message::GridClicked(row, col).into());
                     if self.mouse_hold.get() {
                         widget = widget.on_over(Message::GridClicked(row,col))
@@ -142,14 +151,30 @@ impl AppWidget for GridPlate {
                     //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
-                    Space::new(portions[index+1],Length::Fill).into()
+                    Space::new(portions[index+1],full).into()
                 );
                 Row::with_children(children)
-                    .height(Length::Fill)
+                    //.height(Length::Fill)
                     .into()
-            }).collect())
-            .push(Button::new(&mut self.rot_l, Text::new("<")).on_press(Message::Rotate(-1)))
-            .push(Button::new(&mut self.rot_r, Text::new(">")).on_press(Message::Rotate(1)))
+            }).collect());
+        let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_y(Align::Center)
+            .align_x(Align::Center);
+        Column::new().push(grid).push(Row::new()
+            .push(Container::new(
+                Button::new(&mut self.rot_l, Text::new("<")).on_press(Message::Rotate(-1))
+            ).width(Length::FillPortion(1)).align_x(Align::Start))
+            .push(Slider::new(
+                &mut self.slider,
+                -1.0..=1.0,
+                (self.rotation as f32)/(width as f32),
+                |v|{Message::SetRotation(v)}
+            ).width(Length::FillPortion(8)))
+            .push(Container::new(
+                Button::new(&mut self.rot_r, Text::new(">")).on_press(Message::Rotate(1))
+            ).width(Length::FillPortion(1)).align_x(Align::End))
         ).into()
     }
 
