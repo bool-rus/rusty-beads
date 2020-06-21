@@ -53,7 +53,7 @@ pub mod right {
                 State::None => {},
                 State::Beads(_) => {
                     let line = BeadsLineBuilder::RLOffset(self.first_offset.get()).build(self.grid.borrow().as_table());
-                    self.state = State::Beads(BeadsWidget::new(line))
+                    self.state = State::Beads(BeadsWidget::new(self.grid.borrow().width(), line))
                 },
             }
         }
@@ -87,16 +87,17 @@ pub mod right {
     }
     #[derive(Debug)]
     struct BeadsWidget {
+        line_width: usize,
         line: BeadsLine<Color>,
         checkboxes: Vec<bool>,
     }
 
     impl BeadsWidget {
-        fn new(line: BeadsLine<Color>) -> Self {
-            Self {checkboxes: vec![false; line.line().len()], line}
+        fn new(line_width: usize, line: BeadsLine<Color>) -> Self {
+            Self {line_width, checkboxes: vec![false; line.line().len()], line}
         }
         fn empty() -> Self {
-            Self {line: BeadsLineBuilder::Empty.build(Vec::new()), checkboxes: Vec::new()}
+            Self {line_width: 0, line: BeadsLineBuilder::Empty.build(Vec::new()), checkboxes: Vec::new()}
         }
     }
 
@@ -124,6 +125,7 @@ pub mod right {
                 }).collect()
             ).spacing(1).into();
             Column::with_children(vec![
+                Text::new(format!("Width: {}", self.line_width)).into(),
                 Text::new("Summary").into(),
                 summary,
                 Text::new("Scheme").into(),
