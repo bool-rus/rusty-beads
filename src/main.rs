@@ -93,6 +93,12 @@ impl Sandbox for App {
                         self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     },
+                    LeftMenuMessage::ZoomIn => {
+                        self.grid_plate.update(GridMessage::ZoomIn);
+                    }
+                    LeftMenuMessage::ZoomOut => {
+                        self.grid_plate.update(GridMessage::ZoomOut);
+                    }
                 }
             },
             Message::Grid(msg) => {
