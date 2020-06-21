@@ -158,12 +158,12 @@ impl<T: Clone + Default> Grid<T> {
         if width > self.width {
             let delta = width - self.width;
             for i in 0..delta {
-                self.grow(lr_side(i), Default::default());
+                self.grow(Side::Right, Default::default());
             }
         } else {
             let delta = self.width - width;
             for i in 0..delta {
-                self.shrink(lr_side(i));
+                self.shrink(Side::Right);
             }
         }
         if height > self.height {

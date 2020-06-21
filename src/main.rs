@@ -103,6 +103,12 @@ impl Sandbox for App {
                     LeftMenuMessage::ZoomOut => {
                         self.grid_plate.update(GridMessage::ZoomOut);
                     }
+                    LeftMenuMessage::ToggleResize => {
+                        let grid = self.grid.borrow();
+                        use LeftPanelMessage::*;
+                        self.left_panel.update(InputWidth(grid.width()));
+                        self.left_panel.update(InputHeight(grid.height()));
+                    }
                     _ => {}
                 }
             },
