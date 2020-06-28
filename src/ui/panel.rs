@@ -258,7 +258,7 @@ pub mod right {
                                 *checked,
                                 symbols.get(&color).unwrap_or(&undefined).to_string(),
                                 move |_x| Message::Toggle(i)
-                            ).spacing(1))
+                            ).spacing(1).width(Length::Units(35)))
                             .push(ColorBox::new(color.clone()))
                             .push(Text::new(count.to_string()))
                             .into()
