@@ -17,6 +17,7 @@ use ui::*;
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 use std::num::NonZeroUsize;
+use crate::entities::Schema;
 
 
 struct App {
@@ -34,13 +35,13 @@ struct App {
 impl Default for App {
     fn default() -> Self {
         let grid = Rc::new(RefCell::new(Default::default()));
-        let first_offset = Rc::new(Cell::new(false));
+        let schema = Rc::new(Cell::new(Schema::FirstOffset));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
             grid: grid.clone(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(grid.clone(), first_offset.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new(grid.clone(), first_offset.clone()),
+            grid_plate: GridPlate::new(grid.clone(), schema.clone(), mouse_hold.clone()),
+            right_panel: RightPanel::new(grid.clone(), schema.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             active_color: Default::default(),

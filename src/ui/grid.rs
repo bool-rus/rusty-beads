@@ -2,7 +2,7 @@ use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use crate::entities::{Color, GridAction, Side};
+use crate::entities::{Color, GridAction, Side, Schema};
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 use std::collections::VecDeque;
@@ -24,7 +24,7 @@ pub enum Message {
 pub struct GridPlate {
     grid: Rc<RefCell<Grid<Color>>>,
     mouse_hold: Rc<Cell<bool>>,
-    first_offset: Rc<Cell<bool>>,
+    schema: Rc<Cell<Schema>>,
     undo: VecDeque<Message>,
     redo: VecDeque<Message>,
     rotation: isize,
@@ -36,11 +36,11 @@ pub struct GridPlate {
 }
 
 impl GridPlate {
-    pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+    pub fn new(grid: Rc<RefCell<Grid<Color>>>, schema: Rc<Cell<Schema>>, mouse_hold: Rc<Cell<bool>>) -> Self {
         Self {
             grid,
             mouse_hold ,
-            first_offset,
+            schema,
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
             rotation: 0,
@@ -49,6 +49,22 @@ impl GridPlate {
             scroll: Default::default(),
             rot_l: Default::default(),
             rot_r: Default::default(),
+        }
+    }
+    fn switch_offset(&mut self) {
+        use Schema::*;
+        match self.schema.get() {
+            FirstOffset => self.schema.set(SecondOffset),
+            SecondOffset => self.schema.set(FirstOffset),
+            Straight => {},
+        }
+    }
+    fn switch_schema(&mut self) {
+        use Schema::*;
+        match self.schema.get() {
+            FirstOffset => self.schema.set(Straight),
+            SecondOffset => self.schema.set(FirstOffset),
+            Straight => self.schema.set(SecondOffset),
         }
     }
     fn update_impl(&mut self, msg: Message, log_undo: bool) -> Result<(), String> {
@@ -63,14 +79,14 @@ impl GridPlate {
                 match action {
                     GridAction::Add(side) => {
                         if matches!(side, Side::Top) {
-                            self.first_offset.set(!self.first_offset.get());
+                            self.switch_offset();
                         }
                         self.grid.borrow_mut().grow(side, Color::default());
                         Some(Message::GridAction(GridAction::Remove(side)))
                     },
                     GridAction::Remove(side) => {
                         if matches!(side, Side::Top) {
-                            self.first_offset.set(!self.first_offset.get());
+                            self.switch_offset();
                         }
                         self.grid.borrow_mut().shrink(side);
                         Some(Message::GridAction(GridAction::Add(side)))
@@ -116,7 +132,7 @@ impl GridPlate {
                 None
             }
             Message::SchemaChange => {
-                self.first_offset.set(!self.first_offset.get());
+                self.switch_schema();
                 None
             }
         };
@@ -141,7 +157,11 @@ impl AppWidget for GridPlate {
     fn view(&mut self) -> Element<'_, Message> {
         let full = Length::Units(self.half_size * 2);
         let half = Length::Units(self.half_size);
-        let portions = if self.first_offset.get() { [full,half,full] } else { [half,full,half] };
+        let portions = match self.schema.get() {
+            Schema::FirstOffset => [full, half, full],
+            Schema::SecondOffset => [half, full, half],
+            Schema::Straight => [half, half, half],
+        };
         let grid = self.grid.borrow();
         let width = grid.width();
         let range = 0..width;
@@ -167,14 +187,11 @@ impl AppWidget for GridPlate {
                         widget = widget.on_over(Message::GridClicked(row,col))
                     }
                     widget.into()
-                    //Text::new(format!("{}",item.b)).width(Length::FillPortion(2)).into()
                 }));
                 children.push(
                     Space::new(portions[index+1],full).into()
                 );
-                Row::with_children(children)
-                    //.height(Length::Fill)
-                    .into()
+                Row::with_children(children).into()
             }).collect());
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
             .width(Length::Fill)

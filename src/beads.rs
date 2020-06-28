@@ -21,7 +21,6 @@ impl<T: Eq + Hash> BeadsLine<T> {
 }
 
 pub enum BeadsLineBuilder {
-    Empty,
     LRSquare,
     RLSquare,
     LROffset(bool),
@@ -31,7 +30,6 @@ pub enum BeadsLineBuilder {
 impl BeadsLineBuilder {
     pub fn build<T: Clone + Eq + Hash>(&self, table: Vec<&[T]>) -> BeadsLine<T> {
         match self {
-            BeadsLineBuilder::Empty => {BeadsLine::new(Vec::new(), HashMap::new())}
             BeadsLineBuilder::LRSquare => {unimplemented!()},
             BeadsLineBuilder::RLSquare => {unimplemented!()},
             BeadsLineBuilder::LROffset(first_offset) => {
