@@ -158,7 +158,7 @@ pub mod left {
             let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
 
             Column::new().width(Length::Fill).spacing(5)
-                .push(Button::new(&mut self.toggle_resize, svg(icon::RESIZE_ICON)).on_press(Message::ToggleResize))
+                .push(Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ToggleResize))
                 .push(Button::new(&mut self.zoom_in, svg(icon::ZOOM_IN)).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, svg(icon::ZOOM_OUT)).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.add_top, svg(icon::ADD_TOP_ROW)).on_press(add_top))
