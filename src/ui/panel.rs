@@ -59,6 +59,10 @@ pub mod left {
                         State::None => {},
                         State::Resize(ref mut widget) => {widget.update(msg)},
                     }
+                    match msg {
+                        Message::Resize(_,_) => self.state = State::None,
+                        _ => {}
+                    }
                 }
             }
         }
