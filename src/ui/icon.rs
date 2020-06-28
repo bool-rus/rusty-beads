@@ -17,3 +17,5 @@ pub const ZOOM_IN: &[u8] = include_bytes!("../../resources/zoom-in.svg");
 pub const ZOOM_OUT: &[u8] = include_bytes!("../../resources/zoom-out.svg");
 
 pub const RESIZE_ICON: &[u8] = include_bytes!("../../resources/resize.svg");
+
+pub const CHANGE_SCHEMA: &[u8] = include_bytes!("../../resources/change-schema.svg");
