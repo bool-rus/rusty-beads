@@ -3,8 +3,8 @@
   <defs>
     <bx:grid x="5" y="5" width="10" height="5"/>
   </defs>
-  <rect x="5" y="5" width="70" height="50" style="stroke-width: 7px; stroke: rgb(0, 0, 0); fill: rgb(175, 179, 165);"/>
-  <rect x="35" y="55" width="70" height="50" style="stroke: rgb(0, 0, 0); stroke-width: 7px; fill: rgb(175, 179, 165);"/>
+  <rect x="5" y="5" width="70" height="50" style="stroke-width: 7px; stroke: rgb(0, 0, 0); fill: rgb(255, 255,255);"/>
+  <rect x="35" y="55" width="70" height="50" style="stroke: rgb(0, 0, 0); stroke-width: 7px; fill: rgb(255, 255, 255);"/>
   <path d="M 15 22.5 H 37 L 37 10 L 65 30 L 37 50 L 37 37.5 H 15 V 22.5 Z" style="fill: rgb(3, 164, 3);" bx:shape="arrow 15 10 50 40 15 28 0 1@1bedd176"/>
   <path d="M -95 -87.5 H -73 L -73 -100 L -45 -80 L -73 -60 L -73 -72.5 H -95 V -87.5 Z" style="fill: rgb(3, 164, 3);" transform="matrix(-1, 0, 0, -1, 0, 0)" bx:shape="arrow -95 -100 50 40 15 28 0 1@b5098de8"/>
 </svg>

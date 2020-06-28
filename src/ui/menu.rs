@@ -129,6 +129,7 @@ pub mod left {
     pub enum Message {
         ToggleResize,
         GridAction(GridAction),
+        SchemaChange,
         ZoomIn,
         ZoomOut,
     }
@@ -138,6 +139,7 @@ pub mod left {
         toggle_resize: State,
         zoom_in: State,
         zoom_out: State,
+        schema_change: State,
         add_top: State,
         add_bottom: State,
         remove_top: State,
@@ -161,6 +163,7 @@ pub mod left {
                 .push(Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ToggleResize))
                 .push(Button::new(&mut self.zoom_in, svg(icon::ZOOM_IN)).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, svg(icon::ZOOM_OUT)).on_press(Message::ZoomOut))
+                .push(Button::new(&mut self.schema_change, svg(icon::CHANGE_SCHEMA)).on_press(Message::SchemaChange))
                 .push(Button::new(&mut self.add_top, svg(icon::ADD_TOP_ROW)).on_press(add_top))
                 .push(Button::new(&mut self.remove_top, svg(icon::REMOVE_TOP_ROW)).on_press(remove_top))
                 .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(remove_bottom))
