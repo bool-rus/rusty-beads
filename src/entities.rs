@@ -83,3 +83,10 @@ pub enum GridAction {
     Add(Side),
     Remove(Side)
 }
+
+#[derive(Debug, Copy, Clone)]
+pub enum Schema {
+    FirstOffset,
+    SecondOffset,
+    Straight,
+}

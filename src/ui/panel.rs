@@ -122,7 +122,7 @@ pub mod right {
     use crate::reimport::*;
     use std::rc::Rc;
     use crate::beads::{BeadsLine, BeadsLineBuilder};
-    use crate::entities::Color;
+    use crate::entities::{Color, Schema};
     use crate::ui::AppWidget;
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
@@ -153,23 +153,27 @@ pub mod right {
         grid: Rc<RefCell<Grid<Color>>>,
         scroll: scrollable::State,
         state: State,
-        first_offset: Rc<Cell<bool>>,
+        schema: Rc<Cell<Schema>>,
     }
 
     impl RightPanel {
-        pub fn new(grid: Rc<RefCell<Grid<Color>>>, first_offset: Rc<Cell<bool>>) -> Self {
+        pub fn new(grid: Rc<RefCell<Grid<Color>>>, schema: Rc<Cell<Schema>>) -> Self {
             Self {
                 grid,
                 scroll: Default::default(),
                 state: State::None,
-                first_offset,
+                schema,
             }
         }
         pub fn refresh(&mut self) {
             match self.state {
                 State::None => {}
                 State::Beads(_) => {
-                    let line = BeadsLineBuilder::RLOffset(self.first_offset.get()).build(self.grid.borrow().as_table());
+                    let line =  match self.schema.get() {
+                        Schema::FirstOffset => BeadsLineBuilder::RLOffset(true),
+                        Schema::SecondOffset => BeadsLineBuilder::RLOffset(false),
+                        Schema::Straight => BeadsLineBuilder::RLSquare,
+                    }.build(self.grid.borrow().as_table());
                     self.state = State::Beads(BeadsWidget::new(self.grid.borrow().width(), line))
                 }
             }
@@ -215,7 +219,7 @@ pub mod right {
             Self { line_width, checkboxes: vec![false; line.line().len()], line }
         }
         fn empty() -> Self {
-            Self { line_width: 0, line: BeadsLineBuilder::Empty.build(Vec::new()), checkboxes: Vec::new() }
+            Self { line_width: 0, line: BeadsLineBuilder::RLOffset(true).build(Vec::new()), checkboxes: Vec::new() }
         }
     }
 
