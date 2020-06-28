@@ -129,6 +129,7 @@ pub mod right {
     use std::cell::{RefCell, Cell};
     use super::RightMenuMessage as MenuMsg;
     use std::hash::Hash;
+    use std::collections::HashMap;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -223,14 +224,23 @@ pub mod right {
         }
     }
 
+    const SYMBOLS: [&str;26] = ["A","B","C","D","E","F","G","H","I","J","K","L","M",
+                                "N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+
     impl AppWidget for BeadsWidget {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let mut sorted_summary: Vec<_> = self.line.summary().iter().collect();
+            let undefined = "?";
             sorted_summary.sort_unstable_by_key(|(&color, _)| { color.to_string() });
+            let mut range = SYMBOLS.iter();
+            let symbols: HashMap<_,_> = sorted_summary.iter().map(|(obj, _)|{
+                (obj.clone(), *range.next().unwrap_or(&undefined))
+            }).collect();
             let summary = Column::with_children(sorted_summary.iter().map(|(&color, &count)| {
                 Row::new().spacing(5)
+                    .push(Text::new(symbols.get(&color).unwrap_or(&undefined).to_string()).width(Length::Units(15)))
                     .push(ColorBox::new(color))
                     .push(Text::new(count.to_string()))
                     .into()
@@ -240,7 +250,11 @@ pub mod right {
                     .zip(self.checkboxes.iter().enumerate())
                     .map(|((color, count), (i, checked))| {
                         Row::new().spacing(5).align_items(Align::Center)
-                            .push(Checkbox::new(*checked, String::new(), move |_x| Message::Toggle(i)))
+                            .push(Checkbox::new(
+                                *checked,
+                                symbols.get(&color).unwrap_or(&undefined).to_string(),
+                                move |_x| Message::Toggle(i)
+                            ).spacing(1))
                             .push(ColorBox::new(color.clone()))
                             .push(Text::new(count.to_string()))
                             .into()
