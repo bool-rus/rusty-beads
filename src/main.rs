@@ -109,7 +109,9 @@ impl Sandbox for App {
                         self.left_panel.update(InputWidth(grid.width()));
                         self.left_panel.update(InputHeight(grid.height()));
                     }
-                    _ => {}
+                    LeftMenuMessage::SchemaChange => {
+                        self.grid_plate.update(GridMessage::SchemaChange);
+                    }
                 }
             },
             Message::Grid(msg) => {

@@ -14,6 +14,7 @@ pub enum Message {
     GridAction(GridAction),
     Rotate(isize),
     SetRotation(f32),
+    SchemaChange,
     ZoomIn,
     ZoomOut,
     Undo,
@@ -112,6 +113,10 @@ impl GridPlate {
                 if self.half_size > 1 {
                     self.half_size -= 1;
                 }
+                None
+            }
+            Message::SchemaChange => {
+                self.first_offset.set(!self.first_offset.get());
                 None
             }
         };
