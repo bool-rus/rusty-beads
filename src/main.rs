@@ -65,10 +65,10 @@ impl Sandbox for App {
             Message::TopMenu(msg) => {
                 self.top_menu.update(msg);
                 match msg {
-                    TopMenuMessage::ExportPressed => {
+                    TopMenuMessage::Save => {
                         crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
                     }
-                    TopMenuMessage::OpenPressed => {
+                    TopMenuMessage::Open => {
                         let grid = crate::io::read("grid.csv").unwrap();
                         self.grid.borrow_mut().update_from_another(grid);
                         self.right_panel.update(RightPanelMessage::GridChanged);

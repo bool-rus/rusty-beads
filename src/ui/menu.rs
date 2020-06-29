@@ -2,6 +2,12 @@ use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::RightPanelState;
 
+pub use iced::{Svg, svg};
+
+fn svg(data: &[u8]) -> Svg {
+    Svg::new(svg::Handle::from_memory(data))
+}
+
 pub mod top {
     use super::*;
     use palette::Palette;
@@ -12,7 +18,7 @@ pub mod top {
     #[derive(Default)]
     pub struct TopMenu {
         palette: Palette,
-        export: State,
+        save: State,
         load: State,
         undo: State,
         redo: State,
@@ -23,8 +29,8 @@ pub mod top {
     }
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        OpenPressed,
-        ExportPressed,
+        Open,
+        Save,
         Palette(palette::Message),
         GridAction(GridAction),
         Undo,
@@ -36,8 +42,8 @@ pub mod top {
 
         fn view(&mut self) -> Element<'_, Message> {
             Container::new(Row::new()
-                .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
-                .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
+                .push(Button::new(&mut self.load, svg(icon::OPEN)).on_press(Message::Open.into()))
+                .push(Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save.into()))
                 .push(
                     Button::new(
                         &mut self.undo,
@@ -144,10 +150,6 @@ pub mod left {
         add_bottom: State,
         remove_top: State,
         remove_bottom: State,
-    }
-
-    fn svg(data: &[u8]) -> Svg {
-        Svg::new(svg::Handle::from_memory(data))
     }
 
     impl AppWidget for Menu {
