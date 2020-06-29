@@ -1,11 +1,14 @@
 use super::menu::right::Message as RightMenuMessage;
 use super::menu::left::Message as LeftMenuMessage;
+use super::files;
 
 pub mod left {
     use crate::reimport::*;
     use crate::ui::AppWidget;
     use std::num::ParseIntError;
     use super::LeftMenuMessage as MenuMsg;
+    use super::files::Message as FilesMessage;
+    use super::files::FSMenu;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -14,11 +17,19 @@ pub mod left {
         InputWidth(usize),
         InputHeight(usize),
         WrongValue,
+        FS(FilesMessage),
+    }
+
+    impl From<FilesMessage> for Message {
+        fn from(msg: FilesMessage) -> Self {
+            Message::FS(msg)
+        }
     }
 
     pub enum State {
         None,
         Resize(ResizeWidget),
+        FS(FSMenu),
     }
 
     pub struct Panel {
@@ -27,7 +38,7 @@ pub mod left {
 
     impl Default for Panel {
         fn default() -> Self {
-            Self { state:State::None }
+            Self { state:State::FS(FSMenu::new(".")) }
         }
     }
 
@@ -38,6 +49,7 @@ pub mod left {
             match self.state {
                 State::None => {Space::new(Length::Units(0), Length::Units(0)).into()},
                 State::Resize(ref mut widget) => { widget.view().into() },
+                State::FS(ref mut files) => {files.view().map(From::from)},
             }
         }
 
@@ -47,8 +59,8 @@ pub mod left {
                     match msg {
                         MenuMsg::ToggleResize => {
                             match self.state {
-                                State::None => {self.state = State::Resize(Default::default())},
                                 State::Resize(_) => {self.state = State::None},
+                                _ => {self.state = State::Resize(Default::default())},
                             }
                         },
                         _ => {}
@@ -58,6 +70,12 @@ pub mod left {
                     match self.state {
                         State::None => {},
                         State::Resize(ref mut widget) => {widget.update(msg)},
+                        State::FS(ref mut widget) => {
+                            match msg {
+                                Message::FS(msg) => {widget.update(msg)},
+                                _ => {}
+                            }
+                        }
                     }
                     match msg {
                         Message::Resize(_,_) => self.state = State::None,

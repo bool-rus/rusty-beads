@@ -1,3 +1,4 @@
+mod files;
 mod widget;
 mod icon;
 mod grid;
