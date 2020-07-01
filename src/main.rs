@@ -92,8 +92,10 @@ impl Sandbox for App {
             },
             Message::LeftMenu(msg) => {
                 self.left_menu.update(msg);
-                self.left_panel.update(LeftPanelMessage::Menu(msg));
                 match msg {
+                    LeftMenuMessage::Hide => {
+                        self.left_panel.update(LeftPanelMessage::Hide);
+                    },
                     LeftMenuMessage::GridAction(action) => {
                         self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
@@ -104,9 +106,10 @@ impl Sandbox for App {
                     LeftMenuMessage::ZoomOut => {
                         self.grid_plate.update(GridMessage::ZoomOut);
                     }
-                    LeftMenuMessage::ToggleResize => {
+                    LeftMenuMessage::ShowResize => {
                         let grid = self.grid.borrow();
                         use LeftPanelMessage::*;
+                        self.left_panel.update(LeftPanelMessage::ShowResize);
                         self.left_panel.update(InputWidth(grid.width()));
                         self.left_panel.update(InputHeight(grid.height()));
                     }

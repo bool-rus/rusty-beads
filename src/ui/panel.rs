@@ -12,7 +12,8 @@ pub mod left {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        Menu(MenuMsg),
+        ShowResize,
+        Hide,
         Resize(usize, usize),
         InputWidth(usize),
         InputHeight(usize),
@@ -27,7 +28,7 @@ pub mod left {
     }
 
     pub enum State {
-        None,
+        Empty,
         Resize(ResizeWidget),
         FS(FSMenu),
     }
@@ -47,28 +48,20 @@ pub mod left {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             match self.state {
-                State::None => {Space::new(Length::Units(0), Length::Units(0)).into()},
+                State::Empty => {Space::new(Length::Units(0), Length::Units(0)).into()},
                 State::Resize(ref mut widget) => { widget.view().into() },
                 State::FS(ref mut files) => {files.view().map(From::from)},
             }
         }
 
         fn update(&mut self, msg: Self::Message) {
+            use Message::*;
             match msg {
-                Message::Menu(msg) => {
-                    match msg {
-                        MenuMsg::ToggleResize => {
-                            match self.state {
-                                State::Resize(_) => {self.state = State::None},
-                                _ => {self.state = State::Resize(Default::default())},
-                            }
-                        },
-                        _ => {}
-                    }
-                },
+                Hide => { self.state = State::Empty },
+                ShowResize => { self.state = State::Resize(Default::default())},
                 msg => {
                     match self.state {
-                        State::None => {},
+                        State::Empty => {},
                         State::Resize(ref mut widget) => {widget.update(msg)},
                         State::FS(ref mut widget) => {
                             match msg {
@@ -78,7 +71,7 @@ pub mod left {
                         }
                     }
                     match msg {
-                        Message::Resize(_,_) => self.state = State::None,
+                        Message::Resize(_,_) => self.state = State::Empty,
                         _ => {}
                     }
                 }

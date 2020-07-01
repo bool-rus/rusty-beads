@@ -133,15 +133,29 @@ pub mod left {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        ToggleResize,
+        ShowResize,
+        Hide,
         GridAction(GridAction),
         SchemaChange,
         ZoomIn,
         ZoomOut,
     }
 
+    #[derive(PartialEq, Clone, Copy)]
+    enum ActiveMode {
+        Empty,
+        Resize,
+    }
+
+    impl Default for ActiveMode {
+        fn default() -> Self {
+            ActiveMode::Empty
+        }
+    }
+
     #[derive(Default)]
     pub struct Menu {
+        active: ActiveMode,
         toggle_resize: State,
         zoom_in: State,
         zoom_out: State,
@@ -160,9 +174,15 @@ pub mod left {
             let add_bottom = Message::GridAction(GridAction::Add(Side::Bottom));
             let remove_top = Message::GridAction(GridAction::Remove(Side::Top));
             let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
+            let mut resize_btn = Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ShowResize);
+
+            match self.active {
+                ActiveMode::Empty => {},
+                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide) },
+            }
 
             Column::new().width(Length::Fill).spacing(5)
-                .push(Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ToggleResize))
+                .push(resize_btn)
                 .push(Button::new(&mut self.zoom_in, svg(icon::ZOOM_IN)).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, svg(icon::ZOOM_OUT)).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.schema_change, svg(icon::CHANGE_SCHEMA)).on_press(Message::SchemaChange))
@@ -171,6 +191,18 @@ pub mod left {
                 .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(remove_bottom))
                 .push(Button::new(&mut self.add_bottom, svg(icon::ADD_BOTTOM_ROW)).on_press(add_bottom))
                 .into()
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::ShowResize => {
+                    self.active = ActiveMode::Resize;
+                },
+                Message::Hide => {
+                    self.active = ActiveMode::Empty;
+                }
+                _ => {}
+            }
         }
     }
 
