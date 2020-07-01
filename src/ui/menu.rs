@@ -26,9 +26,25 @@ pub mod top {
         remove_left: State,
         remove_right: State,
         add_right: State,
+        active_mode: ActiveMode,
     }
+
+    #[derive(Debug,Clone,Copy)]
+    enum ActiveMode {
+        Empty,
+        Save,
+        Open,
+    }
+
+    impl Default for ActiveMode {
+        fn default() -> Self {
+            Self::Empty
+        }
+    }
+
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
+        Hide,
         Open,
         Save,
         Palette(palette::Message),
@@ -41,9 +57,16 @@ pub mod top {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Message> {
+            let mut btn_load = Button::new(&mut self.load, svg(icon::OPEN)).on_press(Message::Open);
+            let mut btn_save = Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save);
+            match self.active_mode {
+                ActiveMode::Empty => {},
+                ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide)},
+                ActiveMode::Open => {btn_load = btn_load.on_press(Message::Hide)},
+            }
             Container::new(Row::new()
-                .push(Button::new(&mut self.load, svg(icon::OPEN)).on_press(Message::Open.into()))
-                .push(Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save.into()))
+                .push(btn_load)
+                .push(btn_save)
                 .push(
                     Button::new(
                         &mut self.undo,
@@ -76,6 +99,15 @@ pub mod top {
                 )
                 .push(self.palette.view().map(From::from))
                 .spacing(5)).into()
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::Hide => { self.active_mode = ActiveMode::Empty },
+                Message::Open => { self.active_mode = ActiveMode::Open },
+                Message::Save => { self.active_mode = ActiveMode::Save },
+                _ => {}
+            }
         }
     }
 

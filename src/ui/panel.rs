@@ -13,6 +13,7 @@ pub mod left {
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
         ShowResize,
+        ShowOpen,
         Hide,
         Resize(usize, usize),
         InputWidth(usize),
@@ -39,7 +40,7 @@ pub mod left {
 
     impl Default for Panel {
         fn default() -> Self {
-            Self { state:State::FS(FSMenu::new(".")) }
+            Self { state: State::Empty }
         }
     }
 
@@ -59,6 +60,7 @@ pub mod left {
             match msg {
                 Hide => { self.state = State::Empty },
                 ShowResize => { self.state = State::Resize(Default::default())},
+                ShowOpen => {self.state = State::FS(Default::default())},
                 msg => {
                     match self.state {
                         State::Empty => {},

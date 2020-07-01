@@ -80,6 +80,11 @@ pub struct FSMenu {
     btn_completed: button::State,
     scroll: scrollable::State,
 }
+impl Default for FSMenu {
+    fn default() -> Self {
+        Self::new(".")
+    }
+}
 
 impl FSMenu {
     pub fn new<T: AsRef<Path>>(path: T) -> Self {

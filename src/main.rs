@@ -69,6 +69,7 @@ impl Sandbox for App {
                         crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
                     }
                     TopMenuMessage::Open => {
+                        self.left_panel.update(LeftPanelMessage::ShowOpen);
                         let grid = crate::io::read("grid.csv").unwrap();
                         self.grid.borrow_mut().update_from_another(grid);
                         self.right_panel.update(RightPanelMessage::GridChanged);
@@ -87,6 +88,9 @@ impl Sandbox for App {
                     TopMenuMessage::Redo => {
                         self.grid_plate.update(GridMessage::Redo);
                         self.right_panel.update(RightPanelMessage::GridChanged);
+                    }
+                    TopMenuMessage::Hide => {
+                        self.left_panel.update(LeftPanelMessage::Hide);
                     }
                 }
             },
