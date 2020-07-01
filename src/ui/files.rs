@@ -1,11 +1,12 @@
 use crate::reimport::*;
 use super::AppWidget;
-use iced::Element;
+use iced::{Element, Svg, svg};
 use std::path::{Path, PathBuf};
 use std::ffi::{OsString, OsStr};
 use std::io;
 use std::io::{Error, ErrorKind};
 use crate::ui::style::FSMenuItem;
+use crate::ui::icon;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Message {
@@ -55,7 +56,7 @@ impl Files {
                 Button::new(
                     state,
                     Row::new()
-                        .push(Text::new("DIR|").size(15))
+                        .push(Svg::new(svg::Handle::from_memory(icon::FOLDER)).height(Length::Units(15)))
                         .push(Text::new(name.to_string_lossy()).size(15))
                 ).on_press(Message::DirClicked(i)).style(FSMenuItem).into()
             });
@@ -64,7 +65,7 @@ impl Files {
                 Button::new(
                     state,
                     Row::new()
-                        .push(Text::new("FILE|").size(15))
+                        .push(Svg::new(svg::Handle::from_memory(icon::FILE)).height(Length::Units(15)))
                         .push(Text::new(name.to_string_lossy()).size(15))
                 ).on_press(Message::FileClicked(i)).style(FSMenuItem).into()
             });

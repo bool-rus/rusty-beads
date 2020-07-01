@@ -22,3 +22,6 @@ pub const CHANGE_SCHEMA: &[u8] = include_bytes!("../../resources/change-schema.s
 
 pub const SAVE: &[u8] = include_bytes!("../../resources/save.svg");
 pub const OPEN: &[u8] = include_bytes!("../../resources/open.svg");
+
+pub const FOLDER: &[u8] = include_bytes!("../../resources/folder.svg");
+pub const FILE: &[u8] = include_bytes!("../../resources/file.svg");
