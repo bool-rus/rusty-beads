@@ -1,91 +1,99 @@
-use crate::ui::{GridMessage, RightMenuMessage, TopMenuMessage, PaletteMessage, RightPanelMessage, LeftMenuMessage, LeftPanelMessage};
+use crate::ui::{
+    GridMessage as GMsg,
+    RightMenuMessage as RMMsg,
+    TopMenuMessage as TMMsg,
+    PaletteMessage,
+    RightPanelMessage as RPMsg,
+    LeftMenuMessage as LMMsg,
+    LeftPanelMessage as LPMsg,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
-    Grid(GridMessage),
-    RightMenu(RightMenuMessage),
-    TopMenu(TopMenuMessage),
-    LeftPanel(LeftPanelMessage),
-    RightPanel(RightPanelMessage),
-    LeftMenu(LeftMenuMessage),
+    Grid(GMsg),
+    RightMenu(RMMsg),
+    TopMenu(TMMsg),
+    LeftPanel(LPMsg),
+    RightPanel(RPMsg),
+    LeftMenu(LMMsg),
 }
 
-impl From<TopMenuMessage> for Message {
-    fn from(m: TopMenuMessage) -> Self {
+impl From<TMMsg> for Message {
+    fn from(m: TMMsg) -> Self {
         Message::TopMenu(m)
     }
 }
 
-impl From<RightMenuMessage> for Message {
-    fn from(m: RightMenuMessage) -> Self {
+impl From<RMMsg> for Message {
+    fn from(m: RMMsg) -> Self {
         Message::RightMenu(m)
     }
 }
 
-impl From<GridMessage> for Message {
-    fn from(m: GridMessage) -> Self {
+impl From<GMsg> for Message {
+    fn from(m: GMsg) -> Self {
         Message::Grid(m)
     }
 }
 
-impl From<RightPanelMessage> for Message {
-    fn from(m: RightPanelMessage) -> Self {
+impl From<RPMsg> for Message {
+    fn from(m: RPMsg) -> Self {
         Message::RightPanel(m)
     }
 }
 
-impl From<LeftMenuMessage> for Message {
-    fn from(m: LeftMenuMessage) -> Self {
+impl From<LMMsg> for Message {
+    fn from(m: LMMsg) -> Self {
         Message::LeftMenu(m)
     }
 }
 
-impl From<LeftPanelMessage> for Message {
-    fn from(m: LeftPanelMessage) -> Self {
+impl From<LPMsg> for Message {
+    fn from(m: LPMsg) -> Self {
         Message::LeftPanel(m)
     }
 }
 
-impl From<Message> for TopMenuMessage {
+impl From<Message> for TMMsg {
     fn from(msg: Message) -> Self {
         match msg {
             Message::TopMenu(msg) => msg,
-            _ => TopMenuMessage::Ignore,
+            _ => TMMsg::Ignore,
         }
     }
 }
 
-impl From<Message> for RightMenuMessage {
+impl From<Message> for RMMsg {
     fn from(msg: Message) -> Self {
         match msg {
             Message::RightMenu(msg) => msg,
-            _ => RightMenuMessage::Ignore,
+            _ => RMMsg::Ignore,
         }
     }
 }
 
-impl From<Message> for LeftMenuMessage {
+impl From<Message> for LMMsg {
     fn from(msg: Message) -> Self {
         match msg {
             Message::LeftMenu(msg) => msg,
-            _ => LeftMenuMessage::Ignore,
+            _ => LMMsg::Ignore,
         }
     }
 }
 
-impl From<Message> for GridMessage {
+impl From<Message> for GMsg {
     fn from(msg: Message) -> Self {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            TopMenu(TopMenuMessage::GridAction(action)) => GridMessage::GridAction(action),
-            TopMenu(TopMenuMessage::Undo) => GridMessage::Undo,
-            TopMenu(TopMenuMessage::Redo) => GridMessage::Redo,
-            LeftMenu(LeftMenuMessage::GridAction(action)) => GridMessage::GridAction(action),
-            LeftMenu(LeftMenuMessage::ZoomIn) => GridMessage::ZoomIn,
-            LeftMenu(LeftMenuMessage::ZoomOut) => GridMessage::ZoomOut,
-            LeftMenu(LeftMenuMessage::SchemaChange) => GridMessage::SchemaChange,
-            _ => GridMessage::Ignore
+            TopMenu(TMMsg::GridAction(action)) => GMsg::GridAction(action),
+            TopMenu(TMMsg::Undo) => GMsg::Undo,
+            TopMenu(TMMsg::Redo) => GMsg::Redo,
+            LeftMenu(LMMsg::GridAction(action)) => GMsg::GridAction(action),
+            LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
+            LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
+            LeftMenu(LMMsg::SchemaChange) => GMsg::SchemaChange,
+            _ => GMsg::Ignore
         }
     }
 }
