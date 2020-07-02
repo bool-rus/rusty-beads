@@ -44,6 +44,7 @@ pub mod top {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
+        Ignore,
         Hide,
         Open,
         Save,
@@ -133,6 +134,7 @@ pub mod right {
 
     #[derive(Debug,Clone,Copy)]
     pub enum Message {
+        Ignore,
         ShowBeads,
         Hide,
     }
@@ -152,6 +154,7 @@ pub mod right {
             match msg {
                 Message::ShowBeads => { self.beads_showed = true },
                 Message::Hide => { self.beads_showed = false },
+                Message::Ignore => {}
             }
         }
     }
@@ -165,6 +168,7 @@ pub mod left {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
+        Ignore,
         ShowResize,
         Hide,
         GridAction(GridAction),

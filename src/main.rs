@@ -59,9 +59,11 @@ impl Sandbox for App {
         "Beads and threads by Bool".into()
     }
     fn update(&mut self, message: Message) {
+        self.top_menu.update(message.into());
+        self.right_menu.update(message.into());
+        self.left_menu.update(message.into());
         match message {
             Message::TopMenu(msg) => {
-                self.top_menu.update(msg);
                 match msg {
                     TopMenuMessage::Save => {
                         self.left_panel.update(LeftPanelMessage::ShowSave);
@@ -87,10 +89,10 @@ impl Sandbox for App {
                     TopMenuMessage::Hide => {
                         self.left_panel.update(LeftPanelMessage::Hide);
                     }
+                    TopMenuMessage::Ignore => {}
                 }
             },
             Message::LeftMenu(msg) => {
-                self.left_menu.update(msg);
                 match msg {
                     LeftMenuMessage::Hide => {
                         self.left_panel.update(LeftPanelMessage::Hide);
@@ -115,6 +117,7 @@ impl Sandbox for App {
                     LeftMenuMessage::SchemaChange => {
                         self.grid_plate.update(GridMessage::SchemaChange);
                     }
+                    LeftMenuMessage::Ignore => {}
                 }
             },
             Message::Grid(msg) => {
@@ -128,7 +131,6 @@ impl Sandbox for App {
                 self.right_panel.update(RightPanelMessage::GridChanged);
             },
             Message::RightMenu(msg) => {
-                self.right_menu.update(msg);
                 self.right_panel.update(msg.into());
             },
             Message::RightPanel(msg) => {

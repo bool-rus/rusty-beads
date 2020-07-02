@@ -45,3 +45,30 @@ impl From<LeftPanelMessage> for Message {
         Message::LeftPanel(m)
     }
 }
+
+impl From<Message> for TopMenuMessage {
+    fn from(msg: Message) -> Self {
+        match msg {
+            Message::TopMenu(msg) => msg,
+            _ => TopMenuMessage::Ignore,
+        }
+    }
+}
+
+impl From<Message> for RightMenuMessage {
+    fn from(msg: Message) -> Self {
+        match msg {
+            Message::RightMenu(msg) => msg,
+            _ => RightMenuMessage::Ignore,
+        }
+    }
+}
+
+impl From<Message> for LeftMenuMessage {
+    fn from(msg: Message) -> Self {
+        match msg {
+            Message::LeftMenu(msg) => msg,
+            _ => LeftMenuMessage::Ignore,
+        }
+    }
+}
