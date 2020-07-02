@@ -14,6 +14,7 @@ pub mod left {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
+        Ignore,
         ShowResize,
         ShowOpen,
         ShowSave,
@@ -163,15 +164,11 @@ pub mod right {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        Menu(MenuMsg),
+        Ignore,
+        ShowBeads,
+        Hide,
         GridChanged,
-        Toggle(usize),
-    }
-
-    impl From<MenuMsg> for Message {
-        fn from(msg: MenuMsg) -> Self {
-            Message::Menu(msg)
-        }
+        ToggleCheckbox(usize),
     }
 
     #[derive(Debug)]
@@ -225,15 +222,15 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match (&mut self.state, msg) {
-                (_, Message::Menu(MenuMsg::Hide)) => { self.state = State::None }
-                (_, Message::Menu(MenuMsg::ShowBeads)) => {
+                (_, Message::Hide) => { self.state = State::None }
+                (_, Message::ShowBeads) => {
                     self.state = State::Beads(BeadsWidget::empty());
                     self.refresh();
                 }
                 (_, Message::GridChanged) => { self.refresh() }
                 (State::Beads(ref mut widget), msg) => { widget.update(msg) }
                 (State::None, _) => {}
-                (_, Message::Toggle(_)) => {}
+                (_, Message::ToggleCheckbox(_)) => {}
             }
         }
     }
@@ -283,7 +280,7 @@ pub mod right {
                             .push(Checkbox::new(
                                 *checked,
                                 symbols.get(&color).unwrap_or(&undefined).to_string(),
-                                move |_x| Message::Toggle(i)
+                                move |_x| Message::ToggleCheckbox(i)
                             ).spacing(1).width(Length::Units(35)))
                             .push(ColorBox::new(color.clone()))
                             .push(Text::new(count.to_string()))
@@ -301,13 +298,13 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::Menu(_) => {}
                 Message::GridChanged => {}
-                Message::Toggle(i) => {
+                Message::ToggleCheckbox(i) => {
                     //TODO: обработать none
                     let checked = self.checkboxes.get_mut(i).unwrap();
                     *checked = !*checked;
                 }
+                _ => {}
             }
         }
     }

@@ -63,97 +63,39 @@ impl Sandbox for App {
         self.right_menu.update(message.into());
         self.left_menu.update(message.into());
         self.grid_plate.update(message.into());
+        self.left_panel.update(message.into());
+        self.right_panel.update(message.into());
         match message {
-            Message::TopMenu(msg) => {
-                match msg {
-                    TopMenuMessage::Save => {
-                        self.left_panel.update(LeftPanelMessage::ShowSave);
-                    }
-                    TopMenuMessage::Open => {
-                        self.left_panel.update(LeftPanelMessage::ShowOpen);
-                    }
-                    TopMenuMessage::Palette(msg) => match msg {
-                        PaletteMessage::SetColor(color) => { self.active_color = color }
-                    }
-                    TopMenuMessage::GridAction(action) => {
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Undo => {
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Redo => {
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Hide => {
-                        self.left_panel.update(LeftPanelMessage::Hide);
-                    }
-                    TopMenuMessage::Ignore => {}
-                }
+            Message::TopMenu(TopMenuMessage::Palette(PaletteMessage::SetColor(color))) =>  {
+                self.active_color = color
             },
-            Message::LeftMenu(msg) => {
-                match msg {
-                    LeftMenuMessage::Hide => {
-                        self.left_panel.update(LeftPanelMessage::Hide);
-                    },
-                    LeftMenuMessage::GridAction(action) => {
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    },
-                    LeftMenuMessage::ZoomIn => {
-                    }
-                    LeftMenuMessage::ZoomOut => {
-                    }
-                    LeftMenuMessage::ShowResize => {
-                        let grid = self.grid.borrow();
-                        use LeftPanelMessage::*;
-                        self.left_panel.update(LeftPanelMessage::ShowResize);
-                        self.left_panel.update(InputWidth(grid.width()));
-                        self.left_panel.update(InputHeight(grid.height()));
-                    }
-                    LeftMenuMessage::SchemaChange => {
-                    }
-                    LeftMenuMessage::Ignore => {}
-                }
+            Message::LeftMenu(LeftMenuMessage::ShowResize) => {
+                let grid = self.grid.borrow();
+                use LeftPanelMessage::*;
+                self.left_panel.update(InputWidth(grid.width()));
+                self.left_panel.update(InputHeight(grid.height()));
             },
-            Message::Grid(msg) => {
-                self.grid_plate.update(msg);
-                match msg {
-                    GridMessage::GridClicked(row, col) => {
-                        self.grid_plate.update(GridMessage::SetColor(row, col,self.active_color))
-                    },
-                    _ => {}
-                }
-                self.right_panel.update(RightPanelMessage::GridChanged);
+            Message::Grid(GridMessage::GridClicked(row, col)) => {
+                self.grid_plate.update(GridMessage::SetColor(row, col,self.active_color))
             },
-            Message::RightMenu(msg) => {
-                self.right_panel.update(msg.into());
-            },
-            Message::RightPanel(msg) => {
-                self.right_panel.update(msg);
-            },
-            Message::LeftPanel(msg) => {
-                self.left_panel.update(msg);
-                match msg {
-                    LeftPanelMessage::Resize(width, height) => {
-                        if let (Some(width), Some(height)) =
-                        (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
-                            self.grid.borrow_mut().resize(width, height);
-                        }
-                    }
-                    LeftPanelMessage::FS(FilesMessage::Open) => {
-                        if let Some(path) = self.left_panel.selected_path() {
-                            let grid = crate::io::read(path).unwrap();
-                            self.grid.borrow_mut().update_from_another(grid);
-                            self.right_panel.update(RightPanelMessage::GridChanged);
-                        }
-                    },
-                    LeftPanelMessage::FS(FilesMessage::Save) => {
-                        if let Some(path) = self.left_panel.selected_path() {
-                            crate::io::write(path, self.grid.borrow().as_table()).unwrap();
-                        }
-                    },
-                    _ => {}
+            Message::LeftPanel(LeftPanelMessage::Resize(width, height)) => {
+                if let (Some(width), Some(height)) =
+                (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
+                    self.grid.borrow_mut().resize(width, height);
                 }
             }
+            Message::LeftPanel(LeftPanelMessage::FS(FilesMessage::Open)) => {
+                if let Some(path) = self.left_panel.selected_path() {
+                    let grid = crate::io::read(path).unwrap();
+                    self.grid.borrow_mut().update_from_another(grid);
+                }
+            },
+            Message::LeftPanel(LeftPanelMessage::FS(FilesMessage::Save)) => {
+                if let Some(path) = self.left_panel.selected_path() {
+                    crate::io::write(path, self.grid.borrow().as_table()).unwrap();
+                }
+            },
+            _ => {}
         }
     }
 

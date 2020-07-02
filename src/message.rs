@@ -97,3 +97,30 @@ impl From<Message> for GMsg {
         }
     }
 }
+
+impl From<Message> for LPMsg {
+    fn from(msg: Message) -> Self {
+        use Message::*;
+        match msg {
+            LeftPanel(msg) => msg,
+            TopMenu(TMMsg::Open) => LPMsg::ShowOpen,
+            TopMenu(TMMsg::Save) => LPMsg::ShowSave,
+            TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
+            LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
+            _ => LPMsg::Ignore,
+        }
+    }
+}
+
+impl From<Message> for RPMsg {
+    fn from(msg: Message) -> Self {
+        use Message::*;
+        match msg {
+            RightPanel(msg) => msg,
+            RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
+            RightMenu(RMMsg::Hide) => RPMsg::Hide,
+            Grid(_) | TopMenu(_) | LeftMenu(_) | LeftPanel(LPMsg::Resize(_,_)) => RPMsg::GridChanged,
+            _ => RPMsg::Ignore
+        }
+    }
+}
