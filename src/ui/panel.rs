@@ -14,6 +14,7 @@ pub mod left {
     pub enum Message {
         ShowResize,
         ShowOpen,
+        ShowSave,
         Hide,
         Resize(usize, usize),
         InputWidth(usize),
@@ -60,7 +61,8 @@ pub mod left {
             match msg {
                 Hide => { self.state = State::Empty },
                 ShowResize => { self.state = State::Resize(Default::default())},
-                ShowOpen => {self.state = State::FS(Default::default())},
+                ShowOpen => { self.state = State::FS(FSMenu::open("."))},
+                ShowSave => { self.state = State::FS(FSMenu::save("."))},
                 msg => {
                     match self.state {
                         State::Empty => {},

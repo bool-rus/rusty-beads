@@ -66,6 +66,7 @@ impl Sandbox for App {
                 self.top_menu.update(msg);
                 match msg {
                     TopMenuMessage::Save => {
+                        self.left_panel.update(LeftPanelMessage::ShowSave);
                         crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
                     }
                     TopMenuMessage::Open => {

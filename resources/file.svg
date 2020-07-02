@@ -5,7 +5,4 @@
   </defs>
   <path d="M 15 5 L 60 5 L 95 40 L 95 105 L 15 105 Z" style="stroke: rgb(0, 0, 0); stroke-width: 3px; fill: rgb(255, 255, 255); stroke-linejoin: round;"/>
   <path d="M 60 40 L 60 5 L 95 40 Z" style="stroke: rgb(1, 1, 1); stroke-width: 3px; stroke-linejoin: round; fill: rgb(1, 129, 138);"/>
-  <line style="stroke: rgb(0, 0, 0); stroke-miterlimit: 1; stroke-width: 7px; stroke-linecap: round;" x1="25" y1="90" x2="85" y2="90"/>
-  <line style="stroke: rgb(0, 0, 0); stroke-width: 7px; stroke-linecap: round;" x1="25" y1="75" x2="85" y2="75"/>
-  <line style="stroke: rgb(0, 0, 0); stroke-width: 7px; stroke-linecap: round;" x1="25" y1="59.99999999999999" x2="85" y2="59.99999999999999"/>
 </svg>
