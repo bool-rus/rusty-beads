@@ -16,6 +16,7 @@ pub enum Message {
     Ignore,
     DirClicked(usize),
     FileClicked(usize),
+    Input,
     Open,
     Save,
 }
@@ -118,6 +119,18 @@ impl FSMenu {
         obj.submit_msg = Message::Save;
         obj
     }
+
+    pub fn selected(&self) -> PathBuf {
+        match &self.selected {
+            None => {
+                let mut path = self.path.clone();
+                path.push(self.text.borrow().as_str());
+                path
+            },
+            Some(path) => {path.clone()},
+        }
+    }
+
     fn update_with_err(&mut self, msg: Message) -> io::Result<()> {
         let list = self.list.as_ref().map_err(|e|{
             io::Error::new(e.kind(), "File list is not constructed")
@@ -130,6 +143,7 @@ impl FSMenu {
                 self.path = self.path.canonicalize()?;
                 self.list = Files::new(&self.path);
                 self.selected = None;
+                self.text.borrow_mut().clear();
                 self.scroll = Default::default();
             },
             Message::FileClicked(n) => {
@@ -137,8 +151,12 @@ impl FSMenu {
                     .ok_or(io::Error::new(ErrorKind::InvalidInput, "selected file not found"))?;
                 let mut selected = self.path.clone();
                 selected.push(name);
+                let mut text = self.text.borrow_mut();
+                text.clear();
+                text.push_str(name.to_string_lossy().as_ref());
                 self.selected = Some(selected);
             },
+            Message::Input => { self.selected = None; },
             Message::Open => {/*need to process in caller*/},
             Message::Save => {/*need to process in caller*/},
             Message::Ignore => {},
@@ -155,7 +173,7 @@ impl AppWidget for FSMenu {
         match &mut self.list {
             Ok(list) => {
                 let mut btn = Button::new(&mut self.btn_completed, self.submit_icon.clone());
-                if self.selected.is_some() {
+                if self.selected.is_some() || !self.text.borrow().is_empty() {
                     btn = btn.on_press(self.submit_msg);
                 }
                 Column::new()
@@ -170,7 +188,7 @@ impl AppWidget for FSMenu {
                                     let mut x = text.borrow_mut();
                                     x.clear();
                                     x.push_str(s.as_str());
-                                    Message::Ignore
+                                    Message::Input
                                 }
                             ).size(15).width(Length::Units(150)))
                             .push(btn)

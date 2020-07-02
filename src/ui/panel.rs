@@ -9,6 +9,7 @@ pub mod left {
     use super::LeftMenuMessage as MenuMsg;
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
+    use std::path::PathBuf;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -37,6 +38,15 @@ pub mod left {
 
     pub struct Panel {
         state: State,
+    }
+
+    impl Panel {
+        pub fn selected_path(&self) -> Option<PathBuf> {
+            match &self.state {
+                State::FS(widget) => Some(widget.selected()),
+                _ => None
+            }
+        }
     }
 
     impl Default for Panel {

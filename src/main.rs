@@ -67,13 +67,9 @@ impl Sandbox for App {
                 match msg {
                     TopMenuMessage::Save => {
                         self.left_panel.update(LeftPanelMessage::ShowSave);
-                        crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
                     }
                     TopMenuMessage::Open => {
                         self.left_panel.update(LeftPanelMessage::ShowOpen);
-                        let grid = crate::io::read("grid.csv").unwrap();
-                        self.grid.borrow_mut().update_from_another(grid);
-                        self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
@@ -142,11 +138,26 @@ impl Sandbox for App {
             },
             Message::LeftPanel(msg) => {
                 self.left_panel.update(msg);
-                if let LeftPanelMessage::Resize(width, height) = msg {
-                    if let (Some(width), Some(height)) =
-                    (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
-                        self.grid.borrow_mut().resize(width, height);
+                match msg {
+                    LeftPanelMessage::Resize(width, height) => {
+                        if let (Some(width), Some(height)) =
+                        (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
+                            self.grid.borrow_mut().resize(width, height);
+                        }
                     }
+                    LeftPanelMessage::FS(FilesMessage::Open) => {
+                        if let Some(path) = self.left_panel.selected_path() {
+                            let grid = crate::io::read(path).unwrap();
+                            self.grid.borrow_mut().update_from_another(grid);
+                            self.right_panel.update(RightPanelMessage::GridChanged);
+                        }
+                    },
+                    LeftPanelMessage::FS(FilesMessage::Save) => {
+                        if let Some(path) = self.left_panel.selected_path() {
+                            crate::io::write(path, self.grid.borrow().as_table()).unwrap();
+                        }
+                    },
+                    _ => {}
                 }
             }
         }
