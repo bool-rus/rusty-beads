@@ -16,7 +16,8 @@ pub enum Message {
     Ignore,
     DirClicked(usize),
     FileClicked(usize),
-    Completed,
+    Open,
+    Save,
 }
 
 struct Files {
@@ -91,6 +92,7 @@ pub struct FSMenu {
     btn_completed: button::State,
     scroll: scrollable::State,
     submit_icon: Svg,
+    submit_msg: Message,
     input: text_input::State,
     text: Rc<RefCell<String>>
 }
@@ -106,12 +108,14 @@ impl FSMenu {
             scroll: Default::default(),
             submit_icon: Svg::new(svg::Handle::from_memory(icon::OPEN)),
             input: Default::default(),
-            text: Rc::new(RefCell::new(String::new()))
+            text: Rc::new(RefCell::new(String::new())),
+            submit_msg: Message::Open,
         }
     }
     pub fn save<T: AsRef<Path>>(path: T) -> Self {
         let mut obj = Self::open(path);
         obj.submit_icon = Svg::new(svg::Handle::from_memory(icon::SAVE));
+        obj.submit_msg = Message::Save;
         obj
     }
     fn update_with_err(&mut self, msg: Message) -> io::Result<()> {
@@ -135,7 +139,8 @@ impl FSMenu {
                 selected.push(name);
                 self.selected = Some(selected);
             },
-            Message::Completed => {/*need to process in caller*/},
+            Message::Open => {/*need to process in caller*/},
+            Message::Save => {/*need to process in caller*/},
             Message::Ignore => {},
         };
         Ok(())
@@ -151,7 +156,7 @@ impl AppWidget for FSMenu {
             Ok(list) => {
                 let mut btn = Button::new(&mut self.btn_completed, self.submit_icon.clone());
                 if self.selected.is_some() {
-                    btn = btn.on_press(Message::Completed);
+                    btn = btn.on_press(self.submit_msg);
                 }
                 Column::new()
                     .push(Scrollable::new(&mut self.scroll).height(Length::Fill).push(list.view()))
