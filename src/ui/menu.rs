@@ -120,7 +120,7 @@ pub mod top {
 pub mod right {
     use super::*;
     use crate::entities::Color;
-    use crate::iced::{button, scrollable, svg, Svg, Scrollable};
+    use iced::{button, scrollable, svg, Svg, Scrollable};
     use std::rc::Rc;
     use std::cell::Cell;
 

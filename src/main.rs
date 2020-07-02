@@ -1,5 +1,3 @@
-extern crate iced;
-
 mod reimport;
 mod grid;
 mod entities;

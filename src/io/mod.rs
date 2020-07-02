@@ -1,10 +1,9 @@
-extern crate quick_csv;
 use crate::grid::Grid;
 use crate::entities::Color;
 use std::fs::{File, DirEntry};
 use std::fs;
 use std::io::{Write, ErrorKind};
-use self::quick_csv::Csv;
+use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
