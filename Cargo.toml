@@ -9,3 +9,4 @@ iced = {version = '*', features=["svg"]}
 iced_native = '*'
 iced_wgpu = '*'
 quick-csv = "*"
+dirs = '*'

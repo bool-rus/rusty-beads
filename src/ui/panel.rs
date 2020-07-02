@@ -10,6 +10,7 @@ pub mod left {
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use std::path::PathBuf;
+    use crate::io::default_dir;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -71,8 +72,8 @@ pub mod left {
             match msg {
                 Hide => { self.state = State::Empty },
                 ShowResize => { self.state = State::Resize(Default::default())},
-                ShowOpen => { self.state = State::FS(FSMenu::open("."))},
-                ShowSave => { self.state = State::FS(FSMenu::save("."))},
+                ShowOpen => { self.state = State::FS(FSMenu::open(default_dir()))},
+                ShowSave => { self.state = State::FS(FSMenu::save(default_dir()))},
                 msg => {
                     match self.state {
                         State::Empty => {},

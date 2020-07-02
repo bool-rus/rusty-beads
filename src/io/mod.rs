@@ -7,7 +7,7 @@ use std::io::{Write, ErrorKind};
 use self::quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io;
 
 pub fn write<T: AsRef<Path>>(file: T, table: Vec<&[Color]>) -> std::io::Result<()> {
@@ -52,4 +52,8 @@ pub fn read<T: AsRef<Path>>(file: T) -> Result<Grid<Color>,quick_csv::error::Err
         NonZeroUsize::new(counter).unwrap(),
         data
     ).unwrap())
+}
+
+pub fn default_dir() -> PathBuf {
+    dirs::document_dir().unwrap_or(".".into())
 }
