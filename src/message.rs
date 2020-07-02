@@ -72,3 +72,20 @@ impl From<Message> for LeftMenuMessage {
         }
     }
 }
+
+impl From<Message> for GridMessage {
+    fn from(msg: Message) -> Self {
+        use Message::*;
+        match msg  {
+            Grid(msg) => msg,
+            TopMenu(TopMenuMessage::GridAction(action)) => GridMessage::GridAction(action),
+            TopMenu(TopMenuMessage::Undo) => GridMessage::Undo,
+            TopMenu(TopMenuMessage::Redo) => GridMessage::Redo,
+            LeftMenu(LeftMenuMessage::GridAction(action)) => GridMessage::GridAction(action),
+            LeftMenu(LeftMenuMessage::ZoomIn) => GridMessage::ZoomIn,
+            LeftMenu(LeftMenuMessage::ZoomOut) => GridMessage::ZoomOut,
+            LeftMenu(LeftMenuMessage::SchemaChange) => GridMessage::SchemaChange,
+            _ => GridMessage::Ignore
+        }
+    }
+}

@@ -62,6 +62,7 @@ impl Sandbox for App {
         self.top_menu.update(message.into());
         self.right_menu.update(message.into());
         self.left_menu.update(message.into());
+        self.grid_plate.update(message.into());
         match message {
             Message::TopMenu(msg) => {
                 match msg {
@@ -75,15 +76,12 @@ impl Sandbox for App {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
                     }
                     TopMenuMessage::GridAction(action) => {
-                        self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::Undo => {
-                        self.grid_plate.update(GridMessage::Undo);
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::Redo => {
-                        self.grid_plate.update(GridMessage::Redo);
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
                     TopMenuMessage::Hide => {
@@ -98,14 +96,11 @@ impl Sandbox for App {
                         self.left_panel.update(LeftPanelMessage::Hide);
                     },
                     LeftMenuMessage::GridAction(action) => {
-                        self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     },
                     LeftMenuMessage::ZoomIn => {
-                        self.grid_plate.update(GridMessage::ZoomIn);
                     }
                     LeftMenuMessage::ZoomOut => {
-                        self.grid_plate.update(GridMessage::ZoomOut);
                     }
                     LeftMenuMessage::ShowResize => {
                         let grid = self.grid.borrow();
@@ -115,7 +110,6 @@ impl Sandbox for App {
                         self.left_panel.update(InputHeight(grid.height()));
                     }
                     LeftMenuMessage::SchemaChange => {
-                        self.grid_plate.update(GridMessage::SchemaChange);
                     }
                     LeftMenuMessage::Ignore => {}
                 }

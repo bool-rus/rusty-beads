@@ -9,6 +9,7 @@ use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
+    Ignore,
     GridClicked(usize,usize),
     SetColor(usize, usize, Color),
     GridAction(GridAction),
@@ -135,6 +136,7 @@ impl GridPlate {
                 self.switch_schema();
                 None
             }
+            Message::Ignore => None
         };
         let deque = if log_undo { &mut self.undo } else { &mut self.redo };
         if let Some(undo) = undo {
