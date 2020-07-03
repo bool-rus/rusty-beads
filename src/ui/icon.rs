@@ -19,3 +19,9 @@ pub const ZOOM_OUT: &[u8] = include_bytes!("../../resources/zoom-out.svg");
 pub const RESIZE: &[u8] = include_bytes!("../../resources/resize.svg");
 
 pub const CHANGE_SCHEMA: &[u8] = include_bytes!("../../resources/change-schema.svg");
+
+pub const SAVE: &[u8] = include_bytes!("../../resources/save.svg");
+pub const OPEN: &[u8] = include_bytes!("../../resources/open.svg");
+
+pub const FOLDER: &[u8] = include_bytes!("../../resources/folder.svg");
+pub const FILE: &[u8] = include_bytes!("../../resources/file.svg");

@@ -1,33 +1,58 @@
 use super::menu::right::Message as RightMenuMessage;
 use super::menu::left::Message as LeftMenuMessage;
+use super::files;
 
 pub mod left {
     use crate::reimport::*;
     use crate::ui::AppWidget;
     use std::num::ParseIntError;
     use super::LeftMenuMessage as MenuMsg;
+    use super::files::Message as FilesMessage;
+    use super::files::FSMenu;
+    use std::path::PathBuf;
+    use crate::io::default_dir;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        Menu(MenuMsg),
+        ShowResize,
+        ShowOpen,
+        ShowSave,
+        Hide,
         Resize(usize, usize),
         InputWidth(usize),
         InputHeight(usize),
         WrongValue,
+        FS(FilesMessage),
+    }
+
+    impl From<FilesMessage> for Message {
+        fn from(msg: FilesMessage) -> Self {
+            Message::FS(msg)
+        }
     }
 
     pub enum State {
-        None,
+        Empty,
         Resize(ResizeWidget),
+        FS(FSMenu),
     }
 
     pub struct Panel {
         state: State,
     }
 
+    impl Panel {
+        pub fn selected_path(&self) -> Option<PathBuf> {
+            match &self.state {
+                State::FS(widget) => Some(widget.selected()),
+                _ => None
+            }
+        }
+    }
+
     impl Default for Panel {
         fn default() -> Self {
-            Self { state:State::None }
+            Self { state: State::Empty }
         }
     }
 
@@ -36,31 +61,32 @@ pub mod left {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             match self.state {
-                State::None => {Space::new(Length::Units(0), Length::Units(0)).into()},
+                State::Empty => {Space::new(Length::Units(0), Length::Units(0)).into()},
                 State::Resize(ref mut widget) => { widget.view().into() },
+                State::FS(ref mut files) => {files.view().map(From::from)},
             }
         }
 
         fn update(&mut self, msg: Self::Message) {
+            use Message::*;
             match msg {
-                Message::Menu(msg) => {
-                    match msg {
-                        MenuMsg::ToggleResize => {
-                            match self.state {
-                                State::None => {self.state = State::Resize(Default::default())},
-                                State::Resize(_) => {self.state = State::None},
-                            }
-                        },
-                        _ => {}
-                    }
-                },
+                Hide => { self.state = State::Empty },
+                ShowResize => { self.state = State::Resize(Default::default())},
+                ShowOpen => { self.state = State::FS(FSMenu::open(default_dir()))},
+                ShowSave => { self.state = State::FS(FSMenu::save(default_dir()))},
                 msg => {
                     match self.state {
-                        State::None => {},
+                        State::Empty => {},
                         State::Resize(ref mut widget) => {widget.update(msg)},
+                        State::FS(ref mut widget) => {
+                            match msg {
+                                Message::FS(msg) => {widget.update(msg)},
+                                _ => {}
+                            }
+                        }
                     }
                     match msg {
-                        Message::Resize(_,_) => self.state = State::None,
+                        Message::Resize(_,_) => self.state = State::Empty,
                         _ => {}
                     }
                 }

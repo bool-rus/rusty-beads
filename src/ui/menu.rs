@@ -2,6 +2,12 @@ use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::RightPanelState;
 
+pub use iced::{Svg, svg};
+
+fn svg(data: &[u8]) -> Svg {
+    Svg::new(svg::Handle::from_memory(data))
+}
+
 pub mod top {
     use super::*;
     use palette::Palette;
@@ -12,7 +18,7 @@ pub mod top {
     #[derive(Default)]
     pub struct TopMenu {
         palette: Palette,
-        export: State,
+        save: State,
         load: State,
         undo: State,
         redo: State,
@@ -20,11 +26,27 @@ pub mod top {
         remove_left: State,
         remove_right: State,
         add_right: State,
+        active_mode: ActiveMode,
     }
+
+    #[derive(Debug,Clone,Copy)]
+    enum ActiveMode {
+        Empty,
+        Save,
+        Open,
+    }
+
+    impl Default for ActiveMode {
+        fn default() -> Self {
+            Self::Empty
+        }
+    }
+
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        OpenPressed,
-        ExportPressed,
+        Hide,
+        Open,
+        Save,
         Palette(palette::Message),
         GridAction(GridAction),
         Undo,
@@ -35,9 +57,16 @@ pub mod top {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Message> {
+            let mut btn_load = Button::new(&mut self.load, svg(icon::OPEN)).on_press(Message::Open);
+            let mut btn_save = Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save);
+            match self.active_mode {
+                ActiveMode::Empty => {},
+                ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide)},
+                ActiveMode::Open => {btn_load = btn_load.on_press(Message::Hide)},
+            }
             Container::new(Row::new()
-                .push(Button::new(&mut self.load, Text::new("Load")).on_press(Message::OpenPressed.into()))
-                .push(Button::new(&mut self.export, Text::new("Export")).on_press(Message::ExportPressed.into()))
+                .push(btn_load)
+                .push(btn_save)
                 .push(
                     Button::new(
                         &mut self.undo,
@@ -70,6 +99,15 @@ pub mod top {
                 )
                 .push(self.palette.view().map(From::from))
                 .spacing(5)).into()
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::Hide => { self.active_mode = ActiveMode::Empty },
+                Message::Open => { self.active_mode = ActiveMode::Open },
+                Message::Save => { self.active_mode = ActiveMode::Save },
+                _ => {}
+            }
         }
     }
 
@@ -127,15 +165,29 @@ pub mod left {
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
-        ToggleResize,
+        ShowResize,
+        Hide,
         GridAction(GridAction),
         SchemaChange,
         ZoomIn,
         ZoomOut,
     }
 
+    #[derive(PartialEq, Clone, Copy)]
+    enum ActiveMode {
+        Empty,
+        Resize,
+    }
+
+    impl Default for ActiveMode {
+        fn default() -> Self {
+            ActiveMode::Empty
+        }
+    }
+
     #[derive(Default)]
     pub struct Menu {
+        active: ActiveMode,
         toggle_resize: State,
         zoom_in: State,
         zoom_out: State,
@@ -146,10 +198,6 @@ pub mod left {
         remove_bottom: State,
     }
 
-    fn svg(data: &[u8]) -> Svg {
-        Svg::new(svg::Handle::from_memory(data))
-    }
-
     impl AppWidget for Menu {
         type Message = Message;
 
@@ -158,9 +206,15 @@ pub mod left {
             let add_bottom = Message::GridAction(GridAction::Add(Side::Bottom));
             let remove_top = Message::GridAction(GridAction::Remove(Side::Top));
             let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
+            let mut resize_btn = Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ShowResize);
+
+            match self.active {
+                ActiveMode::Empty => {},
+                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide) },
+            }
 
             Column::new().width(Length::Fill).spacing(5)
-                .push(Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ToggleResize))
+                .push(resize_btn)
                 .push(Button::new(&mut self.zoom_in, svg(icon::ZOOM_IN)).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, svg(icon::ZOOM_OUT)).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.schema_change, svg(icon::CHANGE_SCHEMA)).on_press(Message::SchemaChange))
@@ -169,6 +223,18 @@ pub mod left {
                 .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(remove_bottom))
                 .push(Button::new(&mut self.add_bottom, svg(icon::ADD_BOTTOM_ROW)).on_press(add_bottom))
                 .into()
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::ShowResize => {
+                    self.active = ActiveMode::Resize;
+                },
+                Message::Hide => {
+                    self.active = ActiveMode::Empty;
+                }
+                _ => {}
+            }
         }
     }
 

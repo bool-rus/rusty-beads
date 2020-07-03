@@ -1,3 +1,4 @@
+mod files;
 mod widget;
 mod icon;
 mod grid;
@@ -13,6 +14,7 @@ pub use menu::right::{Message as RightMenuMessage, RightMenu};
 pub use menu::left::{Message as LeftMenuMessage, Menu as LeftMenu};
 pub use panel::right::{Message as RightPanelMessage, RightPanel, State as RightPanelState};
 pub use panel::left::{Message as LeftPanelMessage, Panel as LeftPanel };
+pub use files::Message as FilesMessage;
 pub use grid::{Message as GridMessage, GridPlate};
 pub use widget::MouseListener;
 

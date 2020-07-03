@@ -65,13 +65,11 @@ impl Sandbox for App {
             Message::TopMenu(msg) => {
                 self.top_menu.update(msg);
                 match msg {
-                    TopMenuMessage::ExportPressed => {
-                        crate::io::write("grid.csv", self.grid.borrow().as_table()).unwrap();
+                    TopMenuMessage::Save => {
+                        self.left_panel.update(LeftPanelMessage::ShowSave);
                     }
-                    TopMenuMessage::OpenPressed => {
-                        let grid = crate::io::read("grid.csv").unwrap();
-                        self.grid.borrow_mut().update_from_another(grid);
-                        self.right_panel.update(RightPanelMessage::GridChanged);
+                    TopMenuMessage::Open => {
+                        self.left_panel.update(LeftPanelMessage::ShowOpen);
                     }
                     TopMenuMessage::Palette(msg) => match msg {
                         PaletteMessage::SetColor(color) => { self.active_color = color }
@@ -88,12 +86,17 @@ impl Sandbox for App {
                         self.grid_plate.update(GridMessage::Redo);
                         self.right_panel.update(RightPanelMessage::GridChanged);
                     }
+                    TopMenuMessage::Hide => {
+                        self.left_panel.update(LeftPanelMessage::Hide);
+                    }
                 }
             },
             Message::LeftMenu(msg) => {
                 self.left_menu.update(msg);
-                self.left_panel.update(LeftPanelMessage::Menu(msg));
                 match msg {
+                    LeftMenuMessage::Hide => {
+                        self.left_panel.update(LeftPanelMessage::Hide);
+                    },
                     LeftMenuMessage::GridAction(action) => {
                         self.grid_plate.update(GridMessage::GridAction(action));
                         self.right_panel.update(RightPanelMessage::GridChanged);
@@ -104,9 +107,10 @@ impl Sandbox for App {
                     LeftMenuMessage::ZoomOut => {
                         self.grid_plate.update(GridMessage::ZoomOut);
                     }
-                    LeftMenuMessage::ToggleResize => {
+                    LeftMenuMessage::ShowResize => {
                         let grid = self.grid.borrow();
                         use LeftPanelMessage::*;
+                        self.left_panel.update(LeftPanelMessage::ShowResize);
                         self.left_panel.update(InputWidth(grid.width()));
                         self.left_panel.update(InputHeight(grid.height()));
                     }
@@ -134,11 +138,26 @@ impl Sandbox for App {
             },
             Message::LeftPanel(msg) => {
                 self.left_panel.update(msg);
-                if let LeftPanelMessage::Resize(width, height) = msg {
-                    if let (Some(width), Some(height)) =
-                    (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
-                        self.grid.borrow_mut().resize(width, height);
+                match msg {
+                    LeftPanelMessage::Resize(width, height) => {
+                        if let (Some(width), Some(height)) =
+                        (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
+                            self.grid.borrow_mut().resize(width, height);
+                        }
                     }
+                    LeftPanelMessage::FS(FilesMessage::Open) => {
+                        if let Some(path) = self.left_panel.selected_path() {
+                            let grid = crate::io::read(path).unwrap();
+                            self.grid.borrow_mut().update_from_another(grid);
+                            self.right_panel.update(RightPanelMessage::GridChanged);
+                        }
+                    },
+                    LeftPanelMessage::FS(FilesMessage::Save) => {
+                        if let Some(path) = self.left_panel.selected_path() {
+                            crate::io::write(path, self.grid.borrow().as_table()).unwrap();
+                        }
+                    },
+                    _ => {}
                 }
             }
         }
