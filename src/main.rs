@@ -18,6 +18,7 @@ use std::num::NonZeroUsize;
 use crate::entities::Schema;
 
 
+
 struct App {
     grid: Rc<RefCell<Grid<Color>>>,
     top_menu: TopMenu,

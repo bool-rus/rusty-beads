@@ -58,6 +58,8 @@ impl From<Message> for TMMsg {
     fn from(msg: Message) -> Self {
         match msg {
             Message::TopMenu(msg) => msg,
+            Message::LeftMenu(LMMsg::Hide) |
+            Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
             _ => TMMsg::Ignore,
         }
     }
@@ -76,6 +78,9 @@ impl From<Message> for LMMsg {
     fn from(msg: Message) -> Self {
         match msg {
             Message::LeftMenu(msg) => msg,
+            Message::TopMenu(TMMsg::Hide) |
+            Message::TopMenu(TMMsg::Open) |
+            Message::TopMenu(TMMsg::Save) => LMMsg::Hide,
             _ => LMMsg::Ignore,
         }
     }
