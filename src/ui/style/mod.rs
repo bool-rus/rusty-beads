@@ -19,6 +19,26 @@ impl button::StyleSheet for ColorButton {
 
 pub struct FSMenuItem;
 
+pub struct ToggledOn;
+
+impl button::StyleSheet for ToggledOn {
+    fn active(&self) -> Style {
+        Style {
+            shadow_offset: Default::default(),
+            background: Some(Background::Color(Color{
+                r: 0.5,
+                g: 0.5,
+                b: 0.5,
+                a: 1.0
+            })),
+            border_radius: 0,
+            border_width: 0,
+            border_color: Color::BLACK,
+            text_color: Color::BLACK,
+        }
+    }
+}
+
 impl button::StyleSheet for FSMenuItem {
     fn active(&self) -> Style {
         Style {

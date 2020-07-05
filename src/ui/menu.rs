@@ -1,6 +1,7 @@
 use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::RightPanelState;
+use super::style::ToggledOn;
 
 pub use iced::{Svg, svg};
 
@@ -62,8 +63,8 @@ pub mod top {
             let mut btn_save = Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save);
             match self.active_mode {
                 ActiveMode::Empty => {},
-                ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide)},
-                ActiveMode::Open => {btn_load = btn_load.on_press(Message::Hide)},
+                ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide).style(ToggledOn)},
+                ActiveMode::Open => {btn_load = btn_load.on_press(Message::Hide).style(ToggledOn)},
             }
             Container::new(Row::new()
                 .push(btn_load)
@@ -143,10 +144,12 @@ pub mod right {
         type Message = Message;
         fn view(&mut self) -> Element<'_, Message> {
             let svg = Svg::new(svg::Handle::from_memory(icon::BEADS_LINE));
-            let msg = if self.beads_showed { Message::Hide } else { Message::ShowBeads };
-            let buttons = Column::new().width(Length::Fill).push(
-                Button::new(&mut self.beads_btn, svg).on_press(msg)
-            );
+            let mut beads_btn = Button::new(&mut self.beads_btn, svg)
+                .on_press(Message::ShowBeads);
+            if self.beads_showed {
+                beads_btn = beads_btn.on_press(Message::Hide).style(ToggledOn);
+            };
+            let buttons = Column::new().width(Length::Fill).push(beads_btn );
             Container::new(buttons).into()
         }
 
@@ -214,7 +217,7 @@ pub mod left {
 
             match self.active {
                 ActiveMode::Empty => {},
-                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide) },
+                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide).style(ToggledOn) },
             }
 
             Column::new().width(Length::Fill).spacing(5)
