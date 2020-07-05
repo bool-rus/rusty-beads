@@ -45,8 +45,8 @@ impl Files {
         dirs.sort_unstable();
         files.sort_unstable();
         Ok(Self {
-            folder_svg: Svg::new(svg::Handle::from_memory(icon::FOLDER)).height(Length::Units(15)),
-            file_svg: Svg::new(svg::Handle::from_memory(icon::FILE)).height(Length::Units(15)),
+            folder_svg: icon::FOLDER.svg().height(Length::Units(15)),
+            file_svg: icon::FILE.svg().height(Length::Units(15)),
             dirs: dirs.into_iter().map(|name|(Default::default(), name)).collect(),
             files: files.into_iter().map(|name|(Default::default(), name)).collect(),
         })
@@ -107,7 +107,7 @@ impl FSMenu {
             selected: None,
             btn_completed: Default::default(),
             scroll: Default::default(),
-            submit_icon: Svg::new(svg::Handle::from_memory(icon::OPEN)),
+            submit_icon: icon::OPEN.svg(),
             input: Default::default(),
             text: Rc::new(RefCell::new(String::new())),
             submit_msg: Message::Open,
@@ -115,7 +115,7 @@ impl FSMenu {
     }
     pub fn save<T: AsRef<Path>>(path: T) -> Self {
         let mut obj = Self::open(path);
-        obj.submit_icon = Svg::new(svg::Handle::from_memory(icon::SAVE));
+        obj.submit_icon = icon::SAVE.svg();
         obj.submit_msg = Message::Save;
         obj
     }

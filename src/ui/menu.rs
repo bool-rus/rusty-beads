@@ -3,18 +3,11 @@ use super::{AppWidget, icon, palette};
 use super::RightPanelState;
 use super::style::ToggledOn;
 
-pub use iced::{Svg, svg};
-
-fn svg(data: &[u8]) -> Svg {
-    Svg::new(svg::Handle::from_memory(data))
-}
-
 pub mod top {
     use super::*;
     use palette::Palette;
     use button::State;
     use crate::entities::{GridAction, Side};
-    use iced::{Svg, svg};
 
     #[derive(Default)]
     pub struct TopMenu {
@@ -59,8 +52,8 @@ pub mod top {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Message> {
-            let mut btn_load = Button::new(&mut self.load, svg(icon::OPEN)).on_press(Message::Open);
-            let mut btn_save = Button::new(&mut self.save, svg(icon::SAVE)).on_press(Message::Save);
+            let mut btn_load = Button::new(&mut self.load, icon::OPEN.svg()).on_press(Message::Open);
+            let mut btn_save = Button::new(&mut self.save, icon::SAVE.svg()).on_press(Message::Save);
             match self.active_mode {
                 ActiveMode::Empty => {},
                 ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide).style(ToggledOn)},
@@ -72,31 +65,31 @@ pub mod top {
                 .push(
                     Button::new(
                         &mut self.undo,
-                        Svg::new(svg::Handle::from_memory(icon::UNDO))
+                        icon::UNDO.svg()
                     ).on_press(Message::Undo)
                 )
                 .push(
                     Button::new(
                         &mut self.redo,
-                        Svg::new(svg::Handle::from_memory(icon::REDO))
+                        icon::REDO.svg()
                     ).on_press(Message::Redo)
                 )
                 .push(Button::new(
                     &mut self.add_left,
-                    Svg::new(svg::Handle::from_memory(icon::ADD_LEFT_COLUMN)))
+                    icon::ADD_LEFT_COLUMN.svg())
                     .on_press(Message::GridAction(GridAction::Add(Side::Left)))
                 )
                 .push(Button::new(
                     &mut self.remove_left,
-                    Svg::new(svg::Handle::from_memory(icon::REMOVE_LEFT_COLUMN)))
+                    icon::REMOVE_LEFT_COLUMN.svg())
                     .on_press(Message::GridAction(GridAction::Remove(Side::Left)))
                 ).push(Button::new(
                     &mut self.remove_right,
-                    Svg::new(svg::Handle::from_memory(icon::REMOVE_RIGHT_COLUMN)))
+                    icon::REMOVE_RIGHT_COLUMN.svg())
                     .on_press(Message::GridAction(GridAction::Remove(Side::Right)))
                 ).push(Button::new(
                     &mut self.add_right,
-                    Svg::new(svg::Handle::from_memory(icon::ADD_RIGHT_COLUMN)))
+                    icon::ADD_RIGHT_COLUMN.svg())
                     .on_press(Message::GridAction(GridAction::Add(Side::Right)))
                 )
                 .push(self.palette.view().map(From::from))
@@ -122,7 +115,7 @@ pub mod top {
 pub mod right {
     use super::*;
     use crate::entities::Color;
-    use iced::{button, scrollable, svg, Svg, Scrollable};
+    use iced::{button, scrollable, Scrollable};
     use std::rc::Rc;
     use std::cell::Cell;
 
@@ -143,8 +136,7 @@ pub mod right {
     impl AppWidget for RightMenu {
         type Message = Message;
         fn view(&mut self) -> Element<'_, Message> {
-            let svg = Svg::new(svg::Handle::from_memory(icon::BEADS_LINE));
-            let mut beads_btn = Button::new(&mut self.beads_btn, svg)
+            let mut beads_btn = Button::new(&mut self.beads_btn, icon::BEADS_LINE.svg())
                 .on_press(Message::ShowBeads);
             if self.beads_showed {
                 beads_btn = beads_btn.on_press(Message::Hide).style(ToggledOn);
@@ -166,7 +158,6 @@ pub mod right {
 pub mod left {
     use super::*;
     use button::State;
-    use iced::{Svg, svg};
     use crate::entities::{GridAction, Side};
 
     #[derive(Debug, Copy, Clone)]
@@ -213,7 +204,7 @@ pub mod left {
             let add_bottom = Message::GridAction(GridAction::Add(Side::Bottom));
             let remove_top = Message::GridAction(GridAction::Remove(Side::Top));
             let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
-            let mut resize_btn = Button::new(&mut self.toggle_resize, svg(icon::RESIZE)).on_press(Message::ShowResize);
+            let mut resize_btn = Button::new(&mut self.toggle_resize, icon::RESIZE.svg()).on_press(Message::ShowResize);
 
             match self.active {
                 ActiveMode::Empty => {},
@@ -222,13 +213,13 @@ pub mod left {
 
             Column::new().width(Length::Fill).spacing(5)
                 .push(resize_btn)
-                .push(Button::new(&mut self.zoom_in, svg(icon::ZOOM_IN)).on_press(Message::ZoomIn))
-                .push(Button::new(&mut self.zoom_out, svg(icon::ZOOM_OUT)).on_press(Message::ZoomOut))
-                .push(Button::new(&mut self.schema_change, svg(icon::CHANGE_SCHEMA)).on_press(Message::SchemaChange))
-                .push(Button::new(&mut self.add_top, svg(icon::ADD_TOP_ROW)).on_press(add_top))
-                .push(Button::new(&mut self.remove_top, svg(icon::REMOVE_TOP_ROW)).on_press(remove_top))
-                .push(Button::new(&mut self.remove_bottom, svg(icon::REMOVE_BOTTOM_ROW)).on_press(remove_bottom))
-                .push(Button::new(&mut self.add_bottom, svg(icon::ADD_BOTTOM_ROW)).on_press(add_bottom))
+                .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
+                .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
+                .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
+                .push(Button::new(&mut self.add_top, icon::ADD_TOP_ROW.svg()).on_press(add_top))
+                .push(Button::new(&mut self.remove_top, icon::REMOVE_TOP_ROW.svg()).on_press(remove_top))
+                .push(Button::new(&mut self.remove_bottom, icon::REMOVE_BOTTOM_ROW.svg()).on_press(remove_bottom))
+                .push(Button::new(&mut self.add_bottom, icon::ADD_BOTTOM_ROW.svg()).on_press(add_bottom))
                 .into()
         }
 
