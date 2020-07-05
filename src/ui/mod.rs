@@ -23,3 +23,20 @@ pub trait AppWidget {
     fn view(&mut self) -> Element<'_, Self::Message>;
     fn update(&mut self, _msg: Self::Message){}
 }
+
+struct SvgButton {
+    state: button::State,
+    icon: icon::SvgData,
+}
+
+impl SvgButton {
+    pub fn new(icon: icon::SvgData) -> Self {
+        Self {
+            icon,
+            state: Default::default()
+        }
+    }
+    pub fn button<M>(&mut self) -> Button<'_, M> {
+        Button::new(&mut self.state, self.icon.svg())
+    }
+}
