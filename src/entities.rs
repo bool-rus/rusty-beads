@@ -1,7 +1,7 @@
 
 use std::fmt;
 use std::str::{FromStr};
-use std::num::ParseIntError;
+use std::num::{ParseIntError, NonZeroU32, NonZeroUsize};
 
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
@@ -89,4 +89,16 @@ pub enum Schema {
     FirstOffset,
     SecondOffset,
     Straight,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Size {
+    pub width: NonZeroUsize,
+    pub height: NonZeroUsize,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Coord {
+    pub x: usize,
+    pub y: usize,
 }

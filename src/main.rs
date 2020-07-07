@@ -6,6 +6,7 @@ mod wrapper;
 mod io;
 mod beads;
 mod message;
+mod service;
 
 use reimport::*;
 use grid::Grid;
@@ -33,7 +34,7 @@ struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let grid = Rc::new(RefCell::new(Default::default()));
+        let grid = Rc::new(RefCell::new(Grid::default()));
         let schema = Rc::new(Cell::new(Schema::FirstOffset));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {

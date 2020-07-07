@@ -1,19 +1,21 @@
 
 use std::num::NonZeroUsize;
 use crate::entities::Side;
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub enum Error {
     InvalidDataSize,
 }
 
-pub struct Grid<T> {
+#[derive(Debug, Clone)]
+pub struct Grid<T: Debug + Clone> {
     width: usize,
     height: usize,
     data: Vec<T>,
 }
 
-impl<T:Clone> Grid<T> {
+impl<T: Debug + Clone> Grid<T> {
     pub fn new(width: NonZeroUsize, height: NonZeroUsize, item: T) -> Self {
         let width = width.get();
         let height = height.get();
@@ -151,7 +153,7 @@ fn tb_side(i: usize) -> Side {
     if i % 2 == 0 { Side::Bottom } else { Side::Top }
 }
 
-impl<T: Clone + Default> Grid<T> {
+impl<T: Debug + Clone + Default> Grid<T> {
     pub fn resize(&mut self, width: NonZeroUsize, height: NonZeroUsize) {
         let width = width.get();
         let height = height.get();
@@ -182,9 +184,9 @@ impl<T: Clone + Default> Grid<T> {
 
 
 
-impl<T: Default + Clone> Default for Grid<T> {
+impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
-        let value = NonZeroUsize::new(35usize).unwrap();
+        let value = NonZeroUsize::new(33usize).unwrap();
         Self::new(value, value, T::default())
     }
 }
