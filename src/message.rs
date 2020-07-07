@@ -91,10 +91,9 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            TopMenu(TMMsg::GridAction(action)) => GMsg::GridAction(action),
+            LeftPanel(LPMsg::GridAction(action)) => GMsg::GridAction(action),
             TopMenu(TMMsg::Undo) => GMsg::Undo,
             TopMenu(TMMsg::Redo) => GMsg::Redo,
-            LeftMenu(LMMsg::GridAction(action)) => GMsg::GridAction(action),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
             LeftMenu(LMMsg::SchemaChange) => GMsg::SchemaChange,

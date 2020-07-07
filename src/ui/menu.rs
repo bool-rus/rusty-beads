@@ -2,6 +2,7 @@ use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::RightPanelState;
 use super::style::ToggledOn;
+use super::SvgButton;
 
 pub mod top {
     use super::*;
@@ -9,18 +10,27 @@ pub mod top {
     use button::State;
     use crate::entities::{GridAction, Side};
 
-    #[derive(Default)]
     pub struct TopMenu {
         palette: Palette,
-        save: State,
-        load: State,
-        undo: State,
-        redo: State,
-        add_left: State,
-        remove_left: State,
-        remove_right: State,
-        add_right: State,
+        save: SvgButton,
+        load: SvgButton,
+        undo: SvgButton,
+        redo: SvgButton,
+
         active_mode: ActiveMode,
+    }
+
+    impl Default for TopMenu {
+        fn default() -> Self {
+            TopMenu {
+                palette: Default::default(),
+                save: SvgButton::new(icon::SAVE),
+                load: SvgButton::new(icon::OPEN),
+                undo: SvgButton::new(icon::UNDO),
+                redo: SvgButton::new(icon::REDO),
+                active_mode: Default::default(),
+            }
+        }
     }
 
     #[derive(Debug,Clone,Copy)]
@@ -43,7 +53,6 @@ pub mod top {
         Open,
         Save,
         Palette(palette::Message),
-        GridAction(GridAction),
         Undo,
         Redo,
     }
@@ -52,8 +61,8 @@ pub mod top {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Message> {
-            let mut btn_load = Button::new(&mut self.load, icon::OPEN.svg()).on_press(Message::Open);
-            let mut btn_save = Button::new(&mut self.save, icon::SAVE.svg()).on_press(Message::Save);
+            let mut btn_load = self.load.button().on_press(Message::Open);
+            let mut btn_save = self.save.button().on_press(Message::Save);
             match self.active_mode {
                 ActiveMode::Empty => {},
                 ActiveMode::Save => {btn_save = btn_save.on_press(Message::Hide).style(ToggledOn)},
@@ -63,34 +72,10 @@ pub mod top {
                 .push(btn_load)
                 .push(btn_save)
                 .push(
-                    Button::new(
-                        &mut self.undo,
-                        icon::UNDO.svg()
-                    ).on_press(Message::Undo)
+                    self.undo.button().on_press(Message::Undo)
                 )
                 .push(
-                    Button::new(
-                        &mut self.redo,
-                        icon::REDO.svg()
-                    ).on_press(Message::Redo)
-                )
-                .push(Button::new(
-                    &mut self.add_left,
-                    icon::ADD_LEFT_COLUMN.svg())
-                    .on_press(Message::GridAction(GridAction::Add(Side::Left)))
-                )
-                .push(Button::new(
-                    &mut self.remove_left,
-                    icon::REMOVE_LEFT_COLUMN.svg())
-                    .on_press(Message::GridAction(GridAction::Remove(Side::Left)))
-                ).push(Button::new(
-                    &mut self.remove_right,
-                    icon::REMOVE_RIGHT_COLUMN.svg())
-                    .on_press(Message::GridAction(GridAction::Remove(Side::Right)))
-                ).push(Button::new(
-                    &mut self.add_right,
-                    icon::ADD_RIGHT_COLUMN.svg())
-                    .on_press(Message::GridAction(GridAction::Add(Side::Right)))
+                    self.redo.button().on_press(Message::Redo)
                 )
                 .push(self.palette.view().map(From::from))
                 .spacing(5)).into()
@@ -165,7 +150,6 @@ pub mod left {
         Ignore,
         ShowResize,
         Hide,
-        GridAction(GridAction),
         SchemaChange,
         ZoomIn,
         ZoomOut,
@@ -190,20 +174,12 @@ pub mod left {
         zoom_in: State,
         zoom_out: State,
         schema_change: State,
-        add_top: State,
-        add_bottom: State,
-        remove_top: State,
-        remove_bottom: State,
     }
 
     impl AppWidget for Menu {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let add_top = Message::GridAction(GridAction::Add(Side::Top));
-            let add_bottom = Message::GridAction(GridAction::Add(Side::Bottom));
-            let remove_top = Message::GridAction(GridAction::Remove(Side::Top));
-            let remove_bottom = Message::GridAction(GridAction::Remove(Side::Bottom));
             let mut resize_btn = Button::new(&mut self.toggle_resize, icon::RESIZE.svg()).on_press(Message::ShowResize);
 
             match self.active {
@@ -216,10 +192,6 @@ pub mod left {
                 .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
-                .push(Button::new(&mut self.add_top, icon::ADD_TOP_ROW.svg()).on_press(add_top))
-                .push(Button::new(&mut self.remove_top, icon::REMOVE_TOP_ROW.svg()).on_press(remove_top))
-                .push(Button::new(&mut self.remove_bottom, icon::REMOVE_BOTTOM_ROW.svg()).on_press(remove_bottom))
-                .push(Button::new(&mut self.add_bottom, icon::ADD_BOTTOM_ROW.svg()).on_press(add_bottom))
                 .into()
         }
 

@@ -1,16 +1,14 @@
-use super::menu::right::Message as RightMenuMessage;
-use super::menu::left::Message as LeftMenuMessage;
-use super::files;
+use super::{files, icon};
 
 pub mod left {
     use crate::reimport::*;
-    use crate::ui::AppWidget;
+    use crate::ui::{AppWidget, icon, SvgButton};
     use std::num::ParseIntError;
-    use super::LeftMenuMessage as MenuMsg;
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use std::path::PathBuf;
     use crate::io::default_dir;
+    use crate::entities::{Side, GridAction};
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -22,6 +20,7 @@ pub mod left {
         Resize(usize, usize),
         InputWidth(usize),
         InputHeight(usize),
+        GridAction(GridAction),
         WrongValue,
         FS(FilesMessage),
     }
@@ -86,10 +85,6 @@ pub mod left {
                             }
                         }
                     }
-                    match msg {
-                        Message::Resize(_,_) => self.state = State::Empty,
-                        _ => {}
-                    }
                 }
             }
         }
@@ -101,8 +96,81 @@ pub mod left {
         width: String,
         height: String,
         btn_resize: button::State,
+        grow_shirnk_buttons: GrowShrinkButtons,
     }
 
+    struct GrowShrinkButtons {
+        add_top: SvgButton,
+        add_left: SvgButton,
+        add_right: SvgButton,
+        add_bottom: SvgButton,
+        remove_top: SvgButton,
+        remove_left: SvgButton,
+        remove_right: SvgButton,
+        remove_bottom: SvgButton,
+    }
+
+    impl Default for GrowShrinkButtons {
+        fn default() -> Self {
+            use super::icon::*;
+            GrowShrinkButtons {
+                add_top: SvgButton::new(ADD_TOP_ROW),
+                add_left: SvgButton::new(ADD_LEFT_COLUMN),
+                add_right: SvgButton::new(ADD_RIGHT_COLUMN),
+                add_bottom: SvgButton::new(ADD_BOTTOM_ROW),
+                remove_top: SvgButton::new(REMOVE_TOP_ROW),
+                remove_left: SvgButton::new(REMOVE_LEFT_COLUMN),
+                remove_right: SvgButton::new(REMOVE_RIGHT_COLUMN),
+                remove_bottom: SvgButton::new(REMOVE_BOTTOM_ROW),
+            }
+        }
+    }
+
+    impl GrowShrinkButtons {
+        fn grow(side: Side) -> Message {
+            Message::GridAction(GridAction::Add(side))
+        }
+        fn shrink(side: Side) -> Message {
+            Message::GridAction(GridAction::Remove(side))
+        }
+        fn view(&mut self) -> Element<'_, Message> {
+            use Side::*;
+            Column::new()
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.add_top.button().on_press(Self::grow(Top)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(self.add_left.button().on_press(Self::grow(Left)))
+                        .push(space()).push(self.add_right.button().on_press(Self::grow(Right)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.add_bottom.button().on_press(Self::grow(Bottom)))
+                )
+                .push(space())
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.remove_top.button().on_press(Self::shrink(Top)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(self.remove_left.button().on_press(Self::shrink(Left)))
+                        .push(space())
+                        .push(self.remove_right.button().on_press(Self::shrink(Right)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.remove_bottom.button().on_press(Self::shrink(Bottom)))
+                )
+                .into()
+        }
+    }
 
     fn resize_message(width: &str, height: &str) -> Result<Message, ParseIntError> {
         Ok(Message::Resize(width.parse()?, height.parse()?))
@@ -124,7 +192,7 @@ pub mod left {
                 |s| { s.parse().map_or(Message::WrongValue, |n| Message::InputHeight(n)) },
             );
 
-            Row::new()
+            let edit = Row::new()
                 .push(Column::new()
                     .push(Text::new("Width: "))
                     .push(Text::new("Height: "))
@@ -134,7 +202,9 @@ pub mod left {
                 .push(Button::new(&mut self.btn_resize, Text::new("OK"))
                     .on_press(resize_message(&self.width, &self.height).unwrap_or(Message::WrongValue))
                 )
-            ).into()
+            );
+            Column::new().align_items(Align::Center)
+                .push(edit).push(space()).push(self.grow_shirnk_buttons.view()).into()
         }
 
         fn update(&mut self, msg: Self::Message) {
@@ -147,6 +217,9 @@ pub mod left {
             }
         }
     }
+    fn space() -> Space {
+        Space::new(Length::Units(30), Length::Units(30))
+    }
 }
 
 pub mod right {
@@ -158,7 +231,6 @@ pub mod right {
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
     use std::cell::{RefCell, Cell};
-    use super::RightMenuMessage as MenuMsg;
     use std::hash::Hash;
     use std::collections::HashMap;
 

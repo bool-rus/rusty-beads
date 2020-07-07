@@ -15,7 +15,7 @@ use ui::*;
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 use std::num::NonZeroUsize;
-use crate::entities::Schema;
+use crate::entities::{Schema, GridAction, Side};
 
 
 
@@ -70,7 +70,8 @@ impl Sandbox for App {
             Message::TopMenu(TopMenuMessage::Palette(PaletteMessage::SetColor(color))) =>  {
                 self.active_color = color
             },
-            Message::LeftMenu(LeftMenuMessage::ShowResize) => {
+            Message::LeftMenu(LeftMenuMessage::ShowResize) |
+            Message::LeftPanel(LeftPanelMessage::GridAction(_)) => {
                 let grid = self.grid.borrow();
                 use LeftPanelMessage::*;
                 self.left_panel.update(InputWidth(grid.width()));
