@@ -184,7 +184,7 @@ impl<T: Clone + Default> Grid<T> {
 
 impl<T: Default + Clone> Default for Grid<T> {
     fn default() -> Self {
-        let value = NonZeroUsize::new(10usize).unwrap();
+        let value = NonZeroUsize::new(35usize).unwrap();
         Self::new(value, value, T::default())
     }
 }

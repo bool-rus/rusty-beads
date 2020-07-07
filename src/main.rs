@@ -109,7 +109,7 @@ impl Sandbox for App {
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));
-        let row = Row::new()
+        let row = Row::new().spacing(5)
             .push(Element::new(ui::MouseListener::new(self.mouse_hold.clone())))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -118,7 +118,7 @@ impl Sandbox for App {
             .push(content.height(Length::Fill).width(Length::Fill))
             .push(self.right_panel.view().map(From::from))
             .push(right);
-        Column::new().height(Length::Fill).spacing(10)
+        Column::new().height(Length::Fill).spacing(5)
             .push(top)
             .push(row)
             .push(bottom).into()

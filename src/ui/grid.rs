@@ -45,7 +45,7 @@ impl GridPlate {
             undo: VecDeque::with_capacity(1000),
             redo: VecDeque::with_capacity(1000),
             rotation: 0,
-            half_size: 5,
+            half_size: 6,
             slider: Default::default(),
             scroll: Default::default(),
             rot_l: Default::default(),
