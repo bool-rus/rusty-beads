@@ -7,15 +7,22 @@ use crate::ui::{
     LeftMenuMessage as LMMsg,
     LeftPanelMessage as LPMsg,
 };
+use crate::service::{GridServiceMessage as GSMsg, GridServiceMessage};
+use crate::entities::{Color, GridAction, Coord, Size};
+use std::sync::Arc;
+use crate::grid::Grid;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Message {
+    Ignore,
     Grid(GMsg),
     RightMenu(RMMsg),
     TopMenu(TMMsg),
     LeftPanel(LPMsg),
     RightPanel(RPMsg),
     LeftMenu(LMMsg),
+    GridUpdated(Arc<Grid<Color>>),
+    Err(String),
 }
 
 impl From<TMMsg> for Message {
@@ -123,8 +130,34 @@ impl From<Message> for RPMsg {
             RightPanel(msg) => msg,
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
-            Grid(_) | TopMenu(_) | LeftMenu(_) | LeftPanel(LPMsg::Resize(_,_)) => RPMsg::GridChanged,
+            Grid(_) | TopMenu(_) | LeftMenu(_) | LeftPanel(LPMsg::Resize(_)) => RPMsg::GridChanged,
             _ => RPMsg::Ignore
+        }
+    }
+}
+
+impl From<Message> for GSMsg<Color> {
+    fn from(msg: Message) -> Self {
+        use Message::*;
+        match msg {
+            Grid(GMsg::SetColor(x, y, color)) => GSMsg::Point(Coord{x,y}, color),
+            LeftPanel(LPMsg::GridAction(GridAction::Add(side))) => GSMsg::Grow(side),
+            LeftPanel(LPMsg::GridAction(GridAction::Remove(side))) => GSMsg::Shrink(side),
+            LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
+            TopMenu(TMMsg::Undo) => GSMsg::Undo,
+            TopMenu(TMMsg::Redo) => GSMsg::Redo,
+            _ => GSMsg::Ignore
+        }
+    }
+}
+
+impl From<GSMsg<Color>> for Message {
+    fn from(msg: GSMsg<Color>) -> Self {
+        use GSMsg::*;
+        match msg {
+            Updated(v) => Message::GridUpdated(v),
+            Err(e) => Message::Err(e),
+            _ => Message::Ignore
         }
     }
 }

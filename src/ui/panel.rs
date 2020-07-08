@@ -3,12 +3,12 @@ use super::{files, icon};
 pub mod left {
     use crate::reimport::*;
     use crate::ui::{AppWidget, icon, SvgButton};
-    use std::num::ParseIntError;
+    use std::num::{ParseIntError, NonZeroUsize};
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use std::path::PathBuf;
     use crate::io::default_dir;
-    use crate::entities::{Side, GridAction};
+    use crate::entities::{Side, GridAction, Size};
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -17,7 +17,7 @@ pub mod left {
         ShowOpen,
         ShowSave,
         Hide,
-        Resize(usize, usize),
+        Resize(Size),
         InputWidth(usize),
         InputHeight(usize),
         GridAction(GridAction),
@@ -173,7 +173,9 @@ pub mod left {
     }
 
     fn resize_message(width: &str, height: &str) -> Result<Message, ParseIntError> {
-        Ok(Message::Resize(width.parse()?, height.parse()?))
+        let width = NonZeroUsize::new(width.parse()?).unwrap();
+        let height = NonZeroUsize::new(height.parse()?).unwrap();
+        Ok(Message::Resize(Size {width, height}))
     }
 
     impl AppWidget for ResizeWidget {
@@ -209,7 +211,7 @@ pub mod left {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::Resize(_, _) => {/* top level process */},
+                Message::Resize(_) => {/* top level process */},
                 Message::InputWidth(s) => { self.width = s.to_string(); },
                 Message::InputHeight(s) => { self.height = s.to_string(); },
                 Message::WrongValue => {},

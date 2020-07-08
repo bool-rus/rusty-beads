@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use std::collections::VecDeque;
 use std::num::NonZeroUsize;
 use core::mem;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub enum Message<T: Debug + Clone> {
@@ -15,7 +16,7 @@ pub enum Message<T: Debug + Clone> {
     Grow(Side),
     Shrink(Side),
     Resize(Size),
-    Updated(Rc<Grid<T>>),
+    Updated(Arc<Grid<T>>),
     Err(String), //TODO: вместо строки надо бы какой-нибудь тип
 }
 
@@ -36,7 +37,7 @@ pub struct Service<T: Debug + Clone> {
 
 impl<T: Debug + Clone> Service<T> {
     fn updated(&self) -> Message<T> {
-        Message::Updated(Rc::new(self.grid.clone()))
+        Message::Updated(Arc::new(self.grid.clone()))
     }
     fn push_undo(&mut self, msg: Message<T>) {
         self.undo.push(msg);

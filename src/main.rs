@@ -16,7 +16,7 @@ use ui::*;
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 use std::num::NonZeroUsize;
-use crate::entities::{Schema, GridAction, Side};
+use crate::entities::{Schema, GridAction, Side, Size};
 
 
 
@@ -61,12 +61,12 @@ impl Sandbox for App {
         "Beads and threads by Bool".into()
     }
     fn update(&mut self, message: Message) {
-        self.top_menu.update(message.into());
-        self.right_menu.update(message.into());
-        self.left_menu.update(message.into());
-        self.grid_plate.update(message.into());
-        self.left_panel.update(message.into());
-        self.right_panel.update(message.into());
+        self.top_menu.update(message.clone().into());
+        self.right_menu.update(message.clone().into());
+        self.left_menu.update(message.clone().into());
+        self.grid_plate.update(message.clone().into());
+        self.left_panel.update(message.clone().into());
+        self.right_panel.update(message.clone().into());
         match message {
             Message::TopMenu(TopMenuMessage::Palette(PaletteMessage::SetColor(color))) =>  {
                 self.active_color = color
@@ -81,11 +81,8 @@ impl Sandbox for App {
             Message::Grid(GridMessage::GridClicked(row, col)) => {
                 self.grid_plate.update(GridMessage::SetColor(row, col,self.active_color))
             },
-            Message::LeftPanel(LeftPanelMessage::Resize(width, height)) => {
-                if let (Some(width), Some(height)) =
-                (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
-                    self.grid.borrow_mut().resize(width, height);
-                }
+            Message::LeftPanel(LeftPanelMessage::Resize(Size {width, height})) => {
+                self.grid.borrow_mut().resize(width, height);
             }
             Message::LeftPanel(LeftPanelMessage::FS(FilesMessage::Open)) => {
                 if let Some(path) = self.left_panel.selected_path() {
