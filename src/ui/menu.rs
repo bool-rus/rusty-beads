@@ -33,6 +33,12 @@ pub mod top {
         }
     }
 
+    impl TopMenu {
+        pub fn palette(&self) -> &Palette {
+            &self.palette
+        }
+    }
+
     #[derive(Debug,Clone,Copy)]
     enum ActiveMode {
         Empty,
@@ -83,9 +89,10 @@ pub mod top {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::Hide => { self.active_mode = ActiveMode::Empty },
-                Message::Open => { self.active_mode = ActiveMode::Open },
-                Message::Save => { self.active_mode = ActiveMode::Save },
+                Message::Palette(msg) => self.palette.update(msg),
+                Message::Hide => self.active_mode = ActiveMode::Empty,
+                Message::Open => self.active_mode = ActiveMode::Open,
+                Message::Save => self.active_mode = ActiveMode::Save,
                 _ => {}
             }
         }

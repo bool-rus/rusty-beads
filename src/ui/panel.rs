@@ -8,9 +8,11 @@ pub mod left {
     use super::files::FSMenu;
     use std::path::PathBuf;
     use crate::io::default_dir;
-    use crate::entities::{Side, GridAction, Size};
+    use crate::entities::{Side, GridAction, Size, Color};
+    use std::sync::Arc;
+    use crate::grid::Grid;
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum Message {
         Ignore,
         ShowResize,
@@ -21,6 +23,7 @@ pub mod left {
         InputWidth(usize),
         InputHeight(usize),
         GridAction(GridAction),
+        GridUpdated(Arc<Grid<Color>>),
         WrongValue,
         FS(FilesMessage),
     }
@@ -38,6 +41,7 @@ pub mod left {
     }
 
     pub struct Panel {
+        grid: Arc<Grid<Color>>,
         state: State,
     }
 
@@ -52,7 +56,10 @@ pub mod left {
 
     impl Default for Panel {
         fn default() -> Self {
-            Self { state: State::Empty }
+            Self {
+                grid: Default::default(),
+                state: State::Empty,
+            }
         }
     }
 
@@ -71,9 +78,15 @@ pub mod left {
             use Message::*;
             match msg {
                 Hide => { self.state = State::Empty },
-                ShowResize => { self.state = State::Resize(Default::default())},
+                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.grid.size()))},
                 ShowOpen => { self.state = State::FS(FSMenu::open(default_dir()))},
                 ShowSave => { self.state = State::FS(FSMenu::save(default_dir()))},
+                GridUpdated(grid) => {
+                    self.grid = grid;
+                    if matches!(self.state, State::Resize(_)) {
+                        self.state = State::Resize(ResizeWidget::new(self.grid.size()));
+                    }
+                }
                 msg => {
                     match self.state {
                         State::Empty => {},
@@ -89,7 +102,6 @@ pub mod left {
             }
         }
     }
-    #[derive(Default)]
     pub struct ResizeWidget {
         input_width: text_input::State,
         input_height: text_input::State,
@@ -98,6 +110,18 @@ pub mod left {
         btn_resize: button::State,
         grow_shirnk_buttons: GrowShrinkButtons,
     }
+    impl ResizeWidget {
+        fn new(size: Size) -> Self {
+            Self {
+                input_width: Default::default(),
+                input_height: Default::default(),
+                width: size.width.to_string(),
+                height: size.height.to_string(),
+                btn_resize: Default::default(),
+                grow_shirnk_buttons: Default::default(),
+            }
+        }
+     }
 
     struct GrowShrinkButtons {
         add_top: SvgButton,
@@ -235,13 +259,15 @@ pub mod right {
     use std::cell::{RefCell, Cell};
     use std::hash::Hash;
     use std::collections::HashMap;
+    use std::sync::Arc;
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum Message {
         Ignore,
         ShowBeads,
         Hide,
-        GridChanged,
+        Refresh,
+        GridUpdated(Arc<Grid<Color>>),
         ToggleCheckbox(usize),
     }
 
@@ -252,16 +278,16 @@ pub mod right {
     }
 
     pub struct RightPanel {
-        grid: Rc<RefCell<Grid<Color>>>,
+        grid: Arc<Grid<Color>>,
         scroll: scrollable::State,
         state: State,
         schema: Rc<Cell<Schema>>,
     }
 
     impl RightPanel {
-        pub fn new(grid: Rc<RefCell<Grid<Color>>>, schema: Rc<Cell<Schema>>) -> Self {
+        pub fn new(schema: Rc<Cell<Schema>>) -> Self {
             Self {
-                grid,
+                grid: Arc::new(Grid::default()),
                 scroll: Default::default(),
                 state: State::None,
                 schema,
@@ -275,8 +301,8 @@ pub mod right {
                         Schema::FirstOffset => BeadsLineBuilder::RLOffset(true),
                         Schema::SecondOffset => BeadsLineBuilder::RLOffset(false),
                         Schema::Straight => BeadsLineBuilder::RLSquare,
-                    }.build(self.grid.borrow().as_table());
-                    self.state = State::Beads(BeadsWidget::new(self.grid.borrow().width(), line))
+                    }.build(self.grid.as_table());
+                    self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
                 }
             }
         }
@@ -301,8 +327,12 @@ pub mod right {
                     self.state = State::Beads(BeadsWidget::empty());
                     self.refresh();
                 }
-                (_, Message::GridChanged) => { self.refresh() }
-                (State::Beads(ref mut widget), msg) => { widget.update(msg) }
+                (_, Message::Refresh) => self.refresh(),
+                (_, Message::GridUpdated(grid)) => {
+                    self.grid = grid;
+                    self.refresh();
+                }
+                (State::Beads(ref mut widget), ref msg) => { widget.update(msg.clone()) }
                 (State::None, _) => {}
                 (_, Message::ToggleCheckbox(_)) => {}
             }
@@ -372,7 +402,6 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::GridChanged => {}
                 Message::ToggleCheckbox(i) => {
                     //TODO: обработать none
                     let checked = self.checkboxes.get_mut(i).unwrap();

@@ -2,28 +2,27 @@ use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use crate::entities::{Color, GridAction, Side, Schema};
+use crate::entities::{Color, GridAction, Side, Schema, Coord};
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
 use std::collections::VecDeque;
+use std::sync::Arc;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
-    GridClicked(usize,usize),
-    SetColor(usize, usize, Color),
-    GridAction(GridAction),
+    GridClicked(Coord),
+    SetColor(Coord, Color),//TODO: надо бы убрать, здесь неактуально
+    GridUpdated(Arc<Grid<Color>>),
     Rotate(isize),
     SetRotation(f32),
     SchemaChange,
     ZoomIn,
     ZoomOut,
-    Undo,
-    Redo,
 }
 
 pub struct GridPlate {
-    grid: Rc<RefCell<Grid<Color>>>,
+    grid: Arc<Grid<Color>>,
     mouse_hold: Rc<Cell<bool>>,
     schema: Rc<Cell<Schema>>,
     undo: VecDeque<Message>,
@@ -37,9 +36,9 @@ pub struct GridPlate {
 }
 
 impl GridPlate {
-    pub fn new(grid: Rc<RefCell<Grid<Color>>>, schema: Rc<Cell<Schema>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+    pub fn new(schema: Rc<Cell<Schema>>, mouse_hold: Rc<Cell<bool>>) -> Self {
         Self {
-            grid,
+            grid: Arc::new(Grid::default()),
             mouse_hold ,
             schema,
             undo: VecDeque::with_capacity(1000),
@@ -68,82 +67,6 @@ impl GridPlate {
             Straight => self.schema.set(SecondOffset),
         }
     }
-    fn update_impl(&mut self, msg: Message, log_undo: bool) -> Result<(), String> {
-        let undo = match msg {
-            Message::SetColor(row, col, color) => {
-                let prev_color = self.grid.borrow_mut().set(row,col, color)?;
-                if prev_color != color {
-                    Some(Message::SetColor(row, col, prev_color))
-                } else { None }
-            }
-            Message::GridAction(action) => {
-                match action {
-                    GridAction::Add(side) => {
-                        if matches!(side, Side::Top) {
-                            self.switch_offset();
-                        }
-                        self.grid.borrow_mut().grow(side, Color::default());
-                        Some(Message::GridAction(GridAction::Remove(side)))
-                    },
-                    GridAction::Remove(side) => {
-                        if matches!(side, Side::Top) {
-                            self.switch_offset();
-                        }
-                        self.grid.borrow_mut().shrink(side);
-                        Some(Message::GridAction(GridAction::Add(side)))
-                    },
-                }
-            }
-            Message::Undo  => match self.undo.pop_front() {
-                Some(msg) => {
-                    self.update_impl(msg, false);
-                    None
-                }
-                None => None
-            }
-            Message::Redo => match self.redo.pop_front() {
-                Some(msg) => {
-                    self.update_impl(msg, true);
-                    None
-                }
-                None => None
-            }
-            Message::GridClicked(..) => {
-                self.redo.clear();
-                None
-            },
-            Message::Rotate(rotation) => {
-                self.rotation += rotation;
-                None
-            }
-            Message::SetRotation(rotation) => {
-                let width = self.grid.borrow().width() as f32;
-                let rotation = width*rotation;
-                self.rotation = rotation.round() as isize;
-                None
-            }
-            Message::ZoomIn => {
-                self.half_size += 1;
-                None
-            }
-            Message::ZoomOut => {
-                if self.half_size > 1 {
-                    self.half_size -= 1;
-                }
-                None
-            }
-            Message::SchemaChange => {
-                self.switch_schema();
-                None
-            }
-            Message::Ignore => None
-        };
-        let deque = if log_undo { &mut self.undo } else { &mut self.redo };
-        if let Some(undo) = undo {
-            deque.push_front(undo);
-        }
-        Ok(())
-    }
 }
 
 fn normalize_rotation(rot: isize, width: usize) -> usize {
@@ -164,7 +87,7 @@ impl AppWidget for GridPlate {
             Schema::SecondOffset => [half, full, half],
             Schema::Straight => [half, half, half],
         };
-        let grid = self.grid.borrow();
+        let grid = &self.grid;
         let width = grid.width();
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
@@ -181,12 +104,13 @@ impl AppWidget for GridPlate {
                     .skip(rotation)
                     .zip(range.clone().into_iter());
                 children.extend(iter.map(|((item, col), _)| {
+                    let coord = Coord{x:row, y:col};
                     let mut widget = ColorBox::new(item.clone())
                         .width(full)
                         .height(full)
-                        .on_press(Message::GridClicked(row, col).into());
+                        .on_press(Message::GridClicked(coord).into());
                     if self.mouse_hold.get() {
-                        widget = widget.on_over(Message::GridClicked(row,col))
+                        widget = widget.on_over(Message::GridClicked(coord))
                     }
                     widget.into()
                 }));
@@ -216,7 +140,21 @@ impl AppWidget for GridPlate {
         ).into()
     }
 
-    fn update(&mut self, msg: Self::Message) {
-        self.update_impl(msg, true);
+    fn update(&mut self, msg: Message) {
+        use Message::*;
+        match msg {
+            GridUpdated(grid) => self.grid = grid,
+            Rotate(rotation) => { self.rotation += rotation; }
+            SetRotation(rotation) => {
+                let width = self.grid.width() as f32;
+                let rotation = width*rotation;
+                self.rotation = rotation.round() as isize;
+            }
+            ZoomIn => { self.half_size += 1; }
+            ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
+            SchemaChange => self.switch_schema(),
+            Ignore | GridClicked(..) => {}
+            SetColor(..) =>{}
+        }
     }
 }

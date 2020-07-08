@@ -1,6 +1,6 @@
 
 use std::num::NonZeroUsize;
-use crate::entities::Side;
+use crate::entities::{Side, Size};
 use std::fmt::Debug;
 
 #[derive(Debug)]
@@ -32,6 +32,12 @@ impl<T: Debug + Clone> Grid<T> {
             Err(Error::InvalidDataSize)
         } else {
             Ok(Self { width, height, data })
+        }
+    }
+    pub fn size(&self) -> Size {
+        Size {
+            width: NonZeroUsize::new(self.width).unwrap(),
+            height: NonZeroUsize::new(self.height).unwrap(),
         }
     }
     pub fn width(&self) -> usize {

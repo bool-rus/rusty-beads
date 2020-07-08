@@ -98,9 +98,7 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            LeftPanel(LPMsg::GridAction(action)) => GMsg::GridAction(action),
-            TopMenu(TMMsg::Undo) => GMsg::Undo,
-            TopMenu(TMMsg::Redo) => GMsg::Redo,
+            GridUpdated(v) => GMsg::GridUpdated(v),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
             LeftMenu(LMMsg::SchemaChange) => GMsg::SchemaChange,
@@ -118,6 +116,7 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
+            GridUpdated(grid) => LPMsg::GridUpdated(grid),
             _ => LPMsg::Ignore,
         }
     }
@@ -130,7 +129,8 @@ impl From<Message> for RPMsg {
             RightPanel(msg) => msg,
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
-            Grid(_) | TopMenu(_) | LeftMenu(_) | LeftPanel(LPMsg::Resize(_)) => RPMsg::GridChanged,
+            GridUpdated(grid) => RPMsg::GridUpdated(grid),
+            LeftMenu(LMMsg::SchemaChange) => RPMsg::Refresh,
             _ => RPMsg::Ignore
         }
     }
@@ -140,7 +140,7 @@ impl From<Message> for GSMsg<Color> {
     fn from(msg: Message) -> Self {
         use Message::*;
         match msg {
-            Grid(GMsg::SetColor(x, y, color)) => GSMsg::Point(Coord{x,y}, color),
+            Grid(GMsg::SetColor(coord, color)) => GSMsg::Point(coord, color),
             LeftPanel(LPMsg::GridAction(GridAction::Add(side))) => GSMsg::Grow(side),
             LeftPanel(LPMsg::GridAction(GridAction::Remove(side))) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
