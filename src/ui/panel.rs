@@ -20,11 +20,10 @@ pub mod left {
         ShowSave,
         Hide,
         Resize(Size),
-        InputWidth(usize),
-        InputHeight(usize),
+        InputWidth(String),
+        InputHeight(String),
         GridAction(GridAction),
         GridUpdated(Arc<Grid<Color>>),
-        WrongValue,
         FS(FilesMessage),
     }
 
@@ -209,15 +208,19 @@ pub mod left {
                 &mut self.input_width,
                 &"10",
                 &self.width,
-                |s| { s.parse().map_or(Message::WrongValue, |n| Message::InputWidth(n)) },
+                |s| Message::InputWidth(s),
             );
             let height_field = TextInput::new(
                 &mut self.input_height,
                 &"10",
                 &self.height,
-                |s| { s.parse().map_or(Message::WrongValue, |n| Message::InputHeight(n)) },
+                |s| Message::InputHeight(s),
             );
 
+            let mut btn_ok = Button::new(&mut self.btn_resize, Text::new("OK"));
+            if let Ok(msg) = resize_message(&self.width, &self.height) {
+                btn_ok = btn_ok.on_press(msg);
+            }
             let edit = Row::new()
                 .push(Column::new()
                     .push(Text::new("Width: "))
@@ -225,9 +228,7 @@ pub mod left {
                 ).push(Column::new().width(Length::Units(50))
                 .push(width_field)
                 .push(height_field)
-                .push(Button::new(&mut self.btn_resize, Text::new("OK"))
-                    .on_press(resize_message(&self.width, &self.height).unwrap_or(Message::WrongValue))
-                )
+                .push(btn_ok)
             );
             Column::new().align_items(Align::Center)
                 .push(edit).push(space()).push(self.grow_shirnk_buttons.view()).into()
@@ -236,9 +237,8 @@ pub mod left {
         fn update(&mut self, msg: Self::Message) {
             match msg {
                 Message::Resize(_) => {/* top level process */},
-                Message::InputWidth(s) => { self.width = s.to_string(); },
-                Message::InputHeight(s) => { self.height = s.to_string(); },
-                Message::WrongValue => {},
+                Message::InputWidth(s) => { self.width = s },
+                Message::InputHeight(s) => { self.height = s },
                 _ => {}
             }
         }
