@@ -99,12 +99,10 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
             Redo => {
                 let mut redo = Vec::new();
                 mem::swap(&mut self.redo, &mut redo);
-                mem::swap(&mut self.undo, &mut self.redo);
                 let result = match redo.pop() {
                     None => Some(Message::Err("Redo is empty".to_string())),
                     Some(msg) => self.service(msg),
                 };
-                mem::swap(&mut self.undo, &mut self.redo);
                 mem::swap(&mut self.redo, &mut redo);
                 result
             },
