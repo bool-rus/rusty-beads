@@ -19,8 +19,8 @@ pub struct AppService {
 }
 
 impl AppService {
-    fn process_with_result(&mut self, mut msg: Message) -> Result<Option<Message>, String> {
-        let mut grid_msg;
+    fn process_with_result(&mut self, msg: Message) -> Result<Option<Message>, String> {
+        let grid_msg;
         if let Some(io_response) = self.io.service(msg.clone().into())? {
             grid_msg = io_response.into();
         } else {

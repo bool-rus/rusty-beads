@@ -46,12 +46,6 @@ impl<T: Debug + Clone> Grid<T> {
     pub fn height(&self) -> usize {
         self.height
     }
-    pub fn update_from_another(&mut self, rhs: Self) {
-        let Self {width,height,data} = rhs;
-        self.width = width;
-        self.height = height;
-        self.data = data;
-    }
     pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
         let prev = self.data
             .as_mut_slice()
@@ -151,38 +145,30 @@ impl<T: Debug + Clone> Grid<T> {
     }
 }
 
-fn lr_side(i: usize) -> Side {
-    if i % 2 == 0 { Side::Right } else { Side::Left }
-}
-
-fn tb_side(i: usize) -> Side {
-    if i % 2 == 0 { Side::Bottom } else { Side::Top }
-}
-
 impl<T: Debug + Clone + Default> Grid<T> {
     pub fn resize(&mut self, width: NonZeroUsize, height: NonZeroUsize) {
         let width = width.get();
         let height = height.get();
         if width > self.width {
             let delta = width - self.width;
-            for i in 0..delta {
+            for _ in 0..delta {
                 self.grow(Side::Right, Default::default());
             }
         } else {
             let delta = self.width - width;
-            for i in 0..delta {
+            for _ in 0..delta {
                 self.shrink(Side::Right);
             }
         }
         if height > self.height {
             let delta = height - self.height;
-            for i in 0..delta {
-                self.grow(Side::Bottom, Default::default());//top grow corrupts grid
+            for _ in 0..delta {
+                self.grow(Side::Bottom, Default::default());
             }
         } else {
             let delta = self.height - height;
-            for i in 0..delta {
-                self.shrink(Side::Bottom);//top shrink corrupts grid
+            for _ in 0..delta {
+                self.shrink(Side::Bottom);
             }
         }
     }

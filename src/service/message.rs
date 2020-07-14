@@ -1,11 +1,7 @@
 use super::*;
 use crate::ui::{
     GridMessage as GMsg,
-    RightMenuMessage as RMMsg,
     TopMenuMessage as TMMsg,
-    PaletteMessage,
-    RightPanelMessage as RPMsg,
-    LeftMenuMessage as LMMsg,
     LeftPanelMessage as LPMsg,
     FilesMessage as FMsg,
 };

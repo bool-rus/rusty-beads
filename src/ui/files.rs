@@ -1,19 +1,14 @@
 use crate::reimport::*;
 use super::AppWidget;
-use iced::{Element, Svg, svg};
+use iced::{Element, Svg};
 use std::path::{Path, PathBuf};
-use std::ffi::{OsString, OsStr};
+use std::ffi::OsString;
 use std::io;
-use std::io::{Error, ErrorKind};
 use crate::ui::style::FSMenuItem;
 use crate::ui::icon;
-use std::cell::{Cell, RefCell};
-use std::rc::Rc;
-use std::ops::Add;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Ignore,
     DirClicked(usize),
     FileClicked(usize),
     Input(String),
@@ -134,6 +129,7 @@ impl FSMenu {
         let list = self.list.as_ref().map_err(|e|{
             io::Error::new(e.kind(), "File list is not constructed")
         })?;
+        use io::ErrorKind;
         match msg {
             Message::DirClicked(n) => {
                 let name = list.dir_name(n)
@@ -150,7 +146,7 @@ impl FSMenu {
                     .ok_or(io::Error::new(ErrorKind::InvalidInput, "selected file not found"))?;
                 let mut selected = self.path.clone();
                 selected.push(name);
-                let mut text = &mut self.text;
+                let text = &mut self.text;
                 text.clear();
                 text.push_str(name.to_string_lossy().as_ref());
                 self.selected = Some(selected);
@@ -161,7 +157,6 @@ impl FSMenu {
             },
             Message::Open(_) => {/*need to process in caller*/},
             Message::Save(_) => {/*need to process in caller*/},
-            Message::Ignore => {},
         };
         Ok(())
     }

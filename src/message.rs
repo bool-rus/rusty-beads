@@ -2,12 +2,11 @@ use crate::ui::{
     GridMessage as GMsg,
     RightMenuMessage as RMMsg,
     TopMenuMessage as TMMsg,
-    PaletteMessage,
     RightPanelMessage as RPMsg,
     LeftMenuMessage as LMMsg,
     LeftPanelMessage as LPMsg,
 };
-use crate::entities::{Color, GridAction, Coord, Size};
+use crate::entities::Color;
 use std::sync::Arc;
 use crate::grid::Grid;
 

@@ -2,16 +2,14 @@ use super::{files, icon};
 
 pub mod left {
     use crate::reimport::*;
-    use crate::ui::{AppWidget, icon, SvgButton};
+    use crate::ui::{AppWidget, SvgButton};
     use std::num::{ParseIntError, NonZeroUsize};
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
-    use std::path::PathBuf;
     use crate::io::default_dir;
     use crate::entities::{Side, GridAction, Size, Color};
     use std::sync::Arc;
     use crate::grid::Grid;
-    use crate::ui::files::{SaveDialog, OpenDialog};
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -248,8 +246,7 @@ pub mod right {
     use crate::ui::AppWidget;
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
-    use std::cell::{RefCell, Cell};
-    use std::hash::Hash;
+    use std::cell::Cell;
     use std::collections::HashMap;
     use std::sync::Arc;
 
@@ -264,7 +261,7 @@ pub mod right {
     }
 
     #[derive(Debug)]
-    pub enum State {
+    enum State {
         None,
         Beads(BeadsWidget),
     }
@@ -326,7 +323,6 @@ pub mod right {
                 }
                 (State::Beads(ref mut widget), ref msg) => { widget.update(msg.clone()) }
                 (State::None, _) => {}
-                (_, Message::ToggleCheckbox(_)) => {}
             }
         }
     }

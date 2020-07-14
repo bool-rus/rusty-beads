@@ -2,10 +2,9 @@ use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
 use crate::grid::Grid;
-use crate::entities::{Color, GridAction, Side, Schema, Coord};
+use crate::entities::{Color, Schema, Coord};
 use std::rc::Rc;
-use std::cell::{RefCell, Cell};
-use std::collections::VecDeque;
+use std::cell::Cell;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -25,8 +24,6 @@ pub struct GridPlate {
     grid: Arc<Grid<Color>>,
     mouse_hold: Rc<Cell<bool>>,
     schema: Rc<Cell<Schema>>,
-    undo: VecDeque<Message>,
-    redo: VecDeque<Message>,
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
@@ -41,22 +38,12 @@ impl GridPlate {
             grid: Arc::new(Grid::default()),
             mouse_hold ,
             schema,
-            undo: VecDeque::with_capacity(1000),
-            redo: VecDeque::with_capacity(1000),
             rotation: 0,
             half_size: 6,
             slider: Default::default(),
             scroll: Default::default(),
             rot_l: Default::default(),
             rot_r: Default::default(),
-        }
-    }
-    fn switch_offset(&mut self) {
-        use Schema::*;
-        match self.schema.get() {
-            FirstOffset => self.schema.set(SecondOffset),
-            SecondOffset => self.schema.set(FirstOffset),
-            Straight => {},
         }
     }
     fn switch_schema(&mut self) {

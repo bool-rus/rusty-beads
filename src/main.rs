@@ -9,15 +9,11 @@ mod message;
 mod service;
 
 use reimport::*;
-use grid::Grid;
-use entities::Color;
 use message::Message;
 use ui::*;
 use std::cell::{Cell};
-use std::num::NonZeroUsize;
-use crate::entities::{Schema, GridAction, Side, Size};
+use crate::entities::Schema;
 use crate::service::AppService;
-use std::sync::Arc;
 use std::rc::Rc;
 
 
@@ -28,7 +24,6 @@ struct App {
     right_panel: RightPanel,
     right_menu: RightMenu,
     left_menu: LeftMenu,
-    active_color: Color,
     left_panel: LeftPanel,
     mouse_hold: Rc<Cell<bool>>,
 }
@@ -44,7 +39,6 @@ impl Default for App {
             right_panel: RightPanel::new( schema.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
-            active_color: Default::default(),
             mouse_hold,
             left_panel: Default::default(),
         }

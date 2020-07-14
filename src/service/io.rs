@@ -1,6 +1,5 @@
 use crate::grid::Grid;
 use crate::entities::Color;
-use std::rc::Rc;
 use std::sync::Arc;
 use std::path::PathBuf;
 

@@ -1,14 +1,11 @@
 use crate::reimport::*;
 use super::{AppWidget, icon, palette};
-use super::RightPanelState;
 use super::style::ToggledOn;
 use super::SvgButton;
 
 pub mod top {
     use super::*;
     use palette::Palette;
-    use button::State;
-    use crate::entities::{GridAction, Side};
 
     pub struct TopMenu {
         palette: Palette,
@@ -106,10 +103,7 @@ pub mod top {
 }
 pub mod right {
     use super::*;
-    use crate::entities::Color;
-    use iced::{button, scrollable, Scrollable};
-    use std::rc::Rc;
-    use std::cell::Cell;
+    use iced::button;
 
     #[derive(Default)]
     pub struct RightMenu {
@@ -150,7 +144,6 @@ pub mod right {
 pub mod left {
     use super::*;
     use button::State;
-    use crate::entities::{GridAction, Side};
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {

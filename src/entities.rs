@@ -1,7 +1,7 @@
 
 use std::fmt;
 use std::str::{FromStr};
-use std::num::{ParseIntError, NonZeroU32, NonZeroUsize};
+use std::num::{ParseIntError, NonZeroUsize};
 
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
