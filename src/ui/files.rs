@@ -11,14 +11,14 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::ops::Add;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
     DirClicked(usize),
     FileClicked(usize),
-    Input,
-    Open,
-    Save,
+    Input(String),
+    Open(PathBuf),
+    Save(PathBuf),
 }
 
 struct Files {
@@ -85,50 +85,49 @@ impl Files {
     }
 }
 
-
 pub struct FSMenu {
     path: PathBuf,
     list: io::Result<Files>,
     selected: Option<PathBuf>,
-    btn_completed: button::State,
     scroll: scrollable::State,
-    submit_icon: Svg,
-    submit_msg: Message,
     input: text_input::State,
-    text: Rc<RefCell<String>>
+    text: String
 }
 
 impl FSMenu {
-    pub fn open<T: AsRef<Path>>(path: T) -> Self {
-        let list = Files::new(path.as_ref());
+    fn new<T: AsRef<Path>>(path: T) -> Self {
         Self {
             path: PathBuf::from(path.as_ref()),
-            list,
+            list: Files::new(path.as_ref()),
             selected: None,
-            btn_completed: Default::default(),
             scroll: Default::default(),
-            submit_icon: icon::OPEN.svg(),
             input: Default::default(),
-            text: Rc::new(RefCell::new(String::new())),
-            submit_msg: Message::Open,
+            text: Default::default(),
         }
     }
-    pub fn save<T: AsRef<Path>>(path: T) -> Self {
-        let mut obj = Self::open(path);
-        obj.submit_icon = icon::SAVE.svg();
-        obj.submit_msg = Message::Save;
-        obj
+    pub fn open<T: AsRef<Path>>(path: T) -> impl AppWidget<Message=Message> {
+        OpenDialog {
+            btn_completed: Default::default(),
+            fs_menu: Self::new(path),
+        }
+
+    }
+    pub fn save<T: AsRef<Path>>(path: T) -> impl AppWidget<Message=Message> {
+        SaveDialog {
+            btn_completed: Default::default(),
+            fs_menu: Self::new(path),
+        }
     }
 
-    pub fn selected(&self) -> PathBuf {
-        match &self.selected {
+    pub fn selected(&self) -> Option<PathBuf> {
+        Some(match &self.selected {
             None => {
                 let mut path = self.path.clone();
-                path.push(self.text.borrow().as_str());
+                path.push(self.text.as_str());
                 path
             },
             Some(path) => {path.clone()},
-        }
+        })
     }
 
     fn update_with_err(&mut self, msg: Message) -> io::Result<()> {
@@ -143,7 +142,7 @@ impl FSMenu {
                 self.path = self.path.canonicalize()?;
                 self.list = Files::new(&self.path);
                 self.selected = None;
-                self.text.borrow_mut().clear();
+                self.text.clear();
                 self.scroll = Default::default();
             },
             Message::FileClicked(n) => {
@@ -151,31 +150,26 @@ impl FSMenu {
                     .ok_or(io::Error::new(ErrorKind::InvalidInput, "selected file not found"))?;
                 let mut selected = self.path.clone();
                 selected.push(name);
-                let mut text = self.text.borrow_mut();
+                let mut text = &mut self.text;
                 text.clear();
                 text.push_str(name.to_string_lossy().as_ref());
                 self.selected = Some(selected);
             },
-            Message::Input => { self.selected = None; },
-            Message::Open => {/*need to process in caller*/},
-            Message::Save => {/*need to process in caller*/},
+            Message::Input(text) => {
+                self.selected = None;
+                self.text = text;
+            },
+            Message::Open(_) => {/*need to process in caller*/},
+            Message::Save(_) => {/*need to process in caller*/},
             Message::Ignore => {},
         };
         Ok(())
     }
-}
 
-impl AppWidget for FSMenu {
-    type Message = Message;
-
-    fn view(&mut self) -> Element<'_, Self::Message> {
+    fn view_with_btn<'a>(&'a mut self, btn: Button<'a, Message>) -> Element<'a, Message> {
         let text = self.text.clone();
         match &mut self.list {
             Ok(list) => {
-                let mut btn = Button::new(&mut self.btn_completed, self.submit_icon.clone());
-                if self.selected.is_some() || !self.text.borrow().is_empty() {
-                    btn = btn.on_press(self.submit_msg);
-                }
                 Column::new()
                     .push(Scrollable::new(&mut self.scroll).height(Length::Fill).push(list.view()))
                     .push(Container::new(
@@ -183,13 +177,8 @@ impl AppWidget for FSMenu {
                             .push(TextInput::new(
                                 &mut self.input,
                                 &"",
-                                text.clone().borrow().as_str(),
-                                move |s|{
-                                    let mut x = text.borrow_mut();
-                                    x.clear();
-                                    x.push_str(s.as_str());
-                                    Message::Input
-                                }
+                                text.as_str(),
+                                |s| Message::Input(s)
                             ).size(15).width(Length::Units(150)))
                             .push(btn)
                             .align_items(Align::Center)
@@ -200,7 +189,52 @@ impl AppWidget for FSMenu {
         }
     }
 
-    fn update(&mut self, msg: Self::Message) {
+    fn update(&mut self, msg: Message) {
         self.update_with_err(msg);
+    }
+}
+
+pub struct OpenDialog {
+    btn_completed: button::State,
+    fs_menu: FSMenu,
+}
+
+
+impl AppWidget for OpenDialog {
+    type Message = Message;
+
+    fn view(&mut self) -> Element<'_, Self::Message> {
+        let mut btn = Button::new(&mut self.btn_completed, icon::OPEN.svg());
+        if let Some(selected) = self.fs_menu.selected() {
+            btn = btn.on_press(Message::Open(selected));
+        }
+        self.fs_menu.view_with_btn(btn)
+    }
+
+    fn update(&mut self, msg: Self::Message) {
+        self.fs_menu.update(msg)
+    }
+}
+
+
+pub struct SaveDialog {
+    btn_completed: button::State,
+    fs_menu: FSMenu,
+}
+
+
+impl AppWidget for SaveDialog {
+    type Message = Message;
+
+    fn view(&mut self) -> Element<'_, Self::Message> {
+        let mut btn = Button::new(&mut self.btn_completed, icon::SAVE.svg());
+        if let Some(selected) = self.fs_menu.selected() {
+            btn = btn.on_press(Message::Save(selected));
+        }
+        self.fs_menu.view_with_btn(btn)
+    }
+
+    fn update(&mut self, msg: Self::Message) {
+        self.fs_menu.update(msg)
     }
 }

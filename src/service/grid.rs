@@ -6,6 +6,7 @@ use std::collections::VecDeque;
 use std::num::NonZeroUsize;
 use core::mem;
 use std::sync::Arc;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message<T: Debug + Clone> {
@@ -17,17 +18,9 @@ pub enum Message<T: Debug + Clone> {
     Shrink(Side),
     Resize(Size),
     Updated(Arc<Grid<T>>),
-    Err(String), //TODO: вместо строки надо бы какой-нибудь тип
+    Loaded(Grid<T>),
 }
 
-impl<T: Debug + Clone> From<Result<Message<T>, String>> for Message<T> {
-    fn from(result: Result<Message<T>, String>) -> Self {
-        match result {
-            Ok(msg) => msg,
-            Err(e) => Message::Err(e),
-        }
-    }
-}
 #[derive(Default)]
 pub struct Service<T: Debug + Clone> {
     grid: Grid<T>,
@@ -48,9 +41,9 @@ impl<T: Debug + Clone> Service<T> {
 impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
     type Message = Message<T>;
 
-    fn service(&mut self, msg: Self::Message) -> Option<Self::Message> {
+    fn service(&mut self, msg: Self::Message) -> Result<Option<Self::Message>, String> {
         use Message::*;
-        match msg {
+        Ok(match msg {
             Point(Coord{x,y}, new) => {
                 let msg = self.grid
                     .set(x,y, new.clone())
@@ -59,7 +52,7 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                             self.push_undo(Point(Coord{x,y},prev));
                         }
                         self.updated()
-                    });
+                    })?;
                 Some(msg.into())
             },
             Grow(side) => {
@@ -68,12 +61,9 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 Some(self.updated())
             },
             Shrink(side) => {
-                let msg = self.grid.shrink(side)
-                    .map(|_| {
-                        self.push_undo(Grow(side));
-                        self.updated()
-                    });
-                Some(msg.into())
+                self.grid.shrink(side)?;
+                self.push_undo(Grow(side));
+                Some(self.updated())
             },
             Resize(Size { width, height }) => {
                 let prev = Size {
@@ -89,25 +79,29 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 mem::swap(&mut self.undo, &mut undo);
                 mem::swap(&mut self.undo, &mut self.redo);
                 let result = match undo.pop() {
-                    None => Some(Message::Err("Undo is empty".to_string())),
+                    None => Err("Undo is empty".to_string()),
                     Some(msg) => self.service(msg),
                 };
                 mem::swap(&mut self.undo, &mut self.redo);
                 mem::swap(&mut self.undo, &mut undo);
-                result
+                result?
             },
             Redo => {
                 let mut redo = Vec::new();
                 mem::swap(&mut self.redo, &mut redo);
                 let result = match redo.pop() {
-                    None => Some(Message::Err("Redo is empty".to_string())),
+                    None => Err("Redo is empty".to_string()),
                     Some(msg) => self.service(msg),
                 };
                 mem::swap(&mut self.redo, &mut redo);
-                result
+                result?
             },
-            Updated(_)| Err(_) | Ignore => None,
-        }
+            Loaded(grid) => {
+                self.grid = grid.clone();
+                Some(Updated(Arc::new(grid)))
+            },
+            Updated(_) | Ignore => None,
+        })
     }
 }
 
@@ -150,7 +144,7 @@ mod test {
         s.service(Message::Grow(Side::Left));
         let response = s.service(Message::Redo);
         match response {
-            Some(Message::Err(_)) => {},
+            Some(Message::Error(_)) => {},
             _ => {panic!(format!("unexpected response: {:?}", response))},
         }
     }

@@ -16,13 +16,13 @@ use ui::*;
 use std::cell::{Cell};
 use std::num::NonZeroUsize;
 use crate::entities::{Schema, GridAction, Side, Size};
-use crate::service::{GridService, Service};
+use crate::service::AppService;
 use std::sync::Arc;
 use std::rc::Rc;
 
 
 struct App {
-    grid_service: GridService<Color>,
+    service: AppService,
     top_menu: TopMenu,
     grid_plate: GridPlate,
     right_panel: RightPanel,
@@ -38,7 +38,7 @@ impl Default for App {
         let schema = Rc::new(Cell::new(Schema::FirstOffset));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
-            grid_service: Default::default(),
+            service: Default::default(),
             top_menu: Default::default(),
             grid_plate: GridPlate::new(schema.clone(), mouse_hold.clone()),
             right_panel: RightPanel::new( schema.clone()),
@@ -72,24 +72,10 @@ impl Sandbox for App {
         "Beads and threads by Bool".into()
     }
     fn update(&mut self, message: Message) {
-        if let Some(service_msg) = self.grid_service.service(message.clone().into()) {
-            self.update_children(service_msg.into());
+        if let Some(service_msg) = self.service.process(message.clone().into()) {
+            self.update_children(service_msg);
         }
         self.update_children(message.clone());
-        match message {
-            Message::LeftPanel(LeftPanelMessage::FS(FilesMessage::Open)) => {
-                if let Some(path) = self.left_panel.selected_path() {
-                    let grid = crate::io::read(path).unwrap();
-                    //self.grid.borrow_mut().update_from_another(grid);
-                }
-            },
-            Message::LeftPanel(LeftPanelMessage::FS(FilesMessage::Save)) => {
-                if let Some(path) = self.left_panel.selected_path() {
-                    //crate::io::write(path, self.grid.borrow().as_table()).unwrap();
-                }
-            },
-            _ => {}
-        }
     }
 
     fn view(&mut self) -> Element<'_, Message> {

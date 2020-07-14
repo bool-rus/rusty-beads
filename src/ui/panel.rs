@@ -11,6 +11,7 @@ pub mod left {
     use crate::entities::{Side, GridAction, Size, Color};
     use std::sync::Arc;
     use crate::grid::Grid;
+    use crate::ui::files::{SaveDialog, OpenDialog};
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -36,21 +37,12 @@ pub mod left {
     pub enum State {
         Empty,
         Resize(ResizeWidget),
-        FS(FSMenu),
+        FS(Box<dyn AppWidget<Message=FilesMessage>>),
     }
 
     pub struct Panel {
         grid: Arc<Grid<Color>>,
         state: State,
-    }
-
-    impl Panel {
-        pub fn selected_path(&self) -> Option<PathBuf> {
-            match &self.state {
-                State::FS(widget) => Some(widget.selected()),
-                _ => None
-            }
-        }
     }
 
     impl Default for Panel {
@@ -78,8 +70,8 @@ pub mod left {
             match msg {
                 Hide => { self.state = State::Empty },
                 ShowResize => { self.state = State::Resize(ResizeWidget::new(self.grid.size()))},
-                ShowOpen => { self.state = State::FS(FSMenu::open(default_dir()))},
-                ShowSave => { self.state = State::FS(FSMenu::save(default_dir()))},
+                ShowOpen => { self.state = State::FS(Box::new(FSMenu::open(default_dir())))},
+                ShowSave => { self.state = State::FS(Box::new(FSMenu::save(default_dir())))},
                 GridUpdated(grid) => {
                     self.grid = grid;
                     if matches!(self.state, State::Resize(_)) {
