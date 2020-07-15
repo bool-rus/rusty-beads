@@ -79,12 +79,6 @@ impl Into<iced::Color> for Color {
 pub enum Side { Top, Left, Right, Bottom }
 
 #[derive(Debug, Copy, Clone)]
-pub enum GridAction {
-    Add(Side),
-    Remove(Side)
-}
-
-#[derive(Debug, Copy, Clone)]
 pub enum Schema {
     FirstOffset,
     SecondOffset,

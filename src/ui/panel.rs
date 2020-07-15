@@ -7,7 +7,7 @@ pub mod left {
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use crate::io::default_dir;
-    use crate::entities::{Side, GridAction, Size, Color};
+    use crate::entities::{Side, Size, Color};
     use std::sync::Arc;
     use crate::grid::Grid;
 
@@ -21,7 +21,8 @@ pub mod left {
         Resize(Size),
         InputWidth(String),
         InputHeight(String),
-        GridAction(GridAction),
+        Grow(Side),
+        Shrink(Side),
         GridUpdated(Arc<Grid<Color>>),
         FS(FilesMessage),
     }
@@ -142,10 +143,10 @@ pub mod left {
 
     impl GrowShrinkButtons {
         fn grow(side: Side) -> Message {
-            Message::GridAction(GridAction::Add(side))
+            Message::Grow(side)
         }
         fn shrink(side: Side) -> Message {
-            Message::GridAction(GridAction::Remove(side))
+            Message::Shrink(side)
         }
         fn view(&mut self) -> Element<'_, Message> {
             use Side::*;

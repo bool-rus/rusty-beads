@@ -5,7 +5,6 @@ use crate::ui::{
     LeftPanelMessage as LPMsg,
     FilesMessage as FMsg,
 };
-use crate::entities::GridAction;
 
 impl From<Message> for GridServiceMessage<Color> {
     fn from(msg: Message) -> Self {
@@ -13,8 +12,8 @@ impl From<Message> for GridServiceMessage<Color> {
         use GridServiceMessage as GSMsg;
         match msg {
             Grid(GMsg::SetColor(coord, color)) => GSMsg::Point(coord, color),
-            LeftPanel(LPMsg::GridAction(GridAction::Add(side))) => GSMsg::Grow(side),
-            LeftPanel(LPMsg::GridAction(GridAction::Remove(side))) => GSMsg::Shrink(side),
+            LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
+            LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
             TopMenu(TMMsg::Undo) => GSMsg::Undo,
             TopMenu(TMMsg::Redo) => GSMsg::Redo,
