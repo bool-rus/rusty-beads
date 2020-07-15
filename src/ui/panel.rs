@@ -82,6 +82,7 @@ pub mod left {
                         State::Resize(ref mut widget) => {widget.update(msg)},
                         State::FS(ref mut widget) => {
                             match msg {
+                                Message::FS(FilesMessage::Open(..)) | Message::FS(FilesMessage::Save(..)) => self.state = State::Empty,
                                 Message::FS(msg) => {widget.update(msg)},
                                 _ => {}
                             }

@@ -61,10 +61,13 @@ impl From<LPMsg> for Message {
 
 impl From<Message> for TMMsg {
     fn from(msg: Message) -> Self {
+        use crate::ui::FilesMessage;
         match msg {
             Message::TopMenu(msg) => msg,
             Message::LeftMenu(LMMsg::Hide) |
             Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
+            Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
+            Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
             _ => TMMsg::Ignore,
         }
     }
