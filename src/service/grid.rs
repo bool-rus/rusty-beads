@@ -124,14 +124,14 @@ mod test {
         s.service(Message::Point(Coord{ x: 0, y: 0 }, 34));
         s.service(Message::Point(Coord{ x: 0, y: 0 }, 35));
         let vars: Vec<_> = vec![Message::Undo; 2].into_iter().map(|m|{
-           match s.service(m).expect("undo must return message") {
+           match s.service(m).expect("undo must return message").unwrap() {
                Message::Updated(grid) => {grid.as_table()[0][0]},
                _ => {panic!("undo must return updated")},
            }
         }).collect();
         assert_eq!(vars, vec![34,33]);
         let vars: Vec<_> = vec![Message::Redo; 2].into_iter().map(|m|{
-            match s.service(m).expect("redo must return message") {
+            match s.service(m).expect("redo must return message").unwrap() {
                 Message::Updated(grid) => {grid.as_table()[0][0]},
                 _ => {panic!("undo must return updated")},
             }
@@ -141,7 +141,7 @@ mod test {
         s.service(Message::Grow(Side::Left));
         let response = s.service(Message::Redo);
         match response {
-            Some(Message::Error(_)) => {},
+            Err(_) => {},
             _ => {panic!(format!("unexpected response: {:?}", response))},
         }
     }
