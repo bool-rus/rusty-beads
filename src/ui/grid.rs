@@ -89,8 +89,8 @@ impl AppWidget for GridPlate {
                     .cycle()
                     .zip(range.clone().into_iter().cycle())
                     .skip(rotation)
-                    .zip(range.clone().into_iter());
-                children.extend(iter.map(|((item, col), _)| {
+                    .take(width);
+                children.extend(iter.map(|(item, col)| {
                     let coord = Coord{x:row, y:col};
                     let mut widget = ColorBox::new(item.clone())
                         .width(full)
