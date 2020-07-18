@@ -260,6 +260,7 @@ pub mod right {
         Refresh,
         GridUpdated(Arc<Grid<Color>>),
         ToggleCheckbox(usize),
+        AddColor(Color),
     }
 
     #[derive(Debug)]

@@ -10,6 +10,7 @@ pub struct Palette {
 #[derive(Debug, Copy, Clone)]
 pub enum Message {
     ActivateColor(usize),
+    AddColor(Color),
 }
 
 impl Palette {
@@ -51,6 +52,7 @@ impl AppWidget for Palette {
     fn update(&mut self, msg: Self::Message) {
         match msg {
             Message::ActivateColor(i) => self.active_color = i,
+            Message::AddColor(color) => self.add(color),
         }
     }
 }

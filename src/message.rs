@@ -5,6 +5,7 @@ use crate::ui::{
     RightPanelMessage as RPMsg,
     LeftMenuMessage as LMMsg,
     LeftPanelMessage as LPMsg,
+    PaletteMessage
 };
 use crate::entities::Color;
 use std::sync::Arc;
@@ -68,6 +69,7 @@ impl From<Message> for TMMsg {
             Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
             Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
             Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
+            Message::RightPanel(RPMsg::AddColor(color)) => TMMsg::Palette(PaletteMessage::AddColor(color)),
             _ => TMMsg::Ignore,
         }
     }
