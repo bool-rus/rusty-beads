@@ -1,5 +1,3 @@
-extern crate iced;
-
 mod reimport;
 mod grid;
 mod entities;
@@ -8,46 +6,53 @@ mod wrapper;
 mod io;
 mod beads;
 mod message;
+mod service;
 
 use reimport::*;
-use grid::Grid;
-use entities::Color;
 use message::Message;
 use ui::*;
-use std::rc::Rc;
-use std::cell::{RefCell, Cell};
-use std::num::NonZeroUsize;
+use std::cell::{Cell};
 use crate::entities::Schema;
+use crate::service::AppService;
+use std::rc::Rc;
 
 
 struct App {
-    grid: Rc<RefCell<Grid<Color>>>,
+    service: AppService,
     top_menu: TopMenu,
     grid_plate: GridPlate,
     right_panel: RightPanel,
     right_menu: RightMenu,
     left_menu: LeftMenu,
-    active_color: Color,
     left_panel: LeftPanel,
     mouse_hold: Rc<Cell<bool>>,
 }
 
 impl Default for App {
     fn default() -> Self {
-        let grid = Rc::new(RefCell::new(Default::default()));
         let schema = Rc::new(Cell::new(Schema::FirstOffset));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
-            grid: grid.clone(),
+            service: Default::default(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(grid.clone(), schema.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new(grid.clone(), schema.clone()),
+            grid_plate: GridPlate::new(schema.clone(), mouse_hold.clone()),
+            right_panel: RightPanel::new( schema.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
-            active_color: Default::default(),
             mouse_hold,
             left_panel: Default::default(),
         }
+    }
+}
+
+impl App {
+    fn update_children(&mut self, message: Message) {
+        self.top_menu.update(message.clone().into());
+        self.right_menu.update(message.clone().into());
+        self.left_menu.update(message.clone().into());
+        self.grid_plate.update(message.clone().into());
+        self.left_panel.update(message.clone().into());
+        self.right_panel.update(message.clone().into());
     }
 }
 
@@ -61,109 +66,14 @@ impl Sandbox for App {
         "Beads and threads by Bool".into()
     }
     fn update(&mut self, message: Message) {
-        match message {
-            Message::TopMenu(msg) => {
-                self.top_menu.update(msg);
-                match msg {
-                    TopMenuMessage::Save => {
-                        self.left_panel.update(LeftPanelMessage::ShowSave);
-                    }
-                    TopMenuMessage::Open => {
-                        self.left_panel.update(LeftPanelMessage::ShowOpen);
-                    }
-                    TopMenuMessage::Palette(msg) => match msg {
-                        PaletteMessage::SetColor(color) => { self.active_color = color }
-                    }
-                    TopMenuMessage::GridAction(action) => {
-                        self.grid_plate.update(GridMessage::GridAction(action));
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Undo => {
-                        self.grid_plate.update(GridMessage::Undo);
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Redo => {
-                        self.grid_plate.update(GridMessage::Redo);
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    }
-                    TopMenuMessage::Hide => {
-                        self.left_panel.update(LeftPanelMessage::Hide);
-                    }
-                }
-            },
-            Message::LeftMenu(msg) => {
-                self.left_menu.update(msg);
-                match msg {
-                    LeftMenuMessage::Hide => {
-                        self.left_panel.update(LeftPanelMessage::Hide);
-                    },
-                    LeftMenuMessage::GridAction(action) => {
-                        self.grid_plate.update(GridMessage::GridAction(action));
-                        self.right_panel.update(RightPanelMessage::GridChanged);
-                    },
-                    LeftMenuMessage::ZoomIn => {
-                        self.grid_plate.update(GridMessage::ZoomIn);
-                    }
-                    LeftMenuMessage::ZoomOut => {
-                        self.grid_plate.update(GridMessage::ZoomOut);
-                    }
-                    LeftMenuMessage::ShowResize => {
-                        let grid = self.grid.borrow();
-                        use LeftPanelMessage::*;
-                        self.left_panel.update(LeftPanelMessage::ShowResize);
-                        self.left_panel.update(InputWidth(grid.width()));
-                        self.left_panel.update(InputHeight(grid.height()));
-                    }
-                    LeftMenuMessage::SchemaChange => {
-                        self.grid_plate.update(GridMessage::SchemaChange);
-                    }
-                }
-            },
-            Message::Grid(msg) => {
-                self.grid_plate.update(msg);
-                match msg {
-                    GridMessage::GridClicked(row, col) => {
-                        self.grid_plate.update(GridMessage::SetColor(row, col,self.active_color))
-                    },
-                    _ => {}
-                }
-                self.right_panel.update(RightPanelMessage::GridChanged);
-            },
-            Message::RightMenu(msg) => {
-                self.right_menu.update(msg);
-                self.right_panel.update(msg.into());
-            },
-            Message::RightPanel(msg) => {
-                self.right_panel.update(msg);
-            },
-            Message::LeftPanel(msg) => {
-                self.left_panel.update(msg);
-                match msg {
-                    LeftPanelMessage::Resize(width, height) => {
-                        if let (Some(width), Some(height)) =
-                        (NonZeroUsize::new(width), NonZeroUsize::new(height)) {
-                            self.grid.borrow_mut().resize(width, height);
-                        }
-                    }
-                    LeftPanelMessage::FS(FilesMessage::Open) => {
-                        if let Some(path) = self.left_panel.selected_path() {
-                            let grid = crate::io::read(path).unwrap();
-                            self.grid.borrow_mut().update_from_another(grid);
-                            self.right_panel.update(RightPanelMessage::GridChanged);
-                        }
-                    },
-                    LeftPanelMessage::FS(FilesMessage::Save) => {
-                        if let Some(path) = self.left_panel.selected_path() {
-                            crate::io::write(path, self.grid.borrow().as_table()).unwrap();
-                        }
-                    },
-                    _ => {}
-                }
-            }
+        if let Some(service_msg) = self.service.process(message.clone().into()) {
+            self.update_children(service_msg);
         }
+        self.update_children(message.clone());
     }
 
     fn view(&mut self) -> Element<'_, Message> {
+        let active_color = self.top_menu.palette().active_color();
         let top = Container::new(self.top_menu.view().map(From::from))
             .height(Length::Units(30));
         let bottom = Container::new(Text::new(""));
@@ -171,8 +81,13 @@ impl Sandbox for App {
             .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
-        let content = Container::new(self.grid_plate.view().map(From::from));
-        let row = Row::new()
+        let content = Container::new(self.grid_plate.view().map(move |msg| {
+            match msg { //TODO: как-то неочевидно, надо переделать
+                GridMessage::GridClicked(coord) => Message::Grid(GridMessage::SetColor(coord, active_color)),
+                msg => Message::Grid(msg)
+            }
+        }));
+        let row = Row::new().spacing(5)
             .push(Element::new(ui::MouseListener::new(self.mouse_hold.clone())))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -181,7 +96,7 @@ impl Sandbox for App {
             .push(content.height(Length::Fill).width(Length::Fill))
             .push(self.right_panel.view().map(From::from))
             .push(right);
-        Column::new().height(Length::Fill).spacing(10)
+        Column::new().height(Length::Fill).spacing(5)
             .push(top)
             .push(row)
             .push(bottom).into()

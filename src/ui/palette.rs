@@ -4,21 +4,26 @@ use crate::ui::AppWidget;
 
 pub struct Palette {
     buttons: Vec<(Color, button::State)>,
+    active_color: usize,
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum Message {
-    SetColor(Color),
+    ActivateColor(usize),
 }
 
 impl Palette {
     pub fn new(colors: Vec<Color>) -> Self {
         Self {
             buttons: colors.into_iter().map(|item| { (item, Default::default()) }).collect(),
+            active_color: 0,
         }
     }
-    pub fn add(&mut self, color: Color) {
+    fn add(&mut self, color: Color) {
         self.buttons.push((color, Default::default()));
+    }
+    pub fn active_color(&self) -> Color {
+        self.buttons.get(self.active_color).unwrap().0 //TODO:  обработать none
     }
 }
 
@@ -32,7 +37,7 @@ impl AppWidget for Palette {
             rows[index].push(Button::new(
                 state,
                 Space::new(Length::Units(7), Length::Units(5)),
-            ).on_press(Message::SetColor(color.clone()))
+            ).on_press(Message::ActivateColor(i))
                 .style(crate::ui::style::ColorButton(color.clone().into()))
                 .into());
         });
@@ -41,6 +46,12 @@ impl AppWidget for Palette {
             .push(Row::with_children(top))
             .push(Row::with_children(bot))
             .into()
+    }
+
+    fn update(&mut self, msg: Self::Message) {
+        match msg {
+            Message::ActivateColor(i) => self.active_color = i,
+        }
     }
 }
 

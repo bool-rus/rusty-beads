@@ -1,6 +1,3 @@
-extern crate iced_native;
-extern crate iced_wgpu;
-
 use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};

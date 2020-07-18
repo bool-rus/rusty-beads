@@ -1,27 +1,29 @@
-use super::menu::right::Message as RightMenuMessage;
-use super::menu::left::Message as LeftMenuMessage;
-use super::files;
+use super::{files, icon};
 
 pub mod left {
     use crate::reimport::*;
-    use crate::ui::AppWidget;
-    use std::num::ParseIntError;
-    use super::LeftMenuMessage as MenuMsg;
+    use crate::ui::{AppWidget, SvgButton};
+    use std::num::{ParseIntError, NonZeroUsize};
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
-    use std::path::PathBuf;
     use crate::io::default_dir;
+    use crate::entities::{Side, Size, Color};
+    use std::sync::Arc;
+    use crate::grid::Grid;
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum Message {
+        Ignore,
         ShowResize,
         ShowOpen,
         ShowSave,
         Hide,
-        Resize(usize, usize),
-        InputWidth(usize),
-        InputHeight(usize),
-        WrongValue,
+        Resize(Size),
+        InputWidth(String),
+        InputHeight(String),
+        Grow(Side),
+        Shrink(Side),
+        GridUpdated(Arc<Grid<Color>>),
         FS(FilesMessage),
     }
 
@@ -34,25 +36,20 @@ pub mod left {
     pub enum State {
         Empty,
         Resize(ResizeWidget),
-        FS(FSMenu),
+        FS(Box<dyn AppWidget<Message=FilesMessage>>),
     }
 
     pub struct Panel {
+        grid: Arc<Grid<Color>>,
         state: State,
-    }
-
-    impl Panel {
-        pub fn selected_path(&self) -> Option<PathBuf> {
-            match &self.state {
-                State::FS(widget) => Some(widget.selected()),
-                _ => None
-            }
-        }
     }
 
     impl Default for Panel {
         fn default() -> Self {
-            Self { state: State::Empty }
+            Self {
+                grid: Default::default(),
+                state: State::Empty,
+            }
         }
     }
 
@@ -71,40 +68,129 @@ pub mod left {
             use Message::*;
             match msg {
                 Hide => { self.state = State::Empty },
-                ShowResize => { self.state = State::Resize(Default::default())},
-                ShowOpen => { self.state = State::FS(FSMenu::open(default_dir()))},
-                ShowSave => { self.state = State::FS(FSMenu::save(default_dir()))},
+                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.grid.size()))},
+                ShowOpen => { self.state = State::FS(Box::new(FSMenu::open(default_dir())))},
+                ShowSave => { self.state = State::FS(Box::new(FSMenu::save(default_dir())))},
+                GridUpdated(grid) => {
+                    self.grid = grid;
+                    if matches!(self.state, State::Resize(_)) {
+                        self.state = State::Resize(ResizeWidget::new(self.grid.size()));
+                    }
+                }
                 msg => {
                     match self.state {
                         State::Empty => {},
                         State::Resize(ref mut widget) => {widget.update(msg)},
                         State::FS(ref mut widget) => {
                             match msg {
+                                Message::FS(FilesMessage::Open(..)) | Message::FS(FilesMessage::Save(..)) => self.state = State::Empty,
                                 Message::FS(msg) => {widget.update(msg)},
                                 _ => {}
                             }
                         }
                     }
-                    match msg {
-                        Message::Resize(_,_) => self.state = State::Empty,
-                        _ => {}
-                    }
                 }
             }
         }
     }
-    #[derive(Default)]
     pub struct ResizeWidget {
         input_width: text_input::State,
         input_height: text_input::State,
         width: String,
         height: String,
         btn_resize: button::State,
+        grow_shirnk_buttons: GrowShrinkButtons,
+    }
+    impl ResizeWidget {
+        fn new(size: Size) -> Self {
+            Self {
+                input_width: Default::default(),
+                input_height: Default::default(),
+                width: size.width.to_string(),
+                height: size.height.to_string(),
+                btn_resize: Default::default(),
+                grow_shirnk_buttons: Default::default(),
+            }
+        }
+     }
+
+    struct GrowShrinkButtons {
+        add_top: SvgButton,
+        add_left: SvgButton,
+        add_right: SvgButton,
+        add_bottom: SvgButton,
+        remove_top: SvgButton,
+        remove_left: SvgButton,
+        remove_right: SvgButton,
+        remove_bottom: SvgButton,
     }
 
+    impl Default for GrowShrinkButtons {
+        fn default() -> Self {
+            use super::icon::*;
+            GrowShrinkButtons {
+                add_top: SvgButton::new(ADD_TOP_ROW),
+                add_left: SvgButton::new(ADD_LEFT_COLUMN),
+                add_right: SvgButton::new(ADD_RIGHT_COLUMN),
+                add_bottom: SvgButton::new(ADD_BOTTOM_ROW),
+                remove_top: SvgButton::new(REMOVE_TOP_ROW),
+                remove_left: SvgButton::new(REMOVE_LEFT_COLUMN),
+                remove_right: SvgButton::new(REMOVE_RIGHT_COLUMN),
+                remove_bottom: SvgButton::new(REMOVE_BOTTOM_ROW),
+            }
+        }
+    }
+
+    impl GrowShrinkButtons {
+        fn grow(side: Side) -> Message {
+            Message::Grow(side)
+        }
+        fn shrink(side: Side) -> Message {
+            Message::Shrink(side)
+        }
+        fn view(&mut self) -> Element<'_, Message> {
+            use Side::*;
+            Column::new()
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.add_top.button().on_press(Self::grow(Top)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(self.add_left.button().on_press(Self::grow(Left)))
+                        .push(space()).push(self.add_right.button().on_press(Self::grow(Right)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.add_bottom.button().on_press(Self::grow(Bottom)))
+                )
+                .push(space())
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.remove_top.button().on_press(Self::shrink(Top)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(self.remove_left.button().on_press(Self::shrink(Left)))
+                        .push(space())
+                        .push(self.remove_right.button().on_press(Self::shrink(Right)))
+                )
+                .push(
+                    Row::new().height(Length::Units(30))
+                        .push(space())
+                        .push(self.remove_bottom.button().on_press(Self::shrink(Bottom)))
+                )
+                .into()
+        }
+    }
 
     fn resize_message(width: &str, height: &str) -> Result<Message, ParseIntError> {
-        Ok(Message::Resize(width.parse()?, height.parse()?))
+        let width = NonZeroUsize::new(width.parse()?).unwrap();
+        let height = NonZeroUsize::new(height.parse()?).unwrap();
+        Ok(Message::Resize(Size {width, height}))
     }
 
     impl AppWidget for ResizeWidget {
@@ -114,37 +200,43 @@ pub mod left {
                 &mut self.input_width,
                 &"10",
                 &self.width,
-                |s| { s.parse().map_or(Message::WrongValue, |n| Message::InputWidth(n)) },
+                |s| Message::InputWidth(s),
             );
             let height_field = TextInput::new(
                 &mut self.input_height,
                 &"10",
                 &self.height,
-                |s| { s.parse().map_or(Message::WrongValue, |n| Message::InputHeight(n)) },
+                |s| Message::InputHeight(s),
             );
 
-            Row::new()
+            let mut btn_ok = Button::new(&mut self.btn_resize, Text::new("OK"));
+            if let Ok(msg) = resize_message(&self.width, &self.height) {
+                btn_ok = btn_ok.on_press(msg);
+            }
+            let edit = Row::new()
                 .push(Column::new()
                     .push(Text::new("Width: "))
                     .push(Text::new("Height: "))
                 ).push(Column::new().width(Length::Units(50))
                 .push(width_field)
                 .push(height_field)
-                .push(Button::new(&mut self.btn_resize, Text::new("OK"))
-                    .on_press(resize_message(&self.width, &self.height).unwrap_or(Message::WrongValue))
-                )
-            ).into()
+                .push(btn_ok)
+            );
+            Column::new().align_items(Align::Center)
+                .push(edit).push(space()).push(self.grow_shirnk_buttons.view()).into()
         }
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::Resize(_, _) => {/* top level process */},
-                Message::InputWidth(s) => { self.width = s.to_string(); },
-                Message::InputHeight(s) => { self.height = s.to_string(); },
-                Message::WrongValue => {},
+                Message::Resize(_) => {/* top level process */},
+                Message::InputWidth(s) => { self.width = s },
+                Message::InputHeight(s) => { self.height = s },
                 _ => {}
             }
         }
+    }
+    fn space() -> Space {
+        Space::new(Length::Units(30), Length::Units(30))
     }
 }
 
@@ -156,41 +248,37 @@ pub mod right {
     use crate::ui::AppWidget;
     use crate::grid::Grid;
     use crate::ui::widget::ColorBox;
-    use std::cell::{RefCell, Cell};
-    use super::RightMenuMessage as MenuMsg;
-    use std::hash::Hash;
+    use std::cell::Cell;
     use std::collections::HashMap;
+    use std::sync::Arc;
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum Message {
-        Menu(MenuMsg),
-        GridChanged,
-        Toggle(usize),
-    }
-
-    impl From<MenuMsg> for Message {
-        fn from(msg: MenuMsg) -> Self {
-            Message::Menu(msg)
-        }
+        Ignore,
+        ShowBeads,
+        Hide,
+        Refresh,
+        GridUpdated(Arc<Grid<Color>>),
+        ToggleCheckbox(usize),
     }
 
     #[derive(Debug)]
-    pub enum State {
+    enum State {
         None,
         Beads(BeadsWidget),
     }
 
     pub struct RightPanel {
-        grid: Rc<RefCell<Grid<Color>>>,
+        grid: Arc<Grid<Color>>,
         scroll: scrollable::State,
         state: State,
         schema: Rc<Cell<Schema>>,
     }
 
     impl RightPanel {
-        pub fn new(grid: Rc<RefCell<Grid<Color>>>, schema: Rc<Cell<Schema>>) -> Self {
+        pub fn new(schema: Rc<Cell<Schema>>) -> Self {
             Self {
-                grid,
+                grid: Arc::new(Grid::default()),
                 scroll: Default::default(),
                 state: State::None,
                 schema,
@@ -204,8 +292,8 @@ pub mod right {
                         Schema::FirstOffset => BeadsLineBuilder::RLOffset(true),
                         Schema::SecondOffset => BeadsLineBuilder::RLOffset(false),
                         Schema::Straight => BeadsLineBuilder::RLSquare,
-                    }.build(self.grid.borrow().as_table());
-                    self.state = State::Beads(BeadsWidget::new(self.grid.borrow().width(), line))
+                    }.build(self.grid.as_table());
+                    self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
                 }
             }
         }
@@ -225,15 +313,18 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match (&mut self.state, msg) {
-                (_, Message::Menu(MenuMsg::Hide)) => { self.state = State::None }
-                (_, Message::Menu(MenuMsg::ShowBeads)) => {
+                (_, Message::Hide) => { self.state = State::None }
+                (_, Message::ShowBeads) => {
                     self.state = State::Beads(BeadsWidget::empty());
                     self.refresh();
                 }
-                (_, Message::GridChanged) => { self.refresh() }
-                (State::Beads(ref mut widget), msg) => { widget.update(msg) }
+                (_, Message::Refresh) => self.refresh(),
+                (_, Message::GridUpdated(grid)) => {
+                    self.grid = grid;
+                    self.refresh();
+                }
+                (State::Beads(ref mut widget), ref msg) => { widget.update(msg.clone()) }
                 (State::None, _) => {}
-                (_, Message::Toggle(_)) => {}
             }
         }
     }
@@ -283,7 +374,7 @@ pub mod right {
                             .push(Checkbox::new(
                                 *checked,
                                 symbols.get(&color).unwrap_or(&undefined).to_string(),
-                                move |_x| Message::Toggle(i)
+                                move |_x| Message::ToggleCheckbox(i)
                             ).spacing(1).width(Length::Units(35)))
                             .push(ColorBox::new(color.clone()))
                             .push(Text::new(count.to_string()))
@@ -301,13 +392,12 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::Menu(_) => {}
-                Message::GridChanged => {}
-                Message::Toggle(i) => {
+                Message::ToggleCheckbox(i) => {
                     //TODO: обработать none
                     let checked = self.checkboxes.get_mut(i).unwrap();
                     *checked = !*checked;
                 }
+                _ => {}
             }
         }
     }

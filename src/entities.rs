@@ -1,7 +1,7 @@
 
 use std::fmt;
 use std::str::{FromStr};
-use std::num::ParseIntError;
+use std::num::{ParseIntError, NonZeroUsize};
 
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
@@ -79,14 +79,20 @@ impl Into<iced::Color> for Color {
 pub enum Side { Top, Left, Right, Bottom }
 
 #[derive(Debug, Copy, Clone)]
-pub enum GridAction {
-    Add(Side),
-    Remove(Side)
-}
-
-#[derive(Debug, Copy, Clone)]
 pub enum Schema {
     FirstOffset,
     SecondOffset,
     Straight,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Size {
+    pub width: NonZeroUsize,
+    pub height: NonZeroUsize,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Coord {
+    pub x: usize,
+    pub y: usize,
 }

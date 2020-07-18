@@ -1,14 +1,11 @@
-extern crate quick_csv;
 use crate::grid::Grid;
 use crate::entities::Color;
-use std::fs::{File, DirEntry};
-use std::fs;
-use std::io::{Write, ErrorKind};
-use self::quick_csv::Csv;
+use std::fs::File;
+use std::io::Write;
+use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
-use std::io;
 
 pub fn write<T: AsRef<Path>>(file: T, table: Vec<&[Color]>) -> std::io::Result<()> {
 
