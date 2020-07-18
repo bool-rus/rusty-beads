@@ -75,6 +75,17 @@ impl Into<iced::Color> for Color {
         iced::Color::from_rgb8(r,g,b)
     }
 }
+
+impl From<iced::Color> for Color {
+    fn from(color: iced::Color) -> Self {
+        let max = u8::MAX as f32;
+        Self {
+            r: (max * color.r) as u8,
+            g: (max * color.g) as u8,
+            b: (max * color.b) as u8,
+        }
+    }
+}
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 

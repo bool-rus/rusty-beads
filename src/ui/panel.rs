@@ -251,7 +251,14 @@ pub mod right {
     use std::cell::Cell;
     use std::collections::HashMap;
     use std::sync::Arc;
+    use crate::ui::style::Colored;
 
+    #[derive(Debug, Copy, Clone)]
+    pub enum ColorPart {
+        RED(f32),
+        GREEN(f32),
+        BLUE(f32),
+    }
     #[derive(Debug, Clone)]
     pub enum Message {
         Ignore,
@@ -261,12 +268,14 @@ pub mod right {
         GridUpdated(Arc<Grid<Color>>),
         ToggleCheckbox(usize),
         AddColor(Color),
+        ConfigColor(ColorPart),
     }
 
     #[derive(Debug)]
     enum State {
         None,
         Beads(BeadsWidget),
+        Palette(Palette),
     }
 
     pub struct RightPanel {
@@ -281,7 +290,7 @@ pub mod right {
             Self {
                 grid: Arc::new(Grid::default()),
                 scroll: Default::default(),
-                state: State::None,
+                state: State::Palette(Palette::default()),
                 schema,
             }
         }
@@ -296,6 +305,7 @@ pub mod right {
                     }.build(self.grid.as_table());
                     self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
                 }
+                State::Palette(_) => {}
             }
         }
     }
@@ -308,6 +318,7 @@ pub mod right {
                 match self.state {
                     State::None => { Space::new(Length::Units(0), Length::Units(0)).into() }
                     State::Beads(ref mut widget) => { widget.view() }
+                    State::Palette(ref mut widget) => widget.view()
                 })
                 .into()
         }
@@ -325,6 +336,7 @@ pub mod right {
                     self.refresh();
                 }
                 (State::Beads(ref mut widget), ref msg) => { widget.update(msg.clone()) }
+                (State::Palette(ref mut widget), ref msg) => widget.update(msg.clone()),
                 (State::None, _) => {}
             }
         }
@@ -398,6 +410,77 @@ pub mod right {
                     let checked = self.checkboxes.get_mut(i).unwrap();
                     *checked = !*checked;
                 }
+                _ => {}
+            }
+        }
+    }
+
+    #[derive(Debug)]
+    struct Palette {
+        btn_add: button::State,
+        color: iced::Color,
+        sliders: (slider::State, slider::State, slider::State),
+    }
+
+    impl Default for Palette {
+        fn default() -> Self {
+            Self {
+                btn_add: Default::default(),
+                color: iced::Color::BLACK,
+                sliders: Default::default(),
+            }
+        }
+    }
+
+    fn color_space<'a, M: 'a, S: 'static + iced::container::StyleSheet>(stylesheet: S) -> Element<'a, M> {
+        Container::new(Space::new(Length::Units(10), Length::Units(10)))
+            .style(stylesheet)
+            .into()
+    }
+    impl AppWidget for Palette {
+        type Message = Message;
+
+        fn view(&mut self) -> Element<'_, Self::Message> {
+            let (r_state,g_state,b_state) = &mut self.sliders;
+            let r = Container::new(Row::new()
+                .push(slider::Slider::new(
+                    r_state,
+                    0.0..=1.0,
+                    self.color.r,
+                    |x|Message::ConfigColor(ColorPart::RED(x))
+                ))).style(Colored(iced::Color {r: 1.0, g: 1.0 - self.color.r, b: 1.0 - self.color.r, a:1.0}));
+            let g = Container::new(Row::new()
+                .push(slider::Slider::new(
+                    g_state,
+                    0.0..=1.0,
+                    self.color.g,
+                    |x|Message::ConfigColor(ColorPart::GREEN(x))
+                ))).style(Colored(iced::Color{r:1.0 - self.color.g, g: 1.0, b: 1.0 - self.color.g, a: 1.0}));
+            let b = Container::new(Row::new()
+                .push(slider::Slider::new(
+                    b_state,
+                    0.0..=1.0,
+                    self.color.b,
+                    |x|Message::ConfigColor(ColorPart::BLUE(x))
+                ))).style(Colored(iced::Color{r: 1.0 - self.color.b, g: 1.0 - self.color.b, b: 1.0, a: 1.0}));
+            let submit = Container::new(
+                    Button::new(&mut self.btn_add, Text::new("OK"))
+                    .on_press(Message::AddColor(self.color.into()))
+                ).width(Length::Units(100))
+                .style(Colored(self.color));
+            Column::new().push(r).push(g).push(b).push(submit).width(Length::Units(200)).into()
+
+        }
+
+        fn update(&mut self, msg: Self::Message) {
+            match msg {
+                Message::ConfigColor(part) => {
+                    match part {
+                        ColorPart::RED(v) => self.color.r = v,
+                        ColorPart::GREEN(v) => self.color.g = v,
+                        ColorPart::BLUE(v) => self.color.b = v,
+                    }
+                },
                 _ => {}
             }
         }
