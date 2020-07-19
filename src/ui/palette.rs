@@ -11,6 +11,7 @@ pub struct Palette {
 pub enum Message {
     ActivateColor(usize),
     AddColor(Color),
+    RemoveColor,
 }
 
 impl Palette {
@@ -22,6 +23,14 @@ impl Palette {
     }
     fn add(&mut self, color: Color) {
         self.buttons.push((color, Default::default()));
+    }
+
+    fn remove(&mut self) {
+        if self.buttons.len() > 1 {
+            self.buttons.remove(self.active_color);
+            self.active_color = std::cmp::min(self.active_color, self.buttons.len() - 1)
+        }
+
     }
     pub fn active_color(&self) -> Color {
         self.buttons.get(self.active_color).unwrap().0 //TODO:  обработать none
@@ -53,6 +62,7 @@ impl AppWidget for Palette {
         match msg {
             Message::ActivateColor(i) => self.active_color = i,
             Message::AddColor(color) => self.add(color),
+            Message::RemoveColor => self.remove(),
         }
     }
 }

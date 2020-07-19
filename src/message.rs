@@ -70,6 +70,7 @@ impl From<Message> for TMMsg {
             Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
             Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
             Message::RightPanel(RPMsg::AddColor(color)) => TMMsg::Palette(PaletteMessage::AddColor(color)),
+            Message::RightPanel(RPMsg::RemoveColor) => TMMsg::Palette(PaletteMessage::RemoveColor),
             _ => TMMsg::Ignore,
         }
     }

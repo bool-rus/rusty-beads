@@ -269,6 +269,7 @@ pub mod right {
         ToggleCheckbox(usize),
         AddColor(Color),
         ConfigColor(ColorPart),
+        RemoveColor,
     }
 
     #[derive(Debug)]
@@ -418,6 +419,7 @@ pub mod right {
     #[derive(Debug)]
     struct Palette {
         btn_add: button::State,
+        btn_remove: button::State,
         color: iced::Color,
         sliders: (slider::State, slider::State, slider::State),
     }
@@ -426,6 +428,7 @@ pub mod right {
         fn default() -> Self {
             Self {
                 btn_add: Default::default(),
+                btn_remove: Default::default(),
                 color: iced::Color::BLACK,
                 sliders: Default::default(),
             }
@@ -468,7 +471,11 @@ pub mod right {
                     .on_press(Message::AddColor(self.color.into()))
                 ).width(Length::Units(100))
                 .style(Colored(self.color));
-            Column::new().push(r).push(g).push(b).push(submit).width(Length::Units(200)).into()
+            Column::new().push(r).push(g).push(b)
+                .push(submit)
+                .push(Button::new(&mut self.btn_remove, Text::new("X"))
+                    .on_press(Message::RemoveColor))
+                .width(Length::Units(200)).into()
 
         }
 
