@@ -263,6 +263,7 @@ pub mod right {
     pub enum Message {
         Ignore,
         ShowBeads,
+        ShowColors,
         Hide,
         Refresh,
         GridUpdated(Arc<Grid<Color>>),
@@ -276,7 +277,7 @@ pub mod right {
     enum State {
         None,
         Beads(BeadsWidget),
-        Palette(Palette),
+        Colors(ColorMenu),
     }
 
     pub struct RightPanel {
@@ -291,7 +292,7 @@ pub mod right {
             Self {
                 grid: Arc::new(Grid::default()),
                 scroll: Default::default(),
-                state: State::Palette(Palette::default()),
+                state: State::None,
                 schema,
             }
         }
@@ -306,7 +307,7 @@ pub mod right {
                     }.build(self.grid.as_table());
                     self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
                 }
-                State::Palette(_) => {}
+                State::Colors(_) => {}
             }
         }
     }
@@ -319,14 +320,15 @@ pub mod right {
                 match self.state {
                     State::None => { Space::new(Length::Units(0), Length::Units(0)).into() }
                     State::Beads(ref mut widget) => { widget.view() }
-                    State::Palette(ref mut widget) => widget.view()
+                    State::Colors(ref mut widget) => widget.view()
                 })
                 .into()
         }
 
         fn update(&mut self, msg: Self::Message) {
             match (&mut self.state, msg) {
-                (_, Message::Hide) => { self.state = State::None }
+                (_, Message::Hide) => self.state = State::None,
+                (_, Message::ShowColors) => self.state = State::Colors(Default::default()),
                 (_, Message::ShowBeads) => {
                     self.state = State::Beads(BeadsWidget::empty());
                     self.refresh();
@@ -336,8 +338,8 @@ pub mod right {
                     self.grid = grid;
                     self.refresh();
                 }
-                (State::Beads(ref mut widget), ref msg) => { widget.update(msg.clone()) }
-                (State::Palette(ref mut widget), ref msg) => widget.update(msg.clone()),
+                (State::Beads(ref mut widget), ref msg) => widget.update(msg.clone()),
+                (State::Colors(ref mut widget), ref msg) => widget.update(msg.clone()),
                 (State::None, _) => {}
             }
         }
@@ -417,14 +419,14 @@ pub mod right {
     }
 
     #[derive(Debug)]
-    struct Palette {
+    struct ColorMenu {
         btn_add: button::State,
         btn_remove: button::State,
         color: iced::Color,
         sliders: (slider::State, slider::State, slider::State),
     }
 
-    impl Default for Palette {
+    impl Default for ColorMenu {
         fn default() -> Self {
             Self {
                 btn_add: Default::default(),
@@ -440,7 +442,7 @@ pub mod right {
             .style(stylesheet)
             .into()
     }
-    impl AppWidget for Palette {
+    impl AppWidget for ColorMenu {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {

@@ -132,6 +132,7 @@ impl From<Message> for RPMsg {
         match msg {
             RightPanel(msg) => msg,
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
+            RightMenu(RMMsg::ShowColors) => RPMsg::ShowColors,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
             GridUpdated(grid) => RPMsg::GridUpdated(grid),
             LeftMenu(LMMsg::SchemaChange) => RPMsg::Refresh,

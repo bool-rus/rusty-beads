@@ -105,10 +105,23 @@ pub mod right {
     use super::*;
     use iced::button;
 
+    enum Activated {
+        Beads,
+        Colors,
+        None,
+    }
+
+    impl Default for Activated {
+        fn default() -> Self {
+            Activated::None
+        }
+    }
+
     #[derive(Default)]
     pub struct RightMenu {
         beads_btn: button::State,
-        beads_showed: bool,
+        colors_btn: button::State,
+        activated: Activated,
     }
 
 
@@ -116,6 +129,7 @@ pub mod right {
     pub enum Message {
         Ignore,
         ShowBeads,
+        ShowColors,
         Hide,
     }
 
@@ -124,17 +138,23 @@ pub mod right {
         fn view(&mut self) -> Element<'_, Message> {
             let mut beads_btn = Button::new(&mut self.beads_btn, icon::BEADS_LINE.svg())
                 .on_press(Message::ShowBeads);
-            if self.beads_showed {
-                beads_btn = beads_btn.on_press(Message::Hide).style(ToggledOn);
-            };
-            let buttons = Column::new().width(Length::Fill).push(beads_btn );
+            let mut colors_btn = Button::new(&mut self.colors_btn, Text::new("C"))
+                .on_press(Message::ShowColors);
+            use Activated::*;
+            match self.activated {
+                Beads => beads_btn = beads_btn.on_press(Message::Hide),
+                Colors => colors_btn = colors_btn.on_press(Message::Hide),
+                None => {},
+            }
+            let buttons = Column::new().width(Length::Fill).push(beads_btn ).push(colors_btn);
             Container::new(buttons).into()
         }
 
         fn update(&mut self, msg: Message) {
             match msg {
-                Message::ShowBeads => { self.beads_showed = true },
-                Message::Hide => { self.beads_showed = false },
+                Message::ShowBeads => self.activated = Activated::Beads,
+                Message::ShowColors => self.activated = Activated::Colors,
+                Message::Hide => self.activated = Activated::None,
                 Message::Ignore => {}
             }
         }
