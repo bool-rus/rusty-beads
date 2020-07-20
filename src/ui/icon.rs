@@ -1,4 +1,5 @@
 pub const BEADS_LINE: SvgData = SvgData(include_bytes!("../../resources/beads-line-icon.svg"));
+pub const CONFIG_COLOR: SvgData = SvgData(include_bytes!("../../resources/color-config.svg"));
 
 pub const ADD_LEFT_COLUMN: SvgData = SvgData(include_bytes!("../../resources/add-left-column.svg"));
 pub const ADD_RIGHT_COLUMN: SvgData = SvgData(include_bytes!("../../resources/add-right-column.svg"));

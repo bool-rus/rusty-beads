@@ -138,7 +138,7 @@ pub mod right {
         fn view(&mut self) -> Element<'_, Message> {
             let mut beads_btn = Button::new(&mut self.beads_btn, icon::BEADS_LINE.svg())
                 .on_press(Message::ShowBeads);
-            let mut colors_btn = Button::new(&mut self.colors_btn, Text::new("C"))
+            let mut colors_btn = Button::new(&mut self.colors_btn, icon::CONFIG_COLOR.svg())
                 .on_press(Message::ShowColors);
             use Activated::*;
             match self.activated {
