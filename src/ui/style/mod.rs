@@ -16,6 +16,14 @@ impl button::StyleSheet for ColorButton {
             text_color: Color::BLACK,
         }
     }
+
+    fn disabled(&self) -> Style {
+        Style {
+            border_width: 2,
+            border_color: Color::BLACK,
+            ..self.active()
+        }
+    }
 }
 
 pub struct FSMenuItem;

@@ -42,14 +42,18 @@ impl AppWidget for Palette {
 
     fn view(&mut self) -> Element<'_, Message> {
         let mut rows = [Vec::new(), Vec::new()];
+        let active_color = self.active_color;
         self.buttons.iter_mut().enumerate().for_each(|(i, (color, state))|{
             let index = i % 2;
-            rows[index].push(Button::new(
+            let space = Space::new(Length::Units(7), Length::Units(5));
+            let mut button = Button::new(
                 state,
-                Space::new(Length::Units(7), Length::Units(5)),
-            ).on_press(Message::ActivateColor(i))
-                .style(crate::ui::style::ColorButton(color.clone().into()))
-                .into());
+                space,
+            ).style(crate::ui::style::ColorButton(color.clone().into()));
+            if active_color != i {
+                button = button.on_press(Message::ActivateColor(i))
+            }
+            rows[index].push(button.into());
         });
         let [top, bot] = rows;
         Column::new()
