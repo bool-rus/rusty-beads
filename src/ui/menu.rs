@@ -142,8 +142,8 @@ pub mod right {
                 .on_press(Message::ShowColors);
             use Activated::*;
             match self.activated {
-                Beads => beads_btn = beads_btn.on_press(Message::Hide),
-                Colors => colors_btn = colors_btn.on_press(Message::Hide),
+                Beads => beads_btn = beads_btn.on_press(Message::Hide).style(ToggledOn),
+                Colors => colors_btn = colors_btn.on_press(Message::Hide).style(ToggledOn),
                 None => {},
             }
             let buttons = Column::new().width(Length::Fill).push(beads_btn ).push(colors_btn);
