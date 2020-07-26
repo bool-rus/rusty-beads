@@ -1,4 +1,4 @@
-use super::{files, icon};
+use super::{files, icon, style};
 
 pub mod left {
     use crate::reimport::*;
@@ -251,7 +251,8 @@ pub mod right {
     use std::cell::Cell;
     use std::collections::HashMap;
     use std::sync::Arc;
-    use crate::ui::style::Colored;
+    use super::style::Colored;
+    use super::icon;
 
     #[derive(Debug, Copy, Clone)]
     pub enum ColorPart {
@@ -469,14 +470,15 @@ pub mod right {
                     |x|Message::ConfigColor(ColorPart::BLUE(x))
                 ))).style(Colored(iced::Color{r: 1.0 - self.color.b, g: 1.0 - self.color.b, b: 1.0, a: 1.0}));
             let submit = Container::new(
-                    Button::new(&mut self.btn_add, Text::new("OK"))
+                    Button::new(&mut self.btn_add, icon::ADD.svg()).width(Length::Units(30))
                     .on_press(Message::AddColor(self.color.into()))
                 ).width(Length::Units(100))
                 .style(Colored(self.color));
-            Column::new().push(r).push(g).push(b)
-                .push(submit)
-                .push(Button::new(&mut self.btn_remove, Text::new("X"))
+            Column::new()
+                .push(Button::new(&mut self.btn_remove, icon::REMOVE.svg()).width(Length::Units(30))
                     .on_press(Message::RemoveColor))
+                .push(r).push(g).push(b)
+                .push(submit)
                 .width(Length::Units(200)).into()
 
         }

@@ -26,6 +26,9 @@ pub const OPEN: SvgData = SvgData(include_bytes!("../../resources/open.svg"));
 pub const FOLDER: SvgData = SvgData(include_bytes!("../../resources/folder.svg"));
 pub const FILE: SvgData = SvgData(include_bytes!("../../resources/file.svg"));
 
+pub const ADD: SvgData = SvgData(include_bytes!("../../resources/add.svg"));
+pub const REMOVE: SvgData = SvgData(include_bytes!("../../resources/remove.svg"));
+
 use iced::{Svg, svg};
 pub struct SvgData(&'static [u8]);
 
