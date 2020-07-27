@@ -1,17 +1,19 @@
 use crate::entities::Color;
 use crate::reimport::*;
 use crate::ui::AppWidget;
+use std::collections::HashSet;
 
 pub struct Palette {
     buttons: Vec<(Color, button::State)>,
     active_color: usize,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Message {
     ActivateColor(usize),
     AddColor(Color),
     RemoveColor,
+    Loaded(HashSet<Color>),
 }
 
 impl Palette {
@@ -67,6 +69,9 @@ impl AppWidget for Palette {
             Message::ActivateColor(i) => self.active_color = i,
             Message::AddColor(color) => self.add(color),
             Message::RemoveColor => self.remove(),
+            Message::Loaded(colors) => self.buttons = colors.into_iter()
+                .map(|color|{(color, Default::default())})
+                .collect(),
         }
     }
 }

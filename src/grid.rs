@@ -2,6 +2,8 @@
 use std::num::NonZeroUsize;
 use crate::entities::{Side, Size};
 use std::fmt::Debug;
+use std::collections::HashSet;
+use std::hash::Hash;
 
 #[derive(Debug)]
 pub enum Error {
@@ -174,11 +176,17 @@ impl<T: Debug + Clone + Default> Grid<T> {
     }
 }
 
-
-
 impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
         let value = NonZeroUsize::new(33usize).unwrap();
         Self::new(value, value, T::default())
+    }
+}
+
+impl<T: Eq + Hash + Clone + Debug> Grid<T> {
+    pub fn unique_items(&self) -> HashSet<T> {
+        let mut set = HashSet::new();
+        self.data.iter().for_each(|it|{set.insert(it.clone());});
+        set
     }
 }

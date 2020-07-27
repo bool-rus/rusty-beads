@@ -49,7 +49,7 @@ pub mod top {
         }
     }
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum Message {
         Ignore,
         Hide,
