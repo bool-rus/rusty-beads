@@ -247,7 +247,7 @@ pub mod right {
     use crate::entities::{Color, Schema};
     use crate::ui::AppWidget;
     use crate::grid::Grid;
-    use crate::ui::widget::ColorBox;
+    use crate::ui::widget::{ColorBox, Gradient};
     use std::cell::Cell;
     use std::collections::HashMap;
     use std::sync::Arc;
@@ -448,13 +448,13 @@ pub mod right {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let (r_state,g_state,b_state) = &mut self.sliders;
-            let r = Container::new(Row::new()
-                .push(slider::Slider::new(
+            let r = slider::Slider::new(
                     r_state,
                     0.0..=1.0,
                     self.color.r,
                     |x|Message::ConfigColor(ColorPart::RED(x))
-                ))).style(Colored(iced::Color {r: 1.0, g: 1.0 - self.color.r, b: 1.0 - self.color.r, a:1.0}));
+                ).style(Colored(iced::Color {r: 1.0, g: 1.0 - self.color.r, b: 1.0 - self.color.r, a:1.0}));
+            let r = Container::new(Row::new().push(Element::new(r)));
             let g = Container::new(Row::new()
                 .push(slider::Slider::new(
                     g_state,
@@ -472,14 +472,20 @@ pub mod right {
             let submit = Container::new(
                     Button::new(&mut self.btn_add, icon::ADD.svg()).width(Length::Units(30))
                     .on_press(Message::AddColor(self.color.into()))
-                ).width(Length::Units(100))
+                ).width(Length::Units(200))
                 .style(Colored(self.color));
-            Column::new()
+            let element: Element<_> = Column::new()
                 .push(Button::new(&mut self.btn_remove, icon::REMOVE.svg()).width(Length::Units(30))
                     .on_press(Message::RemoveColor))
-                .push(r).push(g).push(b)
+                .push(Element::new(Gradient::Hue))
+                .push(r)
+                .push(Element::new(Gradient::Saturation(0.5)))
+                .push(g)
+                .push(Element::new(Gradient::Light {hue: 0.5, sat: 0.5}))
+                .push(b)
                 .push(submit)
-                .width(Length::Units(200)).into()
+                .width(Length::Units(200)).into();
+            element.explain(iced::Color::BLACK)
 
         }
 

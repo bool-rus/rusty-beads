@@ -44,6 +44,31 @@ impl Colored {
     }
 }
 
+impl slider::StyleSheet for Colored {
+    fn active(&self) -> slider::Style {
+        slider::Style {
+            rail_colors: (Color {r: 1.0, g:0.0 ,b:0.0, a: 1.0}, Color {r:0.0, g: 1.0, b: 0.0, a: 1.0}),
+            handle: slider::Handle {
+                shape: slider::HandleShape::Rectangle {
+                    width: 8,
+                    border_radius: 4,
+                },
+                color: self.0,
+                border_color: Color::from_rgb(0.6, 0.6, 0.6),
+                border_width: 1,
+            },
+        }
+    }
+
+    fn hovered(&self) -> slider::Style {
+        self.active()
+    }
+
+    fn dragging(&self) -> slider::Style {
+        self.active()
+    }
+}
+
 impl button::StyleSheet for ToggledOn {
     fn active(&self) -> Style {
         Style {
