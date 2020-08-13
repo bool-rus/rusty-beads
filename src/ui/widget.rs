@@ -228,21 +228,29 @@ impl Gradient {
     }
     fn sat_gradient(hue: f32) -> Mesh2D {
         let gray = [0.5, 0.5, 0.5, 1.0];
-        let color = [1.0, 0.0, 0.0, 1.0];//TODO: calculate hue to rgb
+        let hsl: colors::Hsl<colors::encoding::Srgb, _> = colors::Hsl::from_components(
+            (colors::RgbHue::from_degrees(hue), 1.0, 0.5)
+        );
+        let (r,g,b) = colors::Srgb::from(hsl).into_components();
+        let color = [r, g, b, 1.0];
         Mesh2D {
             vertices: vec![
                 Vertex2D { position: [0.0, 0.0], color: gray },
                 Vertex2D { position: [0.0, 1.0], color: gray },
-                Vertex2D { position: [1.0, 0.0], color },
-                Vertex2D { position: [1.0, 1.0], color },
+                Vertex2D { position: [1.0, 0.0], color: color },
+                Vertex2D { position: [1.0, 1.0], color: color },
             ],
             indices: vec![0, 1, 2, 1, 2, 3],
         }
     }
     fn light_gradient(hue: f32, sat: f32) -> Mesh2D {
+        let hsl: colors::Hsl<colors::encoding::Srgb, _> = colors::Hsl::from_components(
+            (colors::RgbHue::from_degrees(hue), sat, 0.5)
+        );
+        let (r,g,b) = colors::Srgb::from(hsl).into_components();
+        let color = [r, g, b, 1.0];
         let black = [0.0, 0.0, 0.0, 1.0];
         let white = [1.0;4];
-        let color = [0.5, 1.0, 0.0, 1.0];
         Mesh2D {
             vertices: vec![
                 Vertex2D {position: [0.0, 0.0], color: black},
@@ -284,10 +292,9 @@ impl<Message> Widget<Message, Renderer> for Gradient
         _renderer: &mut Renderer,
         _defaults: &Defaults,
         layout: Layout<'_>,
-        cursor_position: Point,
+        _cursor_position: Point,
     ) -> (Primitive, MouseCursor) {
         let b = layout.bounds();
-
 
         let w = b.width;
         let h = b.height;

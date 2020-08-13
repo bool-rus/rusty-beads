@@ -259,6 +259,9 @@ pub mod right {
         RED(f32),
         GREEN(f32),
         BLUE(f32),
+        Hue(f32),
+        Saturation(f32),
+        Lightness(f32),
     }
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -423,7 +426,7 @@ pub mod right {
     struct ColorMenu {
         btn_add: button::State,
         btn_remove: button::State,
-        color: iced::Color,
+        hsl: colors::Hsl,
         sliders: (slider::State, slider::State, slider::State),
     }
 
@@ -432,7 +435,7 @@ pub mod right {
             Self {
                 btn_add: Default::default(),
                 btn_remove: Default::default(),
-                color: iced::Color::BLACK,
+                hsl: colors::Hsl::default(),
                 sliders: Default::default(),
             }
         }
@@ -443,49 +446,46 @@ pub mod right {
             .style(stylesheet)
             .into()
     }
+    fn hsl_2_color(hsl: colors::Hsl) -> iced::Color {
+        let (r,g,b) = colors::Srgb::from(hsl).into_components();
+        iced::Color::from_rgb(r,g,b)
+    }
     impl AppWidget for ColorMenu {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let (r_state,g_state,b_state) = &mut self.sliders;
-            let r = slider::Slider::new(
-                    r_state,
-                    0.0..=1.0,
-                    self.color.r,
-                    |x|Message::ConfigColor(ColorPart::RED(x))
-                ).style(Colored(iced::Color {r: 1.0, g: 1.0 - self.color.r, b: 1.0 - self.color.r, a:1.0}));
-            let r = Container::new(Row::new().push(Element::new(r)));
-            let g = Container::new(Row::new()
-                .push(slider::Slider::new(
-                    g_state,
-                    0.0..=1.0,
-                    self.color.g,
-                    |x|Message::ConfigColor(ColorPart::GREEN(x))
-                ))).style(Colored(iced::Color{r:1.0 - self.color.g, g: 1.0, b: 1.0 - self.color.g, a: 1.0}));
-            let b = Container::new(Row::new()
-                .push(slider::Slider::new(
-                    b_state,
-                    0.0..=1.0,
-                    self.color.b,
-                    |x|Message::ConfigColor(ColorPart::BLUE(x))
-                ))).style(Colored(iced::Color{r: 1.0 - self.color.b, g: 1.0 - self.color.b, b: 1.0, a: 1.0}));
-            let submit = Container::new(
-                    Button::new(&mut self.btn_add, icon::ADD.svg()).width(Length::Units(30))
-                    .on_press(Message::AddColor(self.color.into()))
-                ).width(Length::Units(200))
-                .style(Colored(self.color));
-            let element: Element<_> = Column::new()
-                .push(Button::new(&mut self.btn_remove, icon::REMOVE.svg()).width(Length::Units(30))
-                    .on_press(Message::RemoveColor))
+            let (h_state,s_state,l_state) = &mut self.sliders;
+            let color = hsl_2_color(self.hsl.clone());
+            let (hue, sat, light) = self.hsl.clone().into_components();
+            let hue = hue.to_positive_degrees();
+            let column = Column::new()
                 .push(Element::new(Gradient::Hue))
-                .push(r)
-                .push(Element::new(Gradient::Saturation(0.5)))
-                .push(g)
-                .push(Element::new(Gradient::Light {hue: 0.5, sat: 0.5}))
-                .push(b)
-                .push(submit)
-                .width(Length::Units(200)).into();
-            element.explain(iced::Color::BLACK)
+                .push(slider::Slider::new(
+                    h_state,
+                    0.0..=360.0,
+                    hue,
+                    |degrees|Message::ConfigColor(ColorPart::Hue(degrees))
+                ))
+                .push(Space::new(Length::Fill, Length::Units(5)))
+
+                .push(Element::new(Gradient::Saturation(hue)))
+                .push(slider::Slider::new(
+                    s_state,
+                    0.0..=1.0,
+                    sat,
+                    |sat|Message::ConfigColor(ColorPart::Saturation(sat))
+                ))
+                .push(Space::new(Length::Fill, Length::Units(5)))
+
+                .push(Element::new(Gradient::Light {hue, sat}))
+                .push(slider::Slider::new(
+                    l_state,
+                    0.0..=1.0,
+                    light,
+                    |light|Message::ConfigColor(ColorPart::Lightness(light))
+                ));
+
+            Element::new(column).explain(iced::Color::BLACK)
 
         }
 
@@ -493,9 +493,10 @@ pub mod right {
             match msg {
                 Message::ConfigColor(part) => {
                     match part {
-                        ColorPart::RED(v) => self.color.r = v,
-                        ColorPart::GREEN(v) => self.color.g = v,
-                        ColorPart::BLUE(v) => self.color.b = v,
+                        ColorPart::Hue(hue) => self.hsl.hue = colors::RgbHue::from_degrees(hue),
+                        ColorPart::Saturation(sat) => self.hsl.saturation = sat,
+                        ColorPart::Lightness(lightness) => self.hsl.lightness = lightness,
+                        _ => unimplemented!()
                     }
                 },
                 _ => {}

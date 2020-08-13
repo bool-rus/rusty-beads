@@ -5,7 +5,7 @@ use super::SvgButton;
 
 pub mod top {
     use super::*;
-    use palette::Palette;
+    use super::palette::Palette;
 
     pub struct TopMenu {
         palette: Palette,
