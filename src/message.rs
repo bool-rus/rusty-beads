@@ -5,6 +5,7 @@ use crate::ui::{
     RightPanelMessage as RPMsg,
     LeftMenuMessage as LMMsg,
     LeftPanelMessage as LPMsg,
+    PaletteMessage
 };
 use crate::entities::Color;
 use std::sync::Arc;
@@ -20,6 +21,7 @@ pub enum Message {
     RightPanel(RPMsg),
     LeftMenu(LMMsg),
     GridUpdated(Arc<Grid<Color>>),
+    GridLoaded(Arc<Grid<Color>>),
     Error(String),
 }
 
@@ -68,6 +70,11 @@ impl From<Message> for TMMsg {
             Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
             Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
             Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
+            Message::RightPanel(RPMsg::AddColor(color)) => TMMsg::Palette(PaletteMessage::AddColor(color)),
+            Message::RightPanel(RPMsg::RemoveColor) => TMMsg::Palette(PaletteMessage::RemoveColor),
+            Message::GridLoaded(grid) => {
+                TMMsg::Palette(PaletteMessage::Loaded(grid.unique_items()))
+            }
             _ => TMMsg::Ignore,
         }
     }
@@ -99,6 +106,7 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
+            GridLoaded(v) |
             GridUpdated(v) => GMsg::GridUpdated(v),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
@@ -117,6 +125,7 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
+            GridLoaded(grid) |
             GridUpdated(grid) => LPMsg::GridUpdated(grid),
             _ => LPMsg::Ignore,
         }
@@ -129,7 +138,9 @@ impl From<Message> for RPMsg {
         match msg {
             RightPanel(msg) => msg,
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
+            RightMenu(RMMsg::ShowColors) => RPMsg::ShowColors,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
+            GridLoaded(grid) |
             GridUpdated(grid) => RPMsg::GridUpdated(grid),
             LeftMenu(LMMsg::SchemaChange) => RPMsg::Refresh,
             _ => RPMsg::Ignore

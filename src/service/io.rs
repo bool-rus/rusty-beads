@@ -7,7 +7,7 @@ use std::path::PathBuf;
 pub enum Message {
     Open(PathBuf),
     Save(PathBuf),
-    Loaded(Grid<Color>),
+    Loaded(Arc<Grid<Color>>),
     GridUpdated(Arc<Grid<Color>>),
     Ignore,
 }
@@ -23,7 +23,7 @@ impl super::Service for Service {
         use Message::*;
         Ok( match msg {
             Open(path) => Some(Loaded(
-                crate::io::read(path).map_err(|e|e.to_string())?
+                Arc::new(crate::io::read(path).map_err(|e|e.to_string())?)
             )),
             Save(path) => {
                 crate::io::write(path, self.grid.as_table()).map_err(|e|e.to_string())?;

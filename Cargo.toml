@@ -10,3 +10,4 @@ iced_native = '*'
 iced_wgpu = '*'
 quick-csv = "*"
 dirs = '*'
+colors = { package = 'palette', version = "0.5.0"}

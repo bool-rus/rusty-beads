@@ -27,6 +27,7 @@ impl From<GridServiceMessage<Color>> for Message {
         use GridServiceMessage::*;
         match msg {
             Updated(v) => Message::GridUpdated(v),
+            Loaded(v) => Message::GridLoaded(v),
             _ => Message::Ignore
         }
     }

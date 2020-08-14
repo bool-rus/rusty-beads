@@ -15,7 +15,7 @@ pub enum Message<T: Debug + Clone> {
     Shrink(Side),
     Resize(Size),
     Updated(Arc<Grid<T>>),
-    Loaded(Grid<T>),
+    Loaded(Arc<Grid<T>>),
 }
 
 #[derive(Default)]
@@ -94,8 +94,8 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 result?
             },
             Loaded(grid) => {
-                self.grid = grid.clone();
-                Some(Updated(Arc::new(grid)))
+                self.grid = grid.as_ref().clone();
+                Some(Loaded(grid))
             },
             Updated(_) | Ignore => None,
         })

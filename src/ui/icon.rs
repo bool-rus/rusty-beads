@@ -1,4 +1,5 @@
 pub const BEADS_LINE: SvgData = SvgData(include_bytes!("../../resources/beads-line-icon.svg"));
+pub const CONFIG_COLOR: SvgData = SvgData(include_bytes!("../../resources/color-config.svg"));
 
 pub const ADD_LEFT_COLUMN: SvgData = SvgData(include_bytes!("../../resources/add-left-column.svg"));
 pub const ADD_RIGHT_COLUMN: SvgData = SvgData(include_bytes!("../../resources/add-right-column.svg"));
@@ -24,6 +25,9 @@ pub const SAVE: SvgData = SvgData(include_bytes!("../../resources/save.svg"));
 pub const OPEN: SvgData = SvgData(include_bytes!("../../resources/open.svg"));
 pub const FOLDER: SvgData = SvgData(include_bytes!("../../resources/folder.svg"));
 pub const FILE: SvgData = SvgData(include_bytes!("../../resources/file.svg"));
+
+pub const ADD: SvgData = SvgData(include_bytes!("../../resources/add.svg"));
+pub const REMOVE: SvgData = SvgData(include_bytes!("../../resources/remove.svg"));
 
 use iced::{Svg, svg};
 pub struct SvgData(&'static [u8]);
