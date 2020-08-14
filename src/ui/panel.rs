@@ -458,13 +458,17 @@ pub mod right {
             let color = hsl_2_color(self.hsl.clone());
             let (hue, sat, light) = self.hsl.clone().into_components();
             let hue = hue.to_positive_degrees();
-            let column = Column::new()
+            let column = Column::new().width(Length::Units(300))
+                .push(Button::new(&mut self.btn_remove, icon::REMOVE.svg())
+                    .width(Length::Units(30))
+                    .on_press(Message::RemoveColor)
+                )
                 .push(Element::new(Gradient::Hue))
                 .push(slider::Slider::new(
                     h_state,
-                    0.0..=360.0,
-                    hue,
-                    |degrees|Message::ConfigColor(ColorPart::Hue(degrees))
+                    0.0..=3600.0,
+                    hue*10.0,
+                    |degrees|Message::ConfigColor(ColorPart::Hue(degrees/10.0))
                 ))
                 .push(Space::new(Length::Fill, Length::Units(5)))
 
@@ -484,8 +488,14 @@ pub mod right {
                     light,
                     |light|Message::ConfigColor(ColorPart::Lightness(light))
                 ));
+            let color = hsl_2_color(self.hsl);
+            let submit = Container::new(
+                Button::new(&mut self.btn_add, icon::ADD.svg()).width(Length::Units(30))
+                    .on_press(Message::AddColor(color.into()))
+            ).width(Length::Units(100))
+                .style(Colored(color));
 
-            Element::new(column).explain(iced::Color::BLACK)
+            Element::new(column.push(submit)).explain(iced::Color::BLACK)
 
         }
 
