@@ -1,7 +1,7 @@
 
 use std::fmt;
 use std::str::{FromStr};
-use std::num::ParseIntError;
+use std::num::{ParseIntError, NonZeroUsize};
 
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
@@ -75,11 +75,35 @@ impl Into<iced::Color> for Color {
         iced::Color::from_rgb8(r,g,b)
     }
 }
+
+impl From<iced::Color> for Color {
+    fn from(color: iced::Color) -> Self {
+        let max = u8::MAX as f32;
+        Self {
+            r: (max * color.r) as u8,
+            g: (max * color.g) as u8,
+            b: (max * color.b) as u8,
+        }
+    }
+}
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 
 #[derive(Debug, Copy, Clone)]
-pub enum GridAction {
-    Add(Side),
-    Remove(Side)
+pub enum Schema {
+    FirstOffset,
+    SecondOffset,
+    Straight,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Size {
+    pub width: NonZeroUsize,
+    pub height: NonZeroUsize,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Coord {
+    pub x: usize,
+    pub y: usize,
 }

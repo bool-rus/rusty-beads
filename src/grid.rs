@@ -1,19 +1,23 @@
 
 use std::num::NonZeroUsize;
-use crate::entities::Side;
+use crate::entities::{Side, Size};
+use std::fmt::Debug;
+use std::collections::HashSet;
+use std::hash::Hash;
 
 #[derive(Debug)]
 pub enum Error {
     InvalidDataSize,
 }
 
-pub struct Grid<T> {
+#[derive(Debug, Clone)]
+pub struct Grid<T: Debug + Clone> {
     width: usize,
     height: usize,
     data: Vec<T>,
 }
 
-impl<T:Clone> Grid<T> {
+impl<T: Debug + Clone> Grid<T> {
     pub fn new(width: NonZeroUsize, height: NonZeroUsize, item: T) -> Self {
         let width = width.get();
         let height = height.get();
@@ -32,17 +36,17 @@ impl<T:Clone> Grid<T> {
             Ok(Self { width, height, data })
         }
     }
+    pub fn size(&self) -> Size {
+        Size {
+            width: NonZeroUsize::new(self.width).unwrap(),
+            height: NonZeroUsize::new(self.height).unwrap(),
+        }
+    }
     pub fn width(&self) -> usize {
         self.width
     }
     pub fn height(&self) -> usize {
         self.height
-    }
-    pub fn update_from_another(&mut self, rhs: Self) {
-        let Self {width,height,data} = rhs;
-        self.width = width;
-        self.height = height;
-        self.data = data;
     }
     pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
         let prev = self.data
@@ -143,48 +147,46 @@ impl<T:Clone> Grid<T> {
     }
 }
 
-fn lr_side(i: usize) -> Side {
-    if i % 2 == 0 { Side::Right } else { Side::Left }
-}
-
-fn tb_side(i: usize) -> Side {
-    if i % 2 == 0 { Side::Bottom } else { Side::Top }
-}
-
-impl<T: Clone + Default> Grid<T> {
+impl<T: Debug + Clone + Default> Grid<T> {
     pub fn resize(&mut self, width: NonZeroUsize, height: NonZeroUsize) {
         let width = width.get();
         let height = height.get();
         if width > self.width {
             let delta = width - self.width;
-            for i in 0..delta {
+            for _ in 0..delta {
                 self.grow(Side::Right, Default::default());
             }
         } else {
             let delta = self.width - width;
-            for i in 0..delta {
+            for _ in 0..delta {
                 self.shrink(Side::Right);
             }
         }
         if height > self.height {
             let delta = height - self.height;
-            for i in 0..delta {
-                self.grow(Side::Bottom, Default::default());//top grow corrupts grid
+            for _ in 0..delta {
+                self.grow(Side::Bottom, Default::default());
             }
         } else {
             let delta = self.height - height;
-            for i in 0..delta {
-                self.shrink(Side::Bottom);//top shrink corrupts grid
+            for _ in 0..delta {
+                self.shrink(Side::Bottom);
             }
         }
     }
 }
 
-
-
-impl<T: Default + Clone> Default for Grid<T> {
+impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
-        let value = NonZeroUsize::new(10usize).unwrap();
+        let value = NonZeroUsize::new(33usize).unwrap();
         Self::new(value, value, T::default())
+    }
+}
+
+impl<T: Eq + Hash + Clone + Debug> Grid<T> {
+    pub fn unique_items(&self) -> HashSet<T> {
+        let mut set = HashSet::new();
+        self.data.iter().for_each(|it|{set.insert(it.clone());});
+        set
     }
 }

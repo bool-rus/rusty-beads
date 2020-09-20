@@ -1,13 +1,13 @@
-extern crate quick_csv;
 use crate::grid::Grid;
 use crate::entities::Color;
 use std::fs::File;
 use std::io::Write;
-use self::quick_csv::Csv;
+use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
+use std::path::{Path, PathBuf};
 
-pub fn write(file: &str, table: Vec<&[Color]>) -> std::io::Result<()> {
+pub fn write<T: AsRef<Path>>(file: T, table: Vec<&[Color]>) -> std::io::Result<()> {
 
     let mut file = File::create(file)?;
     for row in table.into_iter() {
@@ -27,7 +27,7 @@ pub fn write(file: &str, table: Vec<&[Color]>) -> std::io::Result<()> {
 }
 
 
-pub fn read(file: &str) -> Result<Grid<Color>,quick_csv::error::Error> {
+pub fn read<T: AsRef<Path>>(file: T) -> Result<Grid<Color>,quick_csv::error::Error> {
     let mut data = Vec::with_capacity(10000usize);
     let csv = Csv::from_file(file)?;
     let mut first = true;
@@ -49,4 +49,8 @@ pub fn read(file: &str) -> Result<Grid<Color>,quick_csv::error::Error> {
         NonZeroUsize::new(counter).unwrap(),
         data
     ).unwrap())
+}
+
+pub fn default_dir() -> PathBuf {
+    dirs::document_dir().unwrap_or(".".into())
 }

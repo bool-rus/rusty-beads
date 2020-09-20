@@ -1,14 +1,14 @@
-extern crate iced_native;
-extern crate iced_wgpu;
-
-use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard};
+use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher, Rectangle};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};
-use iced::{Size, Color, Element, Length, Point, Background};
+use iced::{Size, Color, Element, Length, Point, Background, Vector};
 use crate::wrapper::Wrappable;
 use std::hash::Hash;
 use std::cell::Cell;
 use std::rc::Rc;
+use iced_native::window::Backend;
+use iced_wgpu::triangle::{Mesh2D, Vertex2D};
+use iced_native::layout::{Node, Limits};
 
 pub struct ColorBox<T> {
     color: Color,
@@ -171,5 +171,149 @@ impl<Message: Clone> Widget<Message, Renderer> for MouseListener {
                 ButtonState::Released => {self.0.set(false)},
             }
         }
+    }
+}
+#[derive(Debug, Copy, Clone)]
+pub enum Gradient {
+    Hue,
+    Saturation(f32),
+    Light {
+        hue: f32,
+        sat: f32,
+    },
+}
+
+impl Gradient {
+    fn hue_gradient() -> Mesh2D {
+        let color_r = [1.0, 0.0, 0.0, 1.0];
+        let color_rg = [1.0,1.0,0.0,1.0];
+        let color_g = [0.0, 1.0, 0.0, 1.0];
+        let color_gb = [0.0, 1.0, 1.0, 1.0];
+        let color_b = [0.0, 0.0, 1.0, 1.0];
+        let color_br = [1.0, 0.0, 1.0, 1.0];
+        let chunk = 1.0/6.0;
+        let h = 1.0;
+        Mesh2D {
+            vertices: vec![
+                Vertex2D { position: [0.0,      0.0],   color: color_r },
+                Vertex2D { position: [0.0,      1.0],   color: color_r, },
+                Vertex2D { position: [chunk,    0.0],   color: color_rg, },
+                Vertex2D { position: [chunk,    1.0],   color: color_rg, },
+                Vertex2D { position: [chunk*2.0, 0.0],  color: color_g, },
+                Vertex2D { position: [2.0*chunk, 1.0],  color: color_g, },
+                Vertex2D { position: [3.0*chunk, 0.0],  color: color_gb, },
+                Vertex2D { position: [3.0*chunk, 1.0],  color: color_gb, },
+                Vertex2D { position: [4.0*chunk, 0.0],  color: color_b, },
+                Vertex2D { position: [4.0*chunk, 1.0],  color: color_b, },
+                Vertex2D { position: [5.0*chunk, 0.0],  color: color_br, },
+                Vertex2D { position: [5.0*chunk, 1.0],  color: color_br, },
+                Vertex2D { position: [1.0,      0.0],   color: color_r, },
+                Vertex2D { position: [1.0,      1.0],   color: color_r, },
+            ],
+            indices: vec![
+                0, 1, 2,
+                2, 3, 4,
+                4, 5, 6,
+                6, 7, 8,
+                8, 9, 10,
+                10, 11, 12,
+                13, 12, 11,
+                11, 10, 9,
+                9, 8, 7,
+                7, 6, 5,
+                5, 4, 3,
+                3, 2, 1,
+            ],
+        }
+    }
+    fn sat_gradient(hue: f32) -> Mesh2D {
+        let gray = [0.5, 0.5, 0.5, 1.0];
+        let hsl: colors::Hsl<colors::encoding::Srgb, _> = colors::Hsl::from_components(
+            (colors::RgbHue::from_degrees(hue), 1.0, 0.5)
+        );
+        let (r,g,b) = colors::Srgb::from(hsl).into_components();
+        let color = [r, g, b, 1.0];
+        Mesh2D {
+            vertices: vec![
+                Vertex2D { position: [0.0, 0.0], color: gray },
+                Vertex2D { position: [0.0, 1.0], color: gray },
+                Vertex2D { position: [1.0, 0.0], color: color },
+                Vertex2D { position: [1.0, 1.0], color: color },
+            ],
+            indices: vec![0, 1, 2, 1, 2, 3],
+        }
+    }
+    fn light_gradient(hue: f32, sat: f32) -> Mesh2D {
+        let hsl: colors::Hsl<colors::encoding::Srgb, _> = colors::Hsl::from_components(
+            (colors::RgbHue::from_degrees(hue), sat, 0.5)
+        );
+        let (r,g,b) = colors::Srgb::from(hsl).into_components();
+        let color = [r, g, b, 1.0];
+        let black = [0.0, 0.0, 0.0, 1.0];
+        let white = [1.0;4];
+        Mesh2D {
+            vertices: vec![
+                Vertex2D {position: [0.0, 0.0], color: black},
+                Vertex2D {position: [0.0, 1.0], color: black},
+                Vertex2D {position: [0.5, 0.0], color},
+                Vertex2D {position: [0.5, 1.0], color},
+                Vertex2D {position: [1.0, 0.0], color: white},
+                Vertex2D {position: [1.0, 1.0], color: white},
+            ],
+            indices: vec![0,1,2, 2,3,4, 1,2,3, 3,4,5]
+        }
+    }
+}
+
+impl<Message> Widget<Message, Renderer> for Gradient
+{
+    fn width(&self) -> Length {
+        Length::Fill
+    }
+
+    fn height(&self) -> Length {
+        Length::Shrink
+    }
+
+    fn layout(
+        &self,
+        _renderer: &Renderer,
+        limits: &layout::Limits,
+    ) -> layout::Node {
+        let size = limits.width(Length::Fill).height(Length::Units(20)).resolve(Size::ZERO);
+
+        layout::Node::new(size)
+    }
+
+    fn hash_layout(&self, _state: &mut Hasher) {}
+
+    fn draw(
+        &self,
+        _renderer: &mut Renderer,
+        _defaults: &Defaults,
+        layout: Layout<'_>,
+        _cursor_position: Point,
+    ) -> (Primitive, MouseCursor) {
+        let b = layout.bounds();
+
+        let w = b.width;
+        let h = b.height;
+        let Mesh2D {vertices, indices} = match self {
+            &Gradient::Hue => Self::hue_gradient(),
+            &Gradient::Saturation(hue) => Self::sat_gradient(hue),
+            &Gradient::Light {hue, sat} => Self::light_gradient(hue, sat),
+        };
+        let vertices: Vec<_> = vertices.into_iter().map(|Vertex2D{ mut position, color}| {
+            position[0] *= w;
+            position[1] *= h;
+            Vertex2D { position, color }
+        }).collect();
+
+        (Primitive::Mesh2D {
+                    origin: Point {x: b.x, y: b.y},
+                    buffers: Mesh2D {vertices, indices },
+                },
+            MouseCursor::OutOfBounds,
+        )
     }
 }

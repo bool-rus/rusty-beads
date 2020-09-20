@@ -1,4 +1,4 @@
-use crate::grid::Grid;
+
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -21,7 +21,6 @@ impl<T: Eq + Hash> BeadsLine<T> {
 }
 
 pub enum BeadsLineBuilder {
-    Empty,
     LRSquare,
     RLSquare,
     LROffset(bool),
@@ -31,9 +30,14 @@ pub enum BeadsLineBuilder {
 impl BeadsLineBuilder {
     pub fn build<T: Clone + Eq + Hash>(&self, table: Vec<&[T]>) -> BeadsLine<T> {
         match self {
-            BeadsLineBuilder::Empty => {BeadsLine::new(Vec::new(), HashMap::new())}
-            BeadsLineBuilder::LRSquare => {unimplemented!()},
-            BeadsLineBuilder::RLSquare => {unimplemented!()},
+            BeadsLineBuilder::LRSquare => {
+                let iter = to_iter_iter(table);
+                line_for_square(iter)
+            },
+            BeadsLineBuilder::RLSquare => {
+                let iter = to_iter_rev_iter(table);
+                line_for_square(iter)
+            },
             BeadsLineBuilder::LROffset(first_offset) => {
                 let iter = to_iter_iter(table);
                 line_for_offset(iter, *first_offset)

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 105 330" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="-10" y="0" width="10" height="10"/>
+  </defs>
+  <ellipse style="fill: rgb(255, 0, 0);" cx="55" cy="292.5" rx="38.56" ry="23.115" transform="matrix(0.898655, -0.438655, 0.438655, 0.898655, -112.616885, 53.419459)"/>
+  <ellipse style="fill: rgb(255, 255, 0);" cx="55" cy="292.5" rx="44.776" ry="20.395" transform="matrix(0.936265, -0.351294, 0.351294, 0.936265, -99.598187, -12.247598)"/>
+  <ellipse style="fill: rgb(0, 255, 0);" cx="55" cy="292.5" rx="48.291" ry="21.865" transform="matrix(0.982775, -0.184806, 0.184806, 0.982775, -59.842735, -87.102019)"/>
+  <ellipse style="fill: rgb(0, 0, 255);" cx="55" cy="292.5" rx="45.541" ry="23.797" transform="matrix(0.987618, 0.156879, -0.156879, 0.987618, 40.362559, -211.342437)"/>
+  <ellipse style="fill: rgb(225, 0, 255);" cx="55" cy="292.5" rx="47.729" ry="22.597" transform="matrix(0.928962, 0.370175, -0.370175, 0.928962, 115.007641, -258.796733)"/>
+  <ellipse style="fill: rgb(0, 255, 255);" cx="55" cy="292.5" rx="46.622" ry="22.446" transform="matrix(0.999969, -0.007863, 0.007863, 0.999969, -8.503685, -153.222356)"/>
+</svg>
