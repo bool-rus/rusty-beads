@@ -101,8 +101,8 @@ fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize
     where I: Iterator<Item=I2>, I2: Iterator<Item=&'a T> + Clone  {
     let correction = if first_offset { 0 } else { 1 };
     iter.enumerate()
-        .map(|(counter, line)| {
-            line.cycle().skip(counter/2usize).take(width)
+        .map(|(i, line)| {
+            line.cycle().skip((i+correction)/2usize).take(width)
         })
         .flatten()
         .map(|i|i.clone())
@@ -171,6 +171,8 @@ mod tests {
             assert_eq!(count, 1);
             obj
         }).collect();
+
+        assert_eq!(bline.grid().as_table(), table.table())
     }
 
     /*
@@ -203,6 +205,8 @@ mod tests {
             (2,1),(3,1),(0,1),(1,1),
         ]);
 
+        assert_eq!(bline.grid().as_table(), table.table());
+
         let bline = BeadsLineBuilder::LROffset(false).build(table.table());
         let (line, summary) = (bline.line(), bline.summary());
 
@@ -214,5 +218,7 @@ mod tests {
             (2,1),(3,1),(0,1),
             (1,2),(2,1),(3,1),(0,1)
         ]);
+
+        assert_eq!(bline.grid().as_table(), table.table())
     }
 }
