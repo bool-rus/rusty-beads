@@ -372,7 +372,8 @@ pub mod right {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let mut sorted_summary: Vec<_> = self.line.summary().iter().collect();
+            let summary = self.line.summary();
+            let mut sorted_summary: Vec<_> = summary.iter().collect();
             let undefined = "?";
             sorted_summary.sort_unstable_by_key(|(&color, _)| { color.to_string() });
             let mut range = SYMBOLS.iter();
