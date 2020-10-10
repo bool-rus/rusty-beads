@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::collections::hash_map::RandomState;
 use crate::grid::Grid;
+use std::fmt::Debug;
+use std::num::NonZeroUsize;
 
 #[derive(Debug)]
 pub struct BeadsLine<T: Eq + Hash> {
@@ -12,28 +14,22 @@ pub struct BeadsLine<T: Eq + Hash> {
     knit_type: BeadsLineBuilder,
 }
 
-impl<T: Eq + Hash + Clone> BeadsLine<T> {
+impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn line(&self) -> &Vec<(T, usize)> {
         &self.line
     }
     pub fn summary(&self) -> &HashMap<T, usize> {
         &self.summary
     }
-    pub fn grid(&self) -> () {
-        let data = self.line.iter().fold(
+    pub fn grid(&self) -> Grid<T> {
+        let unzipped = self.line.iter().fold(
             Vec::with_capacity(self.summary.values().sum()),
             |mut data,(item, count)| {
                 (0..*count).for_each(|_|data.push(item));
                 data
             }
         );
-        let table = data.as_slice()
-            .chunks(self.width)
-            .map(|line|line.iter().rev())
-            .enumerate()
-            .map(|(counter, line)| {
-                line.cycle().skip(counter/2usize).take(self.width)
-            });
+        self.knit_type.grid(self.width, unzipped)
     }
 }
 
@@ -69,6 +65,41 @@ impl BeadsLineBuilder {
             },
         }
     }
+    pub fn grid<T: Clone + Debug>(&self, width: usize, line: Vec<&T>) -> Grid<T> {
+
+        let data = match self {
+            BeadsLineBuilder::LRSquare => line.iter().map(|&i|i.clone()).collect(),
+            BeadsLineBuilder::RLSquare => line
+                .chunks(width)
+                .map(|row|row.iter().rev().map(|&i|i.clone()))
+                .flatten()
+                .collect(),
+            BeadsLineBuilder::LROffset(first_offset) => iter_to_grid_data(
+                *first_offset,
+                width,
+                line.chunks(width).map(|row|row.iter().map(|&i|i))
+            ),
+            BeadsLineBuilder::RLOffset(first_offset) => iter_to_grid_data(
+                *first_offset,
+                width,
+                line.chunks(width).map(|row|row.iter().rev().map(|&i|i))
+            ),
+        };
+
+        Grid::frow_raw(NonZeroUsize::new(width).unwrap(), data).unwrap()
+    }
+}
+
+fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize, iter: I) -> Vec<T>
+    where I: Iterator<Item=I2>, I2: Iterator<Item=&'a T> + Clone  {
+    let correction = if first_offset { 0 } else { 1 };
+    iter.enumerate()
+        .map(|(counter, line)| {
+            line.cycle().skip(counter/2usize).take(width)
+        })
+        .flatten()
+        .map(|i|i.clone())
+        .collect()
 }
 
 fn zip_line<'a, T: Eq + Hash + Clone + 'a>(mut iter: impl Iterator<Item=&'a T>)
