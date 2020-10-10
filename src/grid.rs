@@ -27,12 +27,12 @@ impl<T: Debug + Clone> Grid<T> {
             data: vec![item; width*height],
         }
     }
-    pub fn frow_raw(width: NonZeroUsize, height: NonZeroUsize, data: Vec<T>) -> Result<Self, Error>{
+    pub fn frow_raw(width: NonZeroUsize, data: Vec<T>) -> Result<Self, Error>{
         let width = width.get();
-        let height = height.get();
-        if data.len() != width * height {
+        if data.len() % width >0 {
             Err(Error::InvalidDataSize)
         } else {
+            let height = data.len()/width;
             Ok(Self { width, height, data })
         }
     }

@@ -32,21 +32,18 @@ pub fn read<T: AsRef<Path>>(file: T) -> Result<Grid<Color>,quick_csv::error::Err
     let csv = Csv::from_file(file)?;
     let mut first = true;
     let mut width = 0usize;
-    let mut counter = 0usize;
     for row in csv.into_iter() {
         let row = row?;
         if first {
             first = false;
             width = row.len();
         }
-        counter += 1;
         row.columns()?.for_each(|item| {
             data.push(Color::from_str(item).unwrap())
         })
     }
     Ok(Grid::frow_raw(
         NonZeroUsize::new(width).unwrap(),
-        NonZeroUsize::new(counter).unwrap(),
         data
     ).unwrap())
 }
