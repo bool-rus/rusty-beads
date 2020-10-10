@@ -102,7 +102,7 @@ fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize
     let correction = if first_offset { 0 } else { 1 };
     iter.enumerate()
         .map(|(i, line)| {
-            line.cycle().skip((i+correction)/2usize).take(width)
+            line.cycle().skip(((i+correction)/2) % width).take(width)
         })
         .flatten()
         .map(|i|i.clone())
