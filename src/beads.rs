@@ -38,6 +38,13 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
         );
         self.knit_type.grid(self.width, unzipped)
     }
+    pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
+        BeadsLine {
+            width: self.width,
+            knit_type: self.knit_type,
+            line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]

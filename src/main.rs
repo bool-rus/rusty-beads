@@ -7,6 +7,7 @@ mod io;
 mod beads;
 mod message;
 mod service;
+mod model;
 
 use reimport::*;
 use message::Message;

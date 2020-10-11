@@ -145,6 +145,13 @@ impl<T: Debug + Clone> Grid<T> {
             },
         }
     }
+    pub fn map<X: Debug + Clone, F: FnMut(&T)->X>(&self, fun: F) -> Grid<X> {
+        Grid {
+            width: self.width,
+            height: self.height,
+            data: self.data.iter().map(fun).collect(),
+        }
+    }
 }
 
 impl<T: Debug + Clone + Default> Grid<T> {
