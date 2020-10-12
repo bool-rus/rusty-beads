@@ -16,6 +16,7 @@ pub enum Message<T: Debug + Clone> {
     Resize(Size),
     Updated(Arc<Grid<T>>),
     Loaded(Arc<Grid<T>>),
+    ToggleLineItem(usize),
 }
 
 #[derive(Default)]
@@ -70,6 +71,9 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 self.push_undo(Resize(prev));
                 self.grid.resize(width, height);
                 Some(self.updated())
+            },
+            ToggleLineItem(_index) => {
+                unimplemented!()
             },
             Undo => {
                 let mut undo = Vec::new();
