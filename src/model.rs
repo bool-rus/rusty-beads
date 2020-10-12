@@ -1,23 +1,28 @@
-use crate::entities::Color;
 use crate::grid::Grid;
 use crate::beads::BeadsLine;
+use std::hash::Hash;
+use std::fmt::Debug;
+
+pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
+
+impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct Bead {
-    pub color: Color,
+pub struct Bead<T: ColorTrait> {
+    pub color: T,
     pub filled: bool,
 }
 
-pub struct Model {
-    pub grid: Grid<Bead>,
-    pub line: BeadsLine<Bead>,
+pub struct Model<T: ColorTrait> {
+    pub grid: Grid<Bead<T>>,
+    pub line: BeadsLine<Bead<T>>,
 }
 
-impl Model {
-    pub fn grid_color(&self) -> Grid<Color> {
+impl<T: ColorTrait> Model<T> {
+    pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
     }
-    pub fn line_color(&self) -> BeadsLine<Color> {
+    pub fn line_color(&self) -> BeadsLine<T> {
         self.line.map(|bead|bead.color.clone())
     }
 }
