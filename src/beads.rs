@@ -10,10 +10,13 @@ use std::num::NonZeroUsize;
 pub struct BeadsLine<T: Eq + Hash> {
     width: usize,
     line: Vec<(T,usize)>,
-    knit_type: BeadsLineBuilder,
+    pub knit_type: BeadsLineBuilder,
 }
 
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        self.line.get_mut(index).map(|(obj, _count)|obj)
+    }
     pub fn line(&self) -> &Vec<(T, usize)> {
         &self.line
     }

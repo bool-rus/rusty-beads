@@ -48,14 +48,17 @@ impl<T: Debug + Clone> Grid<T> {
     pub fn height(&self) -> usize {
         self.height
     }
-    pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
-        let prev = self.data
+    pub fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut T, String> {
+        Ok(self.data
             .as_mut_slice()
             .chunks_mut(self.width)
             .nth(row)
             .ok_or("row out of bounds")?
             .get_mut(column)
-            .ok_or("column out of bounds")?;
+            .ok_or("column out of bounds")?)
+    }
+    pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
+        let prev = self.get_mut(row, column)?;
         let result = prev.clone();
         *prev = value;
         Ok(result)
