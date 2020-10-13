@@ -3,6 +3,8 @@ use crate::beads::BeadsLine;
 use std::hash::Hash;
 use std::fmt::Debug;
 use std::mem;
+use crate::entities::{Side, Size};
+use std::num::NonZeroUsize;
 
 pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
 
@@ -14,12 +16,21 @@ pub struct Bead<T: ColorTrait> {
     pub filled: bool,
 }
 
+impl<T: ColorTrait + Default> Default for Bead<T> {
+    fn default() -> Self {
+        Bead {color: T::default(), filled: false}
+    }
+}
+
 pub struct Model<T: ColorTrait> {
     pub grid: Grid<Bead<T>>,
     pub line: BeadsLine<Bead<T>>,
 }
 
 impl<T: ColorTrait> Model<T> {
+    fn unfill_grid(&mut self) {
+        self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
+    }
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
     }
@@ -34,7 +45,7 @@ impl<T: ColorTrait> Model<T> {
             let mut bead = Bead{ color, filled: false };
             mem::swap(prev, &mut bead);
             if bead.filled {
-                self.grid = self.grid.map(|Bead{color, ..}|Bead{color: color.clone(), filled: false})
+                self.unfill_grid();
             }
             self.line = self.line.knit_type.build(self.grid.as_table());
             Ok(Some(bead))
@@ -46,5 +57,26 @@ impl<T: ColorTrait> Model<T> {
         obj.filled = !filled;
         self.grid = self.line.grid();
         Ok(filled)
+    }
+
+    pub fn grow(&mut self, side: Side, value: T) {
+        self.grid = self.grid.map(|Bead {color, ..}| Bead {color: color.clone(), filled: false});
+        let value = Bead {color: value, filled: false};
+        self.grid.grow(side, value);
+        self.line = self.line.knit_type.build(self.grid.as_table());
+    }
+    pub fn shrink(&mut self, side: Side) -> Result<(), String>{
+        self.grid.shrink(side)?;
+        self.unfill_grid();
+        self.line = self.line.knit_type.build(self.grid.as_table());
+        Ok(())
+    }
+}
+
+impl<T: ColorTrait + Default> Model<T> {
+    pub fn resize(&mut self, size: Size) {
+        self.grid.resize(size);
+        self.unfill_grid();
+        self.line = self.line.knit_type.build(self.grid.as_table());
     }
 }

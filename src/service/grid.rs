@@ -63,13 +63,13 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 self.push_undo(Grow(side));
                 Some(self.updated())
             },
-            Resize(Size { width, height }) => {
+            Resize(size) => {
                 let prev = Size {
                     width: NonZeroUsize::new(self.grid.width()).unwrap(),
                     height: NonZeroUsize::new(self.grid.height()).unwrap(),
                 };
                 self.push_undo(Resize(prev));
-                self.grid.resize(width, height);
+                self.grid.resize(size);
                 Some(self.updated())
             },
             ToggleLineItem(_index) => {

@@ -158,7 +158,7 @@ impl<T: Debug + Clone> Grid<T> {
 }
 
 impl<T: Debug + Clone + Default> Grid<T> {
-    pub fn resize(&mut self, width: NonZeroUsize, height: NonZeroUsize) {
+    pub fn resize(&mut self, Size {width, height}: Size) {
         let width = width.get();
         let height = height.get();
         if width > self.width {
