@@ -1,5 +1,5 @@
 use crate::grid::Grid;
-use crate::beads::BeadsLine;
+use crate::beads::{BeadsLine, BeadsLineBuilder};
 use std::hash::Hash;
 use std::fmt::Debug;
 use std::mem;
@@ -16,18 +16,45 @@ pub struct Bead<T: ColorTrait> {
     pub filled: bool,
 }
 
+impl<T: ColorTrait> From<&T> for Bead<T> {
+    fn from(color: &T) -> Self {
+        Bead{color: color.clone(), filled: false}
+    }
+}
+
 impl<T: ColorTrait + Default> Default for Bead<T> {
     fn default() -> Self {
         Bead {color: T::default(), filled: false}
     }
 }
 
+impl<T: ColorTrait + Default> Default for Model<T> {
+    fn default() -> Self {
+        let grid: Grid<_> = Default::default();
+        let line = BeadsLineBuilder::RLSquare.build(grid.as_table());
+        Model {grid, line}
+    }
+}
+
 pub struct Model<T: ColorTrait> {
-    pub grid: Grid<Bead<T>>,
-    pub line: BeadsLine<Bead<T>>,
+    grid: Grid<Bead<T>>,
+    line: BeadsLine<Bead<T>>,
+}
+
+impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
+    fn from(line: BeadsLine<Bead<T>>) -> Self {
+        let grid = line.grid();
+        Model {grid, line}
+    }
 }
 
 impl<T: ColorTrait> Model<T> {
+    pub fn width(&self) -> usize {
+        self.grid.width()
+    }
+    pub fn height(&self) -> usize {
+        self.grid.height()
+    }
     fn unfill_grid(&mut self) {
         self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
     }
