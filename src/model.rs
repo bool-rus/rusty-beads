@@ -31,11 +31,13 @@ impl<T: ColorTrait + Default> Default for Bead<T> {
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
         let grid: Grid<_> = Default::default();
-        let line = BeadsLineBuilder::RLSquare.build(grid.as_table());
+        let builder = Schema::default().into();
+        let line = builder.build(grid.as_table());
         Model {grid, line}
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Model<T: ColorTrait> {
     grid: Grid<Bead<T>>,
     line: BeadsLine<Bead<T>>,
@@ -45,6 +47,14 @@ impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
     fn from(line: BeadsLine<Bead<T>>) -> Self {
         let grid = line.grid();
         Model {grid, line}
+    }
+}
+
+impl <T: ColorTrait> From<Grid<Bead<T>>> for Model<T> {
+    fn from(grid: Grid<Bead<T>>) -> Self {
+        let builder: BeadsLineBuilder = Schema::default().into();
+        let line = builder.build(grid.as_table());
+        Model {line, grid}
     }
 }
 

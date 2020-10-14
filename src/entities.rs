@@ -107,6 +107,12 @@ impl Schema {
     }
 }
 
+impl Default for Schema {
+    fn default() -> Self {
+        Schema::FirstOffset
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Size {
     pub width: NonZeroUsize,

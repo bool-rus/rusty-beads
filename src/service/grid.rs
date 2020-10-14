@@ -8,7 +8,7 @@ use crate::model::{Model, Bead, ColorTrait};
 use crate::beads::BeadsLineBuilder;
 
 #[derive(Debug, Clone)]
-pub enum Message<T: Debug + Clone> {
+pub enum Message<T: ColorTrait> {
     Ignore,
     Undo,
     Redo,
@@ -17,7 +17,7 @@ pub enum Message<T: Debug + Clone> {
     Shrink(Side),
     Resize(Size),
     Updated(Arc<Grid<T>>),
-    Loaded(Arc<Grid<T>>),
+    Loaded(Arc<Model<T>>),
     ToggleLineItem(usize),
     SchemaChange,
 }
@@ -103,9 +103,9 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 mem::swap(&mut self.redo, &mut redo);
                 result?
             },
-            Loaded(grid) => {
-                //self.grid = grid.as_ref().clone();
-                Some(Loaded(grid))
+            Loaded(model) => {
+                self.model = model.as_ref().clone();
+                Some(Updated(Arc::new(model.grid_color())))
             },
             Updated(_) | Ignore => None,
         })

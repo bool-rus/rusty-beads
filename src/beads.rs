@@ -7,8 +7,8 @@ use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use crate::entities::Schema;
 
-#[derive(Debug)]
-pub struct BeadsLine<T: Eq + Hash> {
+#[derive(Debug, Clone)]
+pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub width: usize,
     line: Vec<(T,usize)>,
     pub knit_type: Schema,
