@@ -19,6 +19,7 @@ pub enum Message<T: Debug + Clone> {
     Updated(Arc<Grid<T>>),
     Loaded(Arc<Grid<T>>),
     ToggleLineItem(usize),
+    SchemaChange,
 }
 
 #[derive(Default)]
@@ -74,6 +75,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
             ToggleLineItem(_index) => {
                 unimplemented!()
             },
+            SchemaChange => unimplemented!(),
             Undo => {
                 let mut undo = Vec::new();
                 mem::swap(&mut self.undo, &mut undo);

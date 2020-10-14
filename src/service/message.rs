@@ -5,6 +5,7 @@ use crate::ui::{
     LeftPanelMessage as LPMsg,
     FilesMessage as FMsg,
     RightPanelMessage as RPMsg,
+    LeftMenuMessage as LMMsg,
 };
 
 impl From<Message> for GridServiceMessage<Color> {
@@ -16,6 +17,7 @@ impl From<Message> for GridServiceMessage<Color> {
             LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
+            LeftMenu(LMMsg::SchemaChange) => GSMsg::SchemaChange,
             RightPanel(RPMsg::ToggleCheckbox(index)) => GSMsg::ToggleLineItem(index),
             TopMenu(TMMsg::Undo) => GSMsg::Undo,
             TopMenu(TMMsg::Redo) => GSMsg::Redo,
