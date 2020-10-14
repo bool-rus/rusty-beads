@@ -72,10 +72,15 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 self.model.resize(size);
                 Some(self.updated())
             },
-            ToggleLineItem(_index) => {
-                unimplemented!()
+            ToggleLineItem(index) => {
+                self.model.toggle_filled(index);
+                Some(self.updated())
             },
-            SchemaChange => unimplemented!(),
+            SchemaChange => {
+                let schema = self.model.schema();
+                self.model.set_schema(schema.switch());
+                Some(self.updated())
+            },
             Undo => {
                 let mut undo = Vec::new();
                 mem::swap(&mut self.undo, &mut undo);

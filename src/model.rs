@@ -3,7 +3,7 @@ use crate::beads::{BeadsLine, BeadsLineBuilder};
 use std::hash::Hash;
 use std::fmt::Debug;
 use std::mem;
-use crate::entities::{Side, Size};
+use crate::entities::{Side, Size, Schema};
 use std::num::NonZeroUsize;
 
 pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
@@ -54,6 +54,14 @@ impl<T: ColorTrait> Model<T> {
     }
     pub fn height(&self) -> usize {
         self.grid.height()
+    }
+    pub fn schema(&self) -> Schema {
+        self.line.knit_type
+    }
+    pub fn set_schema(&mut self, schema: Schema) {
+        self.line.knit_type = schema;
+        self.unfill_grid();
+        self.update_line();
     }
     fn unfill_grid(&mut self) {
         self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
