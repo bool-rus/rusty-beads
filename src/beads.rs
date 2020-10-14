@@ -8,7 +8,7 @@ use std::num::NonZeroUsize;
 
 #[derive(Debug)]
 pub struct BeadsLine<T: Eq + Hash> {
-    width: usize,
+    pub width: usize,
     line: Vec<(T,usize)>,
     pub knit_type: BeadsLineBuilder,
 }

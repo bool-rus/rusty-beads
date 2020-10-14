@@ -96,6 +96,17 @@ pub enum Schema {
     Straight,
 }
 
+impl Schema {
+    fn change(self) -> Self {
+        use Schema::*;
+        match self {
+            FirstOffset => SecondOffset,
+            SecondOffset => Straight,
+            Straight => FirstOffset,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Size {
     pub width: NonZeroUsize,
