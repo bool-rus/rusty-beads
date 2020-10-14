@@ -58,6 +58,10 @@ impl<T: ColorTrait> Model<T> {
     fn unfill_grid(&mut self) {
         self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
     }
+    fn update_line(&mut self) {
+        let builder: BeadsLineBuilder = self.line.knit_type.into();
+        self.line = builder.build(self.grid.as_table());
+    }
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
     }
@@ -74,7 +78,7 @@ impl<T: ColorTrait> Model<T> {
             if bead.filled {
                 self.unfill_grid();
             }
-            self.line = self.line.knit_type.build(self.grid.as_table());
+            self.update_line();
             Ok(Some(bead))
         }
     }
@@ -90,12 +94,12 @@ impl<T: ColorTrait> Model<T> {
         self.grid = self.grid.map(|Bead {color, ..}| Bead {color: color.clone(), filled: false});
         let value = Bead {color: value, filled: false};
         self.grid.grow(side, value);
-        self.line = self.line.knit_type.build(self.grid.as_table());
+        self.update_line();
     }
     pub fn shrink(&mut self, side: Side) -> Result<(), String>{
         self.grid.shrink(side)?;
         self.unfill_grid();
-        self.line = self.line.knit_type.build(self.grid.as_table());
+        self.update_line();
         Ok(())
     }
 }
@@ -104,6 +108,6 @@ impl<T: ColorTrait + Default> Model<T> {
     pub fn resize(&mut self, size: Size) {
         self.grid.resize(size);
         self.unfill_grid();
-        self.line = self.line.knit_type.build(self.grid.as_table());
+        self.update_line();
     }
 }

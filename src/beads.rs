@@ -5,12 +5,13 @@ use std::collections::hash_map::RandomState;
 use crate::grid::Grid;
 use std::fmt::Debug;
 use std::num::NonZeroUsize;
+use crate::entities::Schema;
 
 #[derive(Debug)]
 pub struct BeadsLine<T: Eq + Hash> {
     pub width: usize,
     line: Vec<(T,usize)>,
-    pub knit_type: BeadsLineBuilder,
+    pub knit_type: Schema,
 }
 
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
@@ -39,7 +40,8 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
                 data
             }
         );
-        self.knit_type.grid(self.width, unzipped)
+        let builder: BeadsLineBuilder = self.knit_type.into();
+        builder.grid(self.width, unzipped)
     }
     pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
         BeadsLine {
@@ -58,10 +60,35 @@ pub enum BeadsLineBuilder {
     RLOffset(bool),
 }
 
+impl From<Schema> for BeadsLineBuilder {
+    fn from(schema: Schema) -> Self {
+        use Schema::*;
+        use BeadsLineBuilder::*;
+        match schema{
+            FirstOffset => RLOffset(true),
+            SecondOffset => RLOffset(false),
+            Straight => RLSquare,
+        }
+    }
+}
+
+impl Into<Schema> for BeadsLineBuilder {
+    fn into(self) -> Schema {
+        use Schema::*;
+        use BeadsLineBuilder::*;
+        match self {
+            RLOffset(true) => FirstOffset,
+            RLOffset(false) => SecondOffset,
+            RLSquare => Straight,
+            _ => unimplemented!(),
+        }
+    }
+}
+
 impl BeadsLineBuilder {
     pub fn build<T: Clone + Eq + Hash>(&self, table: Vec<&[T]>) -> BeadsLine<T> {
         let width = table.get(0).map(|row|row.len()).unwrap_or(0);
-        let knit_type = *self;
+        let knit_type = (*self).into();
         let mut iter = table.into_iter().map(|line|line.iter().map(|x|x));
         match self {
             BeadsLineBuilder::LRSquare => {
@@ -109,10 +136,12 @@ impl BeadsLineBuilder {
 
 fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize, iter: I) -> Vec<T>
     where I: Iterator<Item=I2>, I2: Iterator<Item=&'a T> + Clone  {
-    let correction = if first_offset { 0 } else { 1 };
+    let correction = if first_offset { 1 } else { 0 };
     iter.enumerate()
         .map(|(i, line)| {
-            line.cycle().skip(((i+correction)/2) % width).take(width)
+            line.cycle().skip(
+                width - (((i+correction)/2) % width)
+            ).take(width)
         })
         .flatten()
         .map(|i|i.clone())
@@ -171,7 +200,7 @@ mod tests {
     fn line_square() {
         let n = 7;
         let table = Table::new(n);
-        let bline = BeadsLineBuilder::LRSquare.build(table.table());
+        let bline = BeadsLineBuilder::RLSquare.build(table.table());
         let (line, summary) = (bline.line(), bline.summary());
         let height = table.table().len();
         assert_eq!(line.len(), n*height);
@@ -200,33 +229,33 @@ mod tests {
         let n = 4;
         let table = Table::new(n);
         let height = table.table().len();
-        let bline = BeadsLineBuilder::LROffset(true).build(table.table());
+        let bline = BeadsLineBuilder::RLOffset(true).build(table.table());
         let (line, summary) = (bline.line(), bline.summary());
         let sum:usize = line.iter()
             .map(|&(i,c)|{c})
             .sum();
         assert_eq!(sum, n*height);
         assert_eq!( line.as_slice() , &[
-            (0,1),(1,1),(2,1),(3,1),
-            (0,1),(1,1),(2,1),
-            (3,2),(0,1),(1,1),(2,1),
-            (3,1),(0,1),(1,1),
-            (2,2),(3,1),(0,1),(1,1),
-            (2,1),(3,1),(0,1),(1,1),
+            (3, 1), (2, 1), (1, 1), (0, 2),
+            (3, 1), (2, 1), (1, 1),
+            (0, 1), (3, 1), (2, 1), (1, 2),
+            (0, 1), (3, 1), (2, 1),
+            (1, 1), (0, 1), (3, 1), (2, 2),
+            (1, 1), (0, 1), (3, 1),
         ]);
 
         assert_eq!(bline.grid().as_table(), table.table());
 
-        let bline = BeadsLineBuilder::LROffset(false).build(table.table());
+        let bline = BeadsLineBuilder::RLOffset(false).build(table.table());
         let (line, summary) = (bline.line(), bline.summary());
 
         assert_eq!( line.as_slice() , &[
-            (0,1),(1,1),(2,1),
-            (3,2),(0,1),(1,1),(2,1),
-            (3,1),(0,1),(1,1),
-            (2,2),(3,1),(0,1),(1,1),
-            (2,1),(3,1),(0,1),
-            (1,2),(2,1),(3,1),(0,1)
+            (3, 1), (2, 1), (1, 1), (0, 1),
+            (3, 1), (2, 1), (1, 1), (0, 2),
+            (3, 1), (2, 1), (1, 1),
+            (0, 1), (3, 1), (2, 1), (1, 2),
+            (0, 1), (3, 1), (2, 1),
+            (1, 1), (0, 1), (3, 1), (2, 1),
         ]);
 
         assert_eq!(bline.grid().as_table(), table.table())

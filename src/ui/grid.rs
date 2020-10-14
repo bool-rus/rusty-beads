@@ -47,12 +47,8 @@ impl GridPlate {
         }
     }
     fn switch_schema(&mut self) {
-        use Schema::*;
-        match self.schema.get() {
-            FirstOffset => self.schema.set(Straight),
-            SecondOffset => self.schema.set(FirstOffset),
-            Straight => self.schema.set(SecondOffset),
-        }
+        let new_schema = self.schema.get().switch();
+        self.schema.set(new_schema);
     }
 }
 

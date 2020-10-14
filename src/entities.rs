@@ -97,7 +97,7 @@ pub enum Schema {
 }
 
 impl Schema {
-    fn change(self) -> Self {
+    pub fn switch(self) -> Self {
         use Schema::*;
         match self {
             FirstOffset => SecondOffset,

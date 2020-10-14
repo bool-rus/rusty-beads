@@ -304,11 +304,8 @@ pub mod right {
             match self.state {
                 State::None => {}
                 State::Beads(_) => {
-                    let line =  match self.schema.get() {
-                        Schema::FirstOffset => BeadsLineBuilder::RLOffset(true),
-                        Schema::SecondOffset => BeadsLineBuilder::RLOffset(false),
-                        Schema::Straight => BeadsLineBuilder::RLSquare,
-                    }.build(self.grid.as_table());
+                    let builder: BeadsLineBuilder = self.schema.get().into();
+                    let line =  builder.build(self.grid.as_table());
                     self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
                 }
                 State::Colors(_) => {}
