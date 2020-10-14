@@ -6,24 +6,23 @@ use crate::entities::{Color, Schema, Coord};
 use std::rc::Rc;
 use std::cell::Cell;
 use std::sync::Arc;
+use crate::model::Model;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
     GridClicked(Coord),
     SetColor(Coord, Color),//TODO: надо бы убрать, здесь неактуально
-    GridUpdated(Arc<Grid<Color>>),
+    GridUpdated(Arc<Model<Color>>),
     Rotate(isize),
     SetRotation(f32),
-    SchemaChange,
     ZoomIn,
     ZoomOut,
 }
 
 pub struct GridPlate {
-    grid: Arc<Grid<Color>>,
+    model: Arc<Model<Color>>,
     mouse_hold: Rc<Cell<bool>>,
-    schema: Rc<Cell<Schema>>,
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
@@ -33,11 +32,10 @@ pub struct GridPlate {
 }
 
 impl GridPlate {
-    pub fn new(schema: Rc<Cell<Schema>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+    pub fn new(mouse_hold: Rc<Cell<bool>>) -> Self {
         Self {
-            grid: Arc::new(Grid::default()),
+            model: Arc::new(Model::default()),
             mouse_hold ,
-            schema,
             rotation: 0,
             half_size: 6,
             slider: Default::default(),
@@ -45,10 +43,6 @@ impl GridPlate {
             rot_l: Default::default(),
             rot_r: Default::default(),
         }
-    }
-    fn switch_schema(&mut self) {
-        let new_schema = self.schema.get().switch();
-        self.schema.set(new_schema);
     }
 }
 
@@ -65,12 +59,13 @@ impl AppWidget for GridPlate {
     fn view(&mut self) -> Element<'_, Message> {
         let full = Length::Units(self.half_size * 2);
         let half = Length::Units(self.half_size);
-        let portions = match self.schema.get() {
+        let schema = self.model.line().knit_type;
+        let grid = &self.model.grid_color();
+        let portions = match schema {
             Schema::FirstOffset => [full, half, full],
             Schema::SecondOffset => [half, full, half],
             Schema::Straight => [half, half, half],
         };
-        let grid = &self.grid;
         let width = grid.width();
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
@@ -126,16 +121,15 @@ impl AppWidget for GridPlate {
     fn update(&mut self, msg: Message) {
         use Message::*;
         match msg {
-            GridUpdated(grid) => self.grid = grid,
+            GridUpdated(model) => self.model = model,
             Rotate(rotation) => { self.rotation += rotation; }
             SetRotation(rotation) => {
-                let width = self.grid.width() as f32;
+                let width = self.model.width() as f32;
                 let rotation = width*rotation;
                 self.rotation = rotation.round() as isize;
             }
             ZoomIn => { self.half_size += 1; }
             ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
-            SchemaChange => self.switch_schema(),
             Ignore | GridClicked(..) => {}
             SetColor(..) =>{}
         }

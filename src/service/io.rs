@@ -9,12 +9,12 @@ pub enum Message {
     Open(PathBuf),
     Save(PathBuf),
     Loaded(Arc<Model<Color>>),
-    GridUpdated(Arc<Grid<Color>>),
+    GridUpdated(Arc<Model<Color>>),
     Ignore,
 }
 #[derive(Default)]
 pub struct Service {
-    grid: Arc<Grid<Color>>
+    model: Arc<Model<Color>>
 }
 
 impl super::Service for Service {
@@ -32,11 +32,11 @@ impl super::Service for Service {
                 )
             )),
             Save(path) => {
-                crate::io::write(path, self.grid.as_table()).map_err(|e|e.to_string())?;
+                crate::io::write(path, self.model.grid_color().as_table()).map_err(|e|e.to_string())?;
                 None
             },
-            GridUpdated(grid) => {
-                self.grid = grid;
+            GridUpdated(model) => {
+                self.model = model;
                 None
             },
             Ignore | Loaded(_) => None,

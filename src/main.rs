@@ -31,13 +31,12 @@ struct App {
 
 impl Default for App {
     fn default() -> Self {
-        let schema = Rc::new(Cell::new(Schema::FirstOffset));
         let mouse_hold = Rc::new(Cell::new(false));
         Self {
             service: Default::default(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(schema.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new( schema.clone()),
+            grid_plate: GridPlate::new(mouse_hold.clone()),
+            right_panel: RightPanel::default(),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             mouse_hold,

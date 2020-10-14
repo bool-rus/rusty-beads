@@ -21,7 +21,7 @@ pub enum Message {
     LeftPanel(LPMsg),
     RightPanel(RPMsg),
     LeftMenu(LMMsg),
-    GridUpdated(Arc<Grid<Color>>),
+    GridUpdated(Arc<Model<Color>>),
     GridLoaded(Arc<Model<Color>>),
     Error(String),
 }
@@ -107,10 +107,9 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            GridUpdated(v) => GMsg::GridUpdated(v),
+            GridUpdated(model) => GMsg::GridUpdated(model),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
-            LeftMenu(LMMsg::SchemaChange) => GMsg::SchemaChange,
             _ => GMsg::Ignore
         }
     }
@@ -125,7 +124,7 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
-            GridUpdated(grid) => LPMsg::GridUpdated(grid),
+            GridUpdated(model) => LPMsg::GridUpdated(model),
             _ => LPMsg::Ignore,
         }
     }
@@ -139,8 +138,7 @@ impl From<Message> for RPMsg {
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
             RightMenu(RMMsg::ShowColors) => RPMsg::ShowColors,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
-            GridUpdated(grid) => RPMsg::GridUpdated(grid),
-            LeftMenu(LMMsg::SchemaChange) => RPMsg::Refresh,
+            GridUpdated(model) => RPMsg::GridUpdated(model),
             _ => RPMsg::Ignore
         }
     }

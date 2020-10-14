@@ -16,7 +16,7 @@ pub enum Message<T: ColorTrait> {
     Grow(Side),
     Shrink(Side),
     Resize(Size),
-    Updated(Arc<Grid<T>>),
+    Updated(Arc<Model<T>>),
     Loaded(Arc<Model<T>>),
     ToggleLineItem(usize),
     SchemaChange,
@@ -31,7 +31,7 @@ pub struct Service<T: ColorTrait> {
 
 impl<T: ColorTrait> Service<T> {
     fn updated(&self) -> Message<T> {
-        Message::Updated(Arc::new(self.model.grid_color()))
+        Message::Updated(Arc::new(self.model.clone()))
     }
     fn push_undo(&mut self, msg: Message<T>) {
         self.undo.push(msg);
@@ -105,7 +105,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
             },
             Loaded(model) => {
                 self.model = model.as_ref().clone();
-                Some(Updated(Arc::new(model.grid_color())))
+                Some(Updated(model))
             },
             Updated(_) | Ignore => None,
         })
@@ -135,14 +135,14 @@ mod test {
         s.service(Message::Point(Coord{ x: 0, y: 0 }, 35));
         let vars: Vec<_> = vec![Message::Undo; 2].into_iter().map(|m|{
            match s.service(m).expect("undo must return message").unwrap() {
-               Message::Updated(grid) => {grid.as_table()[0][0]},
+               Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
                _ => {panic!("undo must return updated")},
            }
         }).collect();
         assert_eq!(vars, vec![34,33]);
         let vars: Vec<_> = vec![Message::Redo; 2].into_iter().map(|m|{
             match s.service(m).expect("redo must return message").unwrap() {
-                Message::Updated(grid) => {grid.as_table()[0][0]},
+                Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
                 _ => {panic!("undo must return updated")},
             }
         }).collect();

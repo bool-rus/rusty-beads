@@ -10,6 +10,7 @@ pub mod left {
     use crate::entities::{Side, Size, Color};
     use std::sync::Arc;
     use crate::grid::Grid;
+    use crate::model::Model;
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -23,7 +24,7 @@ pub mod left {
         InputHeight(String),
         Grow(Side),
         Shrink(Side),
-        GridUpdated(Arc<Grid<Color>>),
+        GridUpdated(Arc<Model<Color>>),
         FS(FilesMessage),
     }
 
@@ -40,14 +41,14 @@ pub mod left {
     }
 
     pub struct Panel {
-        grid: Arc<Grid<Color>>,
+        model: Arc<Model<Color>>,
         state: State,
     }
 
     impl Default for Panel {
         fn default() -> Self {
             Self {
-                grid: Default::default(),
+                model: Default::default(),
                 state: State::Empty,
             }
         }
@@ -68,13 +69,13 @@ pub mod left {
             use Message::*;
             match msg {
                 Hide => { self.state = State::Empty },
-                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.grid.size()))},
+                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.model.grid().size()))},
                 ShowOpen => { self.state = State::FS(Box::new(FSMenu::open(default_dir())))},
                 ShowSave => { self.state = State::FS(Box::new(FSMenu::save(default_dir())))},
-                GridUpdated(grid) => {
-                    self.grid = grid;
+                GridUpdated(model) => {
+                    self.model = model;
                     if matches!(self.state, State::Resize(_)) {
-                        self.state = State::Resize(ResizeWidget::new(self.grid.size()));
+                        self.state = State::Resize(ResizeWidget::new(self.model.grid().size()));
                     }
                 }
                 msg => {
@@ -253,6 +254,7 @@ pub mod right {
     use std::sync::Arc;
     use super::style::Colored;
     use super::icon;
+    use crate::model::{Model, Bead};
 
     #[derive(Debug, Copy, Clone)]
     pub enum ColorPart {
@@ -269,8 +271,7 @@ pub mod right {
         ShowBeads,
         ShowColors,
         Hide,
-        Refresh,
-        GridUpdated(Arc<Grid<Color>>),
+        GridUpdated(Arc<Model<Color>>),
         ToggleCheckbox(usize),
         AddColor(Color),
         ConfigColor(ColorPart),
@@ -284,33 +285,17 @@ pub mod right {
         Colors(ColorMenu),
     }
 
-    pub struct RightPanel {
-        grid: Arc<Grid<Color>>,
-        scroll: scrollable::State,
-        state: State,
-        schema: Rc<Cell<Schema>>,
+    impl Default for State {
+        fn default() -> Self {
+            State::None
+        }
     }
 
-    impl RightPanel {
-        pub fn new(schema: Rc<Cell<Schema>>) -> Self {
-            Self {
-                grid: Arc::new(Grid::default()),
-                scroll: Default::default(),
-                state: State::None,
-                schema,
-            }
-        }
-        pub fn refresh(&mut self) {
-            match self.state {
-                State::None => {}
-                State::Beads(_) => {
-                    let builder: BeadsLineBuilder = self.schema.get().into();
-                    let line =  builder.build(self.grid.as_table());
-                    self.state = State::Beads(BeadsWidget::new(self.grid.width(), line))
-                }
-                State::Colors(_) => {}
-            }
-        }
+    #[derive(Default)]
+    pub struct RightPanel {
+        model: Arc<Model<Color>>,
+        scroll: scrollable::State,
+        state: State,
     }
 
     impl AppWidget for RightPanel {
@@ -327,41 +312,31 @@ pub mod right {
         }
 
         fn update(&mut self, msg: Self::Message) {
-            match (&mut self.state, msg) {
-                (_, Message::Hide) => self.state = State::None,
-                (_, Message::ShowColors) => self.state = State::Colors(Default::default()),
-                (_, Message::ShowBeads) => {
-                    self.state = State::Beads(BeadsWidget::empty());
-                    self.refresh();
+            match &mut self.state {
+                State::Beads(ref mut widget) => widget.update(msg.clone()),
+                State::Colors(ref mut widget) => widget.update(msg.clone()),
+                State::None => {},
+            }
+            match msg {
+                Message::Hide => self.state = State::None,
+                Message::ShowColors => self.state = State::Colors(Default::default()),
+                Message::ShowBeads => {
+                    self.state = State::Beads(
+                        BeadsWidget {
+                            model: self.model.clone(),
+                        }
+                    );
                 }
-                (_, Message::Refresh) => self.refresh(),
-                (_, Message::GridUpdated(grid)) => {
-                    self.grid = grid;
-                    self.refresh();
-                }
-                (State::Beads(ref mut widget), ref msg) => widget.update(msg.clone()),
-                (State::Colors(ref mut widget), ref msg) => widget.update(msg.clone()),
-                (State::None, _) => {}
+                Message::GridUpdated(grid) => self.model = grid,
+                _ => {}
             }
         }
     }
 
     #[derive(Debug)]
     struct BeadsWidget {
-        line_width: usize,
-        line: BeadsLine<Color>,
-        checkboxes: Vec<bool>,
+        model: Arc<Model<Color>>
     }
-
-    impl BeadsWidget {
-        fn new(line_width: usize, line: BeadsLine<Color>) -> Self {
-            Self { line_width, checkboxes: vec![false; line.line().len()], line }
-        }
-        fn empty() -> Self {
-            Self { line_width: 0, line: BeadsLineBuilder::RLOffset(true).build(Vec::new()), checkboxes: Vec::new() }
-        }
-    }
-
     const SYMBOLS: [&str;26] = ["A","B","C","D","E","F","G","H","I","J","K","L","M",
                                 "N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 
@@ -369,7 +344,7 @@ pub mod right {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let summary = self.line.summary();
+            let summary = self.model.line_color().summary();
             let mut sorted_summary: Vec<_> = summary.iter().collect();
             let undefined = "?";
             sorted_summary.sort_unstable_by_key(|(&color, _)| { color.to_string() });
@@ -384,23 +359,24 @@ pub mod right {
                     .push(Text::new(count.to_string()))
                     .into()
             }).collect()).into();
-            let line = Column::with_children(
-                self.line.line().iter()
-                    .zip(self.checkboxes.iter().enumerate())
-                    .map(|((color, count), (i, checked))| {
-                        Row::new().spacing(5).align_items(Align::Center)
-                            .push(Checkbox::new(
-                                *checked,
-                                symbols.get(&color).unwrap_or(&undefined).to_string(),
-                                move |_x| Message::ToggleCheckbox(i)
-                            ).spacing(1).width(Length::Units(35)))
-                            .push(ColorBox::new(color.clone()))
-                            .push(Text::new(count.to_string()))
-                            .into()
-                    }).collect()
-            ).spacing(1).into();
+
+            let line = self.model.line().line().iter()
+                .enumerate()
+                .map(|(i, (Bead {color, filled}, count))|{
+                    Row::new().spacing(5).align_items(Align::Center)
+                        .push(Checkbox::new(
+                            *filled,
+                            symbols.get(color).unwrap_or(&undefined).to_string(),
+                            move |_| Message::ToggleCheckbox(i)
+                        ).spacing(1).width(Length::Units(35)))
+                        .push(ColorBox::new(color.clone()))
+                        .push(Text::new(count.to_string()))
+                        .into()
+                });
+
+            let line = Column::with_children(line.collect()).spacing(1).into();
             Column::with_children(vec![
-                Text::new(format!("Width: {}", self.line_width)).into(),
+                Text::new(format!("Width: {}", self.model.width())).into(),
                 Text::new("Summary").into(),
                 summary,
                 Text::new("Scheme").into(),
@@ -410,12 +386,8 @@ pub mod right {
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::ToggleCheckbox(i) => {
-                    //TODO: обработать none
-                    let checked = self.checkboxes.get_mut(i).unwrap();
-                    *checked = !*checked;
-                }
-                _ => {}
+                Message::GridUpdated(model) => self.model = model,
+                _ => {},
             }
         }
     }

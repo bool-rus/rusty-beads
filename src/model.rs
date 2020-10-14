@@ -31,7 +31,7 @@ impl<T: ColorTrait + Default> Default for Bead<T> {
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
         let grid: Grid<_> = Default::default();
-        let builder = Schema::default().into();
+        let builder: BeadsLineBuilder = Schema::default().into();
         let line = builder.build(grid.as_table());
         Model {grid, line}
     }
@@ -64,6 +64,12 @@ impl<T: ColorTrait> Model<T> {
     }
     pub fn height(&self) -> usize {
         self.grid.height()
+    }
+    pub fn grid(&self) -> &Grid<Bead<T>> {
+        &self.grid
+    }
+    pub fn line(&self) -> &BeadsLine<Bead<T>> {
+        &self.line
     }
     pub fn schema(&self) -> Schema {
         self.line.knit_type
