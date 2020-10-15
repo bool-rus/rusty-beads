@@ -6,7 +6,7 @@ use crate::entities::{Color, Schema, Coord};
 use std::rc::Rc;
 use std::cell::Cell;
 use std::sync::Arc;
-use crate::model::Model;
+use crate::model::{Model, Bead};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -60,7 +60,7 @@ impl AppWidget for GridPlate {
         let full = Length::Units(self.half_size * 2);
         let half = Length::Units(self.half_size);
         let schema = self.model.line().knit_type;
-        let grid = &self.model.grid_color();
+        let grid = self.model.grid();
         let portions = match schema {
             Schema::FirstOffset => [full, half, full],
             Schema::SecondOffset => [half, full, half],
@@ -81,14 +81,17 @@ impl AppWidget for GridPlate {
                     .zip(range.clone().into_iter().cycle())
                     .skip(rotation)
                     .take(width);
-                children.extend(iter.map(|(item, col)| {
+                children.extend(iter.map(|(Bead {color, filled}, col)| {
                     let coord = Coord{x:row, y:col};
-                    let mut widget = ColorBox::new(item.clone())
+                    let mut widget = ColorBox::new(color.clone())
                         .width(full)
                         .height(full)
                         .on_press(Message::GridClicked(coord).into());
                     if self.mouse_hold.get() {
-                        widget = widget.on_over(Message::GridClicked(coord))
+                        widget = widget.on_over(Message::GridClicked(coord));
+                    }
+                    if *filled {
+                        widget = widget.border_color(iced::Color::WHITE);
                     }
                     widget.into()
                 }));
