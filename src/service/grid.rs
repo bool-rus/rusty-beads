@@ -4,9 +4,11 @@ use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use core::mem;
 use std::sync::Arc;
+use crate::model::{Model, Bead, ColorTrait};
+use crate::beads::BeadsLineBuilder;
 
 #[derive(Debug, Clone)]
-pub enum Message<T: Debug + Clone> {
+pub enum Message<T: ColorTrait> {
     Ignore,
     Undo,
     Redo,
@@ -14,20 +16,22 @@ pub enum Message<T: Debug + Clone> {
     Grow(Side),
     Shrink(Side),
     Resize(Size),
-    Updated(Arc<Grid<T>>),
-    Loaded(Arc<Grid<T>>),
+    Updated(Arc<Model<T>>),
+    Loaded(Arc<Model<T>>),
+    ToggleLineItem(usize),
+    SchemaChange,
 }
 
 #[derive(Default)]
-pub struct Service<T: Debug + Clone> {
-    grid: Grid<T>,
+pub struct Service<T: ColorTrait> {
+    model: Model<T>,
     undo: Vec<Message<T>>,
     redo: Vec<Message<T>>,
 }
 
-impl<T: Debug + Clone> Service<T> {
+impl<T: ColorTrait> Service<T> {
     fn updated(&self) -> Message<T> {
-        Message::Updated(Arc::new(self.grid.clone()))
+        Message::Updated(Arc::new(self.model.clone()))
     }
     fn push_undo(&mut self, msg: Message<T>) {
         self.undo.push(msg);
@@ -35,40 +39,46 @@ impl<T: Debug + Clone> Service<T> {
     }
 }
 
-impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
+impl<T: Default + ColorTrait> super::Service for Service<T> {
     type Message = Message<T>;
 
     fn service(&mut self, msg: Self::Message) -> Result<Option<Self::Message>, String> {
         use Message::*;
         Ok(match msg {
-            Point(Coord{x,y}, new) => {
-                let msg = self.grid
+            Point(Coord{x,y}, new) => self.model
                     .set(x,y, new.clone())
                     .map(|prev| {
-                        if new != prev {
-                            self.push_undo(Point(Coord{x,y},prev));
-                        }
-                        self.updated()
-                    })?;
-                Some(msg.into())
-            },
+                        prev.and_then(|Bead{color, ..}|{
+                            self.push_undo(Point(Coord{x,y}, color));
+                            Some(self.updated())
+                        })
+                    })?,
             Grow(side) => {
-                self.grid.grow(side, Default::default());
+                self.model.grow(side, Default::default());
                 self.push_undo(Shrink(side));
                 Some(self.updated())
             },
             Shrink(side) => {
-                self.grid.shrink(side)?;
+                self.model.shrink(side)?;
                 self.push_undo(Grow(side));
                 Some(self.updated())
             },
-            Resize(Size { width, height }) => {
+            Resize(size) => {
                 let prev = Size {
-                    width: NonZeroUsize::new(self.grid.width()).unwrap(),
-                    height: NonZeroUsize::new(self.grid.height()).unwrap(),
+                    width: NonZeroUsize::new(self.model.width()).unwrap(),
+                    height: NonZeroUsize::new(self.model.height()).unwrap(),
                 };
                 self.push_undo(Resize(prev));
-                self.grid.resize(width, height);
+                self.model.resize(size);
+                Some(self.updated())
+            },
+            ToggleLineItem(index) => {
+                self.model.toggle_filled(index);
+                Some(self.updated())
+            },
+            SchemaChange => {
+                let schema = self.model.schema();
+                self.model.set_schema(schema.switch());
                 Some(self.updated())
             },
             Undo => {
@@ -93,9 +103,9 @@ impl<T: Default + Debug + Clone + PartialEq> super::Service for Service<T> {
                 mem::swap(&mut self.redo, &mut redo);
                 result?
             },
-            Loaded(grid) => {
-                self.grid = grid.as_ref().clone();
-                Some(Loaded(grid))
+            Loaded(model) => {
+                self.model = model.as_ref().clone();
+                Some(Updated(model))
             },
             Updated(_) | Ignore => None,
         })
@@ -125,14 +135,14 @@ mod test {
         s.service(Message::Point(Coord{ x: 0, y: 0 }, 35));
         let vars: Vec<_> = vec![Message::Undo; 2].into_iter().map(|m|{
            match s.service(m).expect("undo must return message").unwrap() {
-               Message::Updated(grid) => {grid.as_table()[0][0]},
+               Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
                _ => {panic!("undo must return updated")},
            }
         }).collect();
         assert_eq!(vars, vec![34,33]);
         let vars: Vec<_> = vec![Message::Redo; 2].into_iter().map(|m|{
             match s.service(m).expect("redo must return message").unwrap() {
-                Message::Updated(grid) => {grid.as_table()[0][0]},
+                Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
                 _ => {panic!("undo must return updated")},
             }
         }).collect();

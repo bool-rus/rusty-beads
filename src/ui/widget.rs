@@ -16,6 +16,7 @@ pub struct ColorBox<T> {
     height: Length,
     press_message: Option<T>,
     over_message: Option<T>,
+    border_color: Color,
 }
 
 impl <T> ColorBox<T> {
@@ -26,7 +27,12 @@ impl <T> ColorBox<T> {
             height: Length::Units(30),
             press_message: None,
             over_message: None,
+            border_color: Color::BLACK,
         }
+    }
+    pub fn border_color(mut self, color: Color) -> Self {
+        self.border_color = color;
+        self
     }
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
@@ -77,7 +83,7 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
                 background: Background::Color(self.color.clone().into()),
                 border_radius: 0,
                 border_width: 1,
-                border_color: iced::Color::BLACK,
+                border_color: self.border_color,
             },
             MouseCursor::OutOfBounds,
         )
