@@ -6,8 +6,9 @@ use crate::grid::Grid;
 use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use crate::entities::Schema;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub width: usize,
     line: Vec<(T,usize)>,
