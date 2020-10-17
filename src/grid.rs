@@ -10,6 +10,12 @@ pub enum Error {
     InvalidDataSize,
 }
 
+impl ToString for Error {
+    fn to_string(&self) -> String {
+        "Invalid data size".to_string()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Grid<T: Debug + Clone> {
     width: usize,

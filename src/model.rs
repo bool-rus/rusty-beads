@@ -5,12 +5,13 @@ use std::fmt::Debug;
 use std::mem;
 use crate::entities::{Side, Size, Schema};
 use std::num::NonZeroUsize;
+use serde::{Serialize, Deserialize};
 
 pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
 
 impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
 
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bead<T: ColorTrait> {
     pub color: T,
     pub filled: bool,

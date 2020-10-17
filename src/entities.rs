@@ -2,9 +2,10 @@
 use std::fmt;
 use std::str::{FromStr};
 use std::num::{ParseIntError, NonZeroUsize};
+use serde::{Serialize, Deserialize};
 
 
-#[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Hash, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -89,7 +90,7 @@ impl From<iced::Color> for Color {
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum Schema {
     FirstOffset,
     SecondOffset,

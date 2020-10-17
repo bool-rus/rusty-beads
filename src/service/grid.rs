@@ -105,7 +105,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
             },
             Loaded(model) => {
                 self.model = model.as_ref().clone();
-                Some(Updated(model))
+                Some(Loaded(model))
             },
             Updated(_) | Ignore => None,
         })

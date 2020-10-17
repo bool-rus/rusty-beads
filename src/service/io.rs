@@ -2,7 +2,11 @@ use crate::grid::Grid;
 use crate::entities::Color;
 use std::sync::Arc;
 use std::path::PathBuf;
-use crate::model::Model;
+use crate::model::{Model, Bead};
+use std::fs::File;
+use std::io::{Write, BufReader};
+use serde::Deserialize;
+use crate::beads::BeadsLine;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -23,16 +27,21 @@ impl super::Service for Service {
     fn service(&mut self, msg: Self::Message) -> Result<Option<Self::Message>, String> {
         use Message::*;
         Ok( match msg {
-            Open(path) => Some(Loaded(
-                Arc::new(
-                    crate::io::read(path)
-                        .map_err(|e|e.to_string())?
-                        .map(|c|c.into())
-                        .into()
-                )
-            )),
+            Open(path) => {
+                let model = Arc::new(match crate::io::load_line(&path) {
+                    Ok(line) => {
+                        Model::from(line)
+                    }
+                    Err(e) => {
+                        let grid = crate::io::load_grid(&path)?;
+                        Model::from(grid)
+                    }
+                });
+                self.model = model.clone();
+                Some(Loaded(model))
+            },
             Save(path) => {
-                crate::io::write(path, self.model.grid_color().as_table()).map_err(|e|e.to_string())?;
+                crate::io::save(&path, self.model.line())?;
                 None
             },
             GridUpdated(model) => {
