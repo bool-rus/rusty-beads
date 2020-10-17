@@ -28,21 +28,20 @@ impl super::Service for Service {
         use Message::*;
         Ok( match msg {
             Open(path) => {
-                let file = File::open(path).map_err(|e| e.to_string())?;
-                let reader = BufReader::new(file);
-                let mut deserializer = serde_json::Deserializer::from_reader(reader);
-                let line = BeadsLine::deserialize(&mut deserializer).map_err(|e|e.to_string())?;
-                let model = Arc::new(Model::from(line));
+                let model = Arc::new(match crate::io::load_line(&path) {
+                    Ok(line) => {
+                        Model::from(line)
+                    }
+                    Err(e) => {
+                        let grid = crate::io::load_grid(&path)?;
+                        Model::from(grid)
+                    }
+                });
                 self.model = model.clone();
                 Some(Loaded(model))
             },
             Save(path) => {
-                let mut file = File::create(path)
-                    .map_err(|e|e.to_string())?;
-                let serialized = serde_json::to_string(self.model.line())
-                    .map_err(|e|e.to_string())?;
-                file.write_all(serialized.as_bytes())
-                    .map_err(|e|e.to_string())?;
+                crate::io::save(&path, self.model.line())?;
                 None
             },
             GridUpdated(model) => {
