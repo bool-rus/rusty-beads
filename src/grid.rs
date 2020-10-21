@@ -24,9 +24,9 @@ pub struct Grid<T: Debug + Clone> {
 }
 
 impl<T: Debug + Clone> Grid<T> {
-    pub fn new(width: NonZeroUsize, height: NonZeroUsize, item: T) -> Self {
-        let width = width.get();
-        let height = height.get();
+    pub fn new(size: Size, item: T) -> Self {
+        let width = size.width.get();
+        let height = size.height.get();
         Self {
             width,
             height,
@@ -194,8 +194,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
 
 impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
-        let value = NonZeroUsize::new(33usize).unwrap();
-        Self::new(value, value, T::default())
+        Self::new(Size::default(), T::default())
     }
 }
 

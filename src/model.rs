@@ -136,3 +136,15 @@ impl<T: ColorTrait + Default> Model<T> {
         self.update_line();
     }
 }
+
+impl<T: ColorTrait> AsRef<BeadsLine<Bead<T>>> for Model<T> {
+    fn as_ref(&self) -> &BeadsLine<Bead<T>> {
+        &self.line
+    }
+}
+
+impl<T: ColorTrait> AsRef<Grid<Bead<T>>> for Model<T> {
+    fn as_ref(&self) -> &Grid<Bead<T>> {
+        &self.grid
+    }
+}

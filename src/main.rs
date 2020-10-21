@@ -16,6 +16,8 @@ use std::cell::{Cell};
 use crate::entities::Schema;
 use crate::service::AppService;
 use std::rc::Rc;
+use crate::model::Model;
+use std::sync::Arc;
 
 
 struct App {
@@ -36,7 +38,7 @@ impl Default for App {
             service: Default::default(),
             top_menu: Default::default(),
             grid_plate: GridPlate::new(mouse_hold.clone()),
-            right_panel: RightPanel::default(),
+            right_panel: RightPanel::new(Arc::new(Model::default())),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             mouse_hold,

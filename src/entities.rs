@@ -120,6 +120,15 @@ pub struct Size {
     pub height: NonZeroUsize,
 }
 
+impl Default for Size {
+    fn default() -> Self {
+        Self {
+            width: NonZeroUsize::new(33).unwrap(),
+            height: NonZeroUsize::new(33).unwrap(),
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Coord {
     pub x: usize,

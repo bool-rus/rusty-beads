@@ -124,7 +124,8 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
-            GridUpdated(model) => LPMsg::GridUpdated(model),
+            GridUpdated(model) |
+            GridLoaded(model) => LPMsg::Resize(model.grid().size()),
             _ => LPMsg::Ignore,
         }
     }
