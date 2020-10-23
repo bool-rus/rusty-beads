@@ -1,12 +1,11 @@
 use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
-use crate::grid::Grid;
-use crate::entities::{Color, Schema, Coord};
+use crate::entities::{Color, Schema, Coord, Bead};
 use std::rc::Rc;
 use std::cell::Cell;
 use std::sync::Arc;
-use crate::model::{Model, Bead};
+use crate::model::{Model};
 
 #[derive(Debug, Clone)]
 pub enum Message {

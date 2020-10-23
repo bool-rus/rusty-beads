@@ -1,7 +1,6 @@
 
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::collections::hash_map::RandomState;
 use crate::grid::Grid;
 use std::fmt::Debug;
 use std::num::NonZeroUsize;
@@ -90,7 +89,7 @@ impl BeadsLineBuilder {
     pub fn build<T: Clone + Eq + Hash>(&self, table: Vec<&[T]>) -> BeadsLine<T> {
         let width = table.get(0).map(|row|row.len()).unwrap_or(0);
         let knit_type = (*self).into();
-        let mut iter = table.into_iter().map(|line|line.iter().map(|x|x));
+        let iter = table.into_iter().map(|line|line.iter().map(|x|x));
         match self {
             BeadsLineBuilder::LRSquare => {
                 let line = zip_line(iter.flatten());
@@ -149,7 +148,7 @@ fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize
         .collect()
 }
 
-fn zip_line<'a, T: Eq + Hash + Clone + 'a>(mut iter: impl Iterator<Item=&'a T>)
+fn zip_line<'a, T: Eq + Hash + Clone + 'a>(iter: impl Iterator<Item=&'a T>)
     -> Vec<(T, usize)> {
     iter.fold(Vec::new(), |mut line, item|{
         if let Some((obj, count)) = line.last_mut() {

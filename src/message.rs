@@ -9,7 +9,6 @@ use crate::ui::{
 };
 use crate::entities::Color;
 use std::sync::Arc;
-use crate::grid::Grid;
 use crate::model::Model;
 
 #[derive(Debug, Clone)]

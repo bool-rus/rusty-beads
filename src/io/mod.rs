@@ -1,5 +1,5 @@
 use crate::grid::Grid;
-use crate::entities::Color;
+use crate::entities::{Color, Bead};
 use std::fs::File;
 use std::io::{Write, BufReader};
 use quick_csv::Csv;
@@ -7,7 +7,6 @@ use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 use crate::beads::BeadsLine;
-use crate::model::Bead;
 use serde::Deserialize;
 
 pub fn save(path: &PathBuf, line: &BeadsLine<Bead<Color>>) -> Result<(), String> {

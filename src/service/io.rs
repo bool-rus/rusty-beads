@@ -1,12 +1,7 @@
-use crate::grid::Grid;
 use crate::entities::Color;
 use std::sync::Arc;
 use std::path::PathBuf;
-use crate::model::{Model, Bead};
-use std::fs::File;
-use std::io::{Write, BufReader};
-use serde::Deserialize;
-use crate::beads::BeadsLine;
+use crate::model::{Model};
 
 #[derive(Debug, Clone)]
 pub enum Message {

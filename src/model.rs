@@ -1,33 +1,8 @@
 use crate::grid::Grid;
 use crate::beads::{BeadsLine, BeadsLineBuilder};
-use std::hash::Hash;
 use std::fmt::Debug;
 use std::mem;
-use crate::entities::{Side, Size, Schema};
-use std::num::NonZeroUsize;
-use serde::{Serialize, Deserialize};
-
-pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
-
-impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
-
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Bead<T: ColorTrait> {
-    pub color: T,
-    pub filled: bool,
-}
-
-impl<T: ColorTrait> From<&T> for Bead<T> {
-    fn from(color: &T) -> Self {
-        Bead{color: color.clone(), filled: false}
-    }
-}
-
-impl<T: ColorTrait + Default> Default for Bead<T> {
-    fn default() -> Self {
-        Bead {color: T::default(), filled: false}
-    }
-}
+use crate::entities::{Side, Size, Schema, ColorTrait, Bead};
 
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
@@ -89,9 +64,6 @@ impl<T: ColorTrait> Model<T> {
     }
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
-    }
-    pub fn line_color(&self) -> BeadsLine<T> {
-        self.line.map(|bead|bead.color.clone())
     }
     pub fn set(&mut self, row: usize, column: usize, color: T) -> Result<Option<Bead<T>>, String> {
         let prev = self.grid.get_mut(row, column)?;

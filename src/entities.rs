@@ -3,6 +3,8 @@ use std::fmt;
 use std::str::{FromStr};
 use std::num::{ParseIntError, NonZeroUsize};
 use serde::{Serialize, Deserialize};
+use std::fmt::Debug;
+use std::hash::Hash;
 
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -133,4 +135,27 @@ impl Default for Size {
 pub struct Coord {
     pub x: usize,
     pub y: usize,
+}
+
+
+pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
+
+impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
+
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Bead<T: ColorTrait> {
+    pub color: T,
+    pub filled: bool,
+}
+
+impl<T: ColorTrait> From<&T> for Bead<T> {
+    fn from(color: &T) -> Self {
+        Bead{color: color.clone(), filled: false}
+    }
+}
+
+impl<T: ColorTrait + Default> Default for Bead<T> {
+    fn default() -> Self {
+        Bead {color: T::default(), filled: false}
+    }
 }

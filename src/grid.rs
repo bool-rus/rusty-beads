@@ -63,12 +63,6 @@ impl<T: Debug + Clone> Grid<T> {
             .get_mut(column)
             .ok_or("column out of bounds")?)
     }
-    pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
-        let prev = self.get_mut(row, column)?;
-        let result = prev.clone();
-        *prev = value;
-        Ok(result)
-    }
     pub fn as_table(&self) -> Vec<&[T]> {
         self.data.as_slice().chunks(self.width).collect()
     }
@@ -175,7 +169,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
         } else {
             let delta = self.width - width;
             for _ in 0..delta {
-                self.shrink(Side::Right);
+                self.shrink(Side::Right).unwrap();
             }
         }
         if height > self.height {
@@ -186,7 +180,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
         } else {
             let delta = self.height - height;
             for _ in 0..delta {
-                self.shrink(Side::Bottom);
+                self.shrink(Side::Bottom).unwrap();
             }
         }
     }

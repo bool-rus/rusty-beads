@@ -13,7 +13,6 @@ use reimport::*;
 use message::Message;
 use ui::*;
 use std::cell::{Cell};
-use crate::entities::Schema;
 use crate::service::AppService;
 use std::rc::Rc;
 use crate::model::Model;
@@ -34,11 +33,12 @@ struct App {
 impl Default for App {
     fn default() -> Self {
         let mouse_hold = Rc::new(Cell::new(false));
+        let model = Arc::new(Model::default());
         Self {
             service: Default::default(),
             top_menu: Default::default(),
             grid_plate: GridPlate::new(mouse_hold.clone()),
-            right_panel: RightPanel::new(Arc::new(Model::default())),
+            right_panel: RightPanel::new(model.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             mouse_hold,

@@ -8,7 +8,6 @@ pub mod left {
     use super::files::FSMenu;
     use crate::io::default_dir;
     use crate::entities::{Side, Size};
-    use std::sync::Arc;
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -240,18 +239,14 @@ pub mod left {
 
 pub mod right {
     use crate::reimport::*;
-    use std::rc::Rc;
-    use crate::beads::{BeadsLine, BeadsLineBuilder};
-    use crate::entities::{Color, Schema};
+    use crate::beads::BeadsLine;
+    use crate::entities::{Color, Bead};
     use crate::ui::AppWidget;
-    use crate::grid::Grid;
     use crate::ui::widget::{ColorBox, Gradient};
-    use std::cell::Cell;
     use std::collections::HashMap;
     use std::sync::Arc;
     use super::style::Colored;
     use super::icon;
-    use crate::model::Bead;
     use std::fmt::Debug;
 
     #[derive(Debug, Copy, Clone)]
@@ -414,11 +409,6 @@ pub mod right {
         }
     }
 
-    fn color_space<'a, M: 'a, S: 'static + iced::container::StyleSheet>(stylesheet: S) -> Element<'a, M> {
-        Container::new(Space::new(Length::Units(10), Length::Units(10)))
-            .style(stylesheet)
-            .into()
-    }
     fn hsl_2_color(hsl: colors::Hsl) -> iced::Color {
         let (r,g,b) = colors::Srgb::from(hsl).into_components();
         iced::Color::from_rgb(r,g,b)
@@ -428,7 +418,6 @@ pub mod right {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let (h_state,s_state,l_state) = &mut self.sliders;
-            let color = hsl_2_color(self.hsl.clone());
             let (hue, sat, light) = self.hsl.clone().into_components();
             let hue = hue.to_positive_degrees();
             let column = Column::new().width(Length::Units(300))
@@ -479,7 +468,6 @@ pub mod right {
                         ColorPart::Hue(hue) => self.hsl.hue = colors::RgbHue::from_degrees(hue),
                         ColorPart::Saturation(sat) => self.hsl.saturation = sat,
                         ColorPart::Lightness(lightness) => self.hsl.lightness = lightness,
-                        _ => unimplemented!()
                     }
                 },
                 _ => {}
