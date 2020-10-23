@@ -11,7 +11,7 @@ use serde::{Serialize, Deserialize};
 pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub width: usize,
     line: Vec<(T,usize)>,
-    pub knit_type: Schema,
+    pub schema: Schema,
 }
 
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
@@ -40,13 +40,13 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
                 data
             }
         );
-        let builder: BeadsLineBuilder = self.knit_type.into();
+        let builder: BeadsLineBuilder = self.schema.into();
         builder.grid(self.width, unzipped)
     }
     pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
         BeadsLine {
             width: self.width,
-            knit_type: self.knit_type,
+            schema: self.schema,
             line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
         }
     }
@@ -93,19 +93,19 @@ impl BeadsLineBuilder {
         match self {
             BeadsLineBuilder::LRSquare => {
                 let line = zip_line(iter.flatten());
-                BeadsLine { width, line, knit_type }
+                BeadsLine { width, line, schema: knit_type }
             },
             BeadsLineBuilder::RLSquare => {
                 let line = zip_line(iter.map(|line|line.rev()).flatten());
-                BeadsLine { width, line, knit_type }
+                BeadsLine { width, line, schema: knit_type }
             },
             BeadsLineBuilder::LROffset(first_offset) => {
                 let line = line_for_offset(iter, *first_offset, width);
-                BeadsLine { width, line, knit_type }
+                BeadsLine { width, line, schema: knit_type }
             },
             BeadsLineBuilder::RLOffset(first_offset) => {
                 let line = line_for_offset(iter.map(|line|line.rev()), !*first_offset, width);
-                BeadsLine { width, line, knit_type }
+                BeadsLine { width, line, schema: knit_type }
             },
         }
     }

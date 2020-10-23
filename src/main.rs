@@ -17,12 +17,13 @@ use crate::service::AppService;
 use std::rc::Rc;
 use crate::model::Model;
 use std::sync::Arc;
+use crate::entities::Color;
 
 
 struct App {
     service: AppService,
     top_menu: TopMenu,
-    grid_plate: GridPlate,
+    grid_plate: GridPlate<Model<Color>>,
     right_panel: RightPanel,
     right_menu: RightMenu,
     left_menu: LeftMenu,
@@ -37,7 +38,7 @@ impl Default for App {
         Self {
             service: Default::default(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(mouse_hold.clone()),
+            grid_plate: GridPlate::new(mouse_hold.clone(), model.clone()),
             right_panel: RightPanel::new(model.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),

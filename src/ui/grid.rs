@@ -1,26 +1,30 @@
 use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
-use crate::entities::{Color, Schema, Coord, Bead};
+use crate::entities::{Color, Schema, Coord, Bead, GetSchema};
 use std::rc::Rc;
 use std::cell::Cell;
 use std::sync::Arc;
 use crate::model::{Model};
+use crate::grid::Grid;
+use std::fmt::Debug;
+
+type BeadGrid = Grid<Bead<Color>>;
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum Message<T: Debug + Send + Sync> {
     Ignore,
     GridClicked(Coord),
     SetColor(Coord, Color),//TODO: надо бы убрать, здесь неактуально
-    GridUpdated(Arc<Model<Color>>),
+    GridUpdated(Arc<T>),
     Rotate(isize),
     SetRotation(f32),
     ZoomIn,
     ZoomOut,
 }
 
-pub struct GridPlate {
-    model: Arc<Model<Color>>,
+pub struct GridPlate<T> {
+    grid_ref: Arc<T>,
     mouse_hold: Rc<Cell<bool>>,
     rotation: isize,
     scroll: scrollable::State,
@@ -30,10 +34,10 @@ pub struct GridPlate {
     rot_r: button::State,
 }
 
-impl GridPlate {
-    pub fn new(mouse_hold: Rc<Cell<bool>>) -> Self {
+impl<T> GridPlate<T> {
+    pub fn new(mouse_hold: Rc<Cell<bool>>, grid_ref: Arc<T>) -> Self {
         Self {
-            model: Arc::new(Model::default()),
+            grid_ref,
             mouse_hold ,
             rotation: 0,
             half_size: 6,
@@ -51,15 +55,14 @@ fn normalize_rotation(rot: isize, width: usize) -> usize {
     if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
 }
 
-impl AppWidget for GridPlate {
-    type Message = Message;
+impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for GridPlate<T> {
+    type Message = Message<T>;
 
-
-    fn view(&mut self) -> Element<'_, Message> {
+    fn view(&mut self) -> Element<'_, Message<T>> {
         let full = Length::Units(self.half_size * 2);
         let half = Length::Units(self.half_size);
-        let schema = self.model.line().knit_type;
-        let grid = self.model.grid();
+        let grid = self.grid_ref.as_ref().as_ref();
+        let schema = self.grid_ref.get_schema();
         let portions = match schema {
             Schema::FirstOffset => [full, half, full],
             Schema::SecondOffset => [half, full, half],
@@ -120,13 +123,13 @@ impl AppWidget for GridPlate {
         ).into()
     }
 
-    fn update(&mut self, msg: Message) {
+    fn update(&mut self, msg: Message<T>) {
         use Message::*;
         match msg {
-            GridUpdated(model) => self.model = model,
+            GridUpdated(model) => self.grid_ref = model,
             Rotate(rotation) => { self.rotation += rotation; }
             SetRotation(rotation) => {
-                let width = self.model.width() as f32;
+                let width = self.grid_ref.as_ref().as_ref().width() as f32;
                 let rotation = width*rotation;
                 self.rotation = rotation.round() as isize;
             }

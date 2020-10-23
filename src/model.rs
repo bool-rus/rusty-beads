@@ -2,7 +2,7 @@ use crate::grid::Grid;
 use crate::beads::{BeadsLine, BeadsLineBuilder};
 use std::fmt::Debug;
 use std::mem;
-use crate::entities::{Side, Size, Schema, ColorTrait, Bead};
+use crate::entities::{Side, Size, Schema, ColorTrait, Bead, GetSchema};
 
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
@@ -48,10 +48,10 @@ impl<T: ColorTrait> Model<T> {
         &self.line
     }
     pub fn schema(&self) -> Schema {
-        self.line.knit_type
+        self.line.schema
     }
     pub fn set_schema(&mut self, schema: Schema) {
-        self.line.knit_type = schema;
+        self.line.schema = schema;
         self.unfill_grid();
         self.update_line();
     }
@@ -59,7 +59,7 @@ impl<T: ColorTrait> Model<T> {
         self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
     }
     fn update_line(&mut self) {
-        let builder: BeadsLineBuilder = self.line.knit_type.into();
+        let builder: BeadsLineBuilder = self.line.schema.into();
         self.line = builder.build(self.grid.as_table());
     }
     pub fn grid_color(&self) -> Grid<T> {
@@ -118,5 +118,11 @@ impl<T: ColorTrait> AsRef<BeadsLine<Bead<T>>> for Model<T> {
 impl<T: ColorTrait> AsRef<Grid<Bead<T>>> for Model<T> {
     fn as_ref(&self) -> &Grid<Bead<T>> {
         &self.grid
+    }
+}
+
+impl<T: ColorTrait> GetSchema for Model<T> {
+    fn get_schema(&self) -> Schema {
+        self.line.schema
     }
 }

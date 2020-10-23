@@ -1,5 +1,5 @@
 use crate::ui::{
-    GridMessage as GMsg,
+    GridMessage,
     RightMenuMessage as RMMsg,
     TopMenuMessage as TMMsg,
     RightPanelMessage as RPMsg,
@@ -10,6 +10,8 @@ use crate::ui::{
 use crate::entities::Color;
 use std::sync::Arc;
 use crate::model::Model;
+
+type GMsg = GridMessage<Model<Color>>;
 
 #[derive(Debug, Clone)]
 pub enum Message {
