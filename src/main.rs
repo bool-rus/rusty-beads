@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 mod reimport;
 mod grid;
 mod entities;
