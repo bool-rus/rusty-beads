@@ -1,11 +1,7 @@
-
+use super::{Serialize, Deserialize};
 use std::fmt;
-use std::str::{FromStr};
-use std::num::{ParseIntError, NonZeroUsize};
-use serde::{Serialize, Deserialize};
-use std::fmt::Debug;
-use std::hash::Hash;
-
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Color {
@@ -87,79 +83,5 @@ impl From<iced::Color> for Color {
             g: (max * color.g) as u8,
             b: (max * color.b) as u8,
         }
-    }
-}
-#[derive(Debug, Copy, Clone)]
-pub enum Side { Top, Left, Right, Bottom }
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum Schema {
-    FirstOffset,
-    SecondOffset,
-    Straight,
-}
-
-impl Schema {
-    pub fn switch(self) -> Self {
-        use Schema::*;
-        match self {
-            FirstOffset => SecondOffset,
-            SecondOffset => Straight,
-            Straight => FirstOffset,
-        }
-    }
-}
-
-impl Default for Schema {
-    fn default() -> Self {
-        Schema::FirstOffset
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Size {
-    pub width: NonZeroUsize,
-    pub height: NonZeroUsize,
-}
-
-impl Default for Size {
-    fn default() -> Self {
-        Self {
-            width: NonZeroUsize::new(33).unwrap(),
-            height: NonZeroUsize::new(33).unwrap(),
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Coord {
-    pub x: usize,
-    pub y: usize,
-}
-
-
-pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
-
-pub trait GetSchema {
-    fn get_schema(&self) -> Schema;
-}
-
-impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
-
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Bead<T: ColorTrait> {
-    pub color: T,
-    pub filled: bool,
-}
-
-impl<T: ColorTrait> From<&T> for Bead<T> {
-    fn from(color: &T) -> Self {
-        Bead{color: color.clone(), filled: false}
-    }
-}
-
-impl<T: ColorTrait + Default> Default for Bead<T> {
-    fn default() -> Self {
-        Bead {color: T::default(), filled: false}
     }
 }

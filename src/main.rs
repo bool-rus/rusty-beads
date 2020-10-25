@@ -1,23 +1,19 @@
 mod reimport;
-mod grid;
-mod entities;
+mod model;
 mod ui;
 mod wrapper;
 mod io;
-mod beads;
 mod message;
 mod service;
-mod model;
 
 use reimport::*;
 use message::Message;
 use ui::*;
 use std::cell::{Cell};
-use crate::service::AppService;
+use service::AppService;
 use std::rc::Rc;
-use crate::model::Model;
+use model::{Model, Color};
 use std::sync::Arc;
-use crate::entities::Color;
 
 
 struct App {

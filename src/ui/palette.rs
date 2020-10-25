@@ -1,6 +1,6 @@
-use crate::entities::Color;
+use crate::model::*;
 use crate::reimport::*;
-use crate::ui::AppWidget;
+use super::AppWidget;
 use std::collections::HashSet;
 
 pub struct Palette {

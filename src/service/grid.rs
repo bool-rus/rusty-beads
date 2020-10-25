@@ -1,9 +1,7 @@
-use crate::entities::*;
-use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use core::mem;
 use std::sync::Arc;
-use crate::model::Model;
+use crate::model::*;
 
 #[derive(Debug, Clone)]
 pub enum Message<T: ColorTrait> {

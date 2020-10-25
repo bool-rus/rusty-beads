@@ -1,13 +1,14 @@
-use super::{files, icon, style};
+use crate::reimport::*;
+use crate::model::*;
+use super::{files, icon, style, widget};
+use super::{AppWidget, SvgButton};
 
 pub mod left {
-    use crate::reimport::*;
-    use crate::ui::{AppWidget, SvgButton};
+    use super::*;
     use std::num::{ParseIntError, NonZeroUsize};
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use crate::io::default_dir;
-    use crate::entities::{Side, Size};
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -238,11 +239,8 @@ pub mod left {
 }
 
 pub mod right {
-    use crate::reimport::*;
-    use crate::beads::BeadsLine;
-    use crate::entities::{Color, Bead};
-    use crate::ui::AppWidget;
-    use crate::ui::widget::{ColorBox, Gradient};
+    use super::*;
+    use super::widget::{ColorBox, Gradient};
     use std::collections::HashMap;
     use std::sync::Arc;
     use super::style::Colored;

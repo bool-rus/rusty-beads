@@ -1,56 +1,4 @@
-
-use std::collections::HashMap;
-use std::hash::Hash;
-use crate::grid::Grid;
-use std::fmt::Debug;
-use std::num::NonZeroUsize;
-use crate::entities::Schema;
-use serde::{Serialize, Deserialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BeadsLine<T: Eq + Hash + Clone> {
-    pub width: usize,
-    line: Vec<(T,usize)>,
-    pub schema: Schema,
-}
-
-impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        self.line.get_mut(index).map(|(obj, _count)|obj)
-    }
-    pub fn line(&self) -> &Vec<(T, usize)> {
-        &self.line
-    }
-    pub fn summary(&self) -> HashMap<T, usize> {
-        self.line.iter().fold(HashMap::new(), |mut summary, (item, count)|{
-            if let Some(saved) = summary.get_mut(item) {
-                *saved += *count;
-            } else {
-                summary.insert(item.clone(), *count);
-            }
-            summary
-        })
-    }
-    pub fn grid(&self) -> Grid<T> {
-        let capacity = self.line.iter().map(|(_, count)|*count).sum();
-        let unzipped = self.line.iter().fold(
-            Vec::with_capacity(capacity),
-            |mut data,(item, count)| {
-                (0..*count).for_each(|_|data.push(item));
-                data
-            }
-        );
-        let builder: BeadsLineBuilder = self.schema.into();
-        builder.grid(self.width, unzipped)
-    }
-    pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
-        BeadsLine {
-            width: self.width,
-            schema: self.schema,
-            line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
-        }
-    }
-}
+use super::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum BeadsLineBuilder {
@@ -149,7 +97,7 @@ fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize
 }
 
 fn zip_line<'a, T: Eq + Hash + Clone + 'a>(iter: impl Iterator<Item=&'a T>)
-    -> Vec<(T, usize)> {
+                                           -> Vec<(T, usize)> {
     iter.fold(Vec::new(), |mut line, item|{
         if let Some((obj, count)) = line.last_mut() {
             if (&*obj).eq(item) {
@@ -166,7 +114,7 @@ fn zip_line<'a, T: Eq + Hash + Clone + 'a>(iter: impl Iterator<Item=&'a T>)
 
 
 fn line_for_offset<'a, T, I, I2>(iter: I, first_offset: bool, width: usize) -> Vec<(T, usize)>
-where T: Clone + Eq + Hash + 'a, I: Iterator<Item=I2>, I2: Iterator<Item=&'a T> + Clone {
+    where T: Clone + Eq + Hash + 'a, I: Iterator<Item=I2>, I2: Iterator<Item=&'a T> + Clone {
     let correction = if first_offset { 0 } else { 1 };
     let iter = iter
         .enumerate()

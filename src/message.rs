@@ -7,9 +7,8 @@ use crate::ui::{
     LeftPanelMessage as LPMsg,
     PaletteMessage
 };
-use crate::entities::Color;
 use std::sync::Arc;
-use crate::model::Model;
+use crate::model::{Model, Color};
 
 type GMsg = GridMessage<Model<Color>>;
 

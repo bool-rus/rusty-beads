@@ -1,7 +1,6 @@
-use crate::entities::Color;
 use std::sync::Arc;
 use std::path::PathBuf;
-use crate::model::{Model};
+use crate::model::*;
 
 #[derive(Debug, Clone)]
 pub enum Message {

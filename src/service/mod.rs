@@ -1,3 +1,5 @@
+use crate::model::*;
+
 mod io;
 mod message;
 mod grid;
@@ -5,7 +7,6 @@ mod grid;
 use grid::{Service as GridService, Message as GridServiceMessage};
 use io::{Service as IOService, Message as IOMessage};
 use crate::message::Message;
-use crate::entities::Color;
 
 
 pub trait Service {

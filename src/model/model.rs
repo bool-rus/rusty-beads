@@ -1,8 +1,5 @@
-use crate::grid::Grid;
-use crate::beads::{BeadsLine, BeadsLineBuilder};
-use std::fmt::Debug;
-use std::mem;
-use crate::entities::{Side, Size, Schema, ColorTrait, Bead, GetSchema};
+use super::*;
+use super::line_builder::BeadsLineBuilder;
 
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
@@ -71,7 +68,7 @@ impl<T: ColorTrait> Model<T> {
             Ok(None)
         } else {
             let mut bead = Bead{ color, filled: false };
-            mem::swap(prev, &mut bead);
+            core::mem::swap(prev, &mut bead);
             if bead.filled {
                 self.unfill_grid();
             }

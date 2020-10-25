@@ -1,15 +1,12 @@
 use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
-use crate::entities::{Color, Schema, Coord, Bead, GetSchema};
 use std::rc::Rc;
 use std::cell::Cell;
 use std::sync::Arc;
-use crate::model::{Model};
-use crate::grid::Grid;
+use crate::model::*;
 use std::fmt::Debug;
 
-type BeadGrid = Grid<Bead<Color>>;
 
 #[derive(Debug, Clone)]
 pub enum Message<T: Debug + Send + Sync> {
