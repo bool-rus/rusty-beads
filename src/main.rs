@@ -83,7 +83,7 @@ impl Sandbox for App {
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(move |msg| {
             match msg { //TODO: как-то неочевидно, надо переделать
-                GridMessage::GridClicked(coord) => Message::Grid(GridMessage::SetColor(coord, active_color)),
+                GridMessage::GridClicked(coord) => Message::SetGridColor(coord, active_color),
                 msg => Message::Grid(msg)
             }
         }));

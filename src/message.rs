@@ -8,13 +8,14 @@ use crate::ui::{
     PaletteMessage
 };
 use std::sync::Arc;
-use crate::model::{Model, Color};
+use crate::model::{Model, Color, Coord};
 
 type GMsg = GridMessage<Model<Color>>;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
+    SetGridColor(Coord, Color),
     Grid(GMsg),
     RightMenu(RMMsg),
     TopMenu(TMMsg),

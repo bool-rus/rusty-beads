@@ -13,7 +13,7 @@ impl From<Message> for GridServiceMessage<Color> {
         use Message::*;
         use GridServiceMessage as GSMsg;
         match msg {
-            Grid(GMsg::SetColor(coord, color)) => GSMsg::Point(coord, color),
+            SetGridColor(coord, color) => GSMsg::Point(coord, color),
             LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),

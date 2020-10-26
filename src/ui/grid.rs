@@ -12,7 +12,6 @@ use std::fmt::Debug;
 pub enum Message<T: Debug + Send + Sync> {
     Ignore,
     GridClicked(Coord),
-    SetColor(Coord, Color),//TODO: надо бы убрать, здесь неактуально
     GridUpdated(Arc<T>),
     Rotate(isize),
     SetRotation(f32),
@@ -133,7 +132,6 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
             ZoomIn => { self.half_size += 1; }
             ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
             Ignore | GridClicked(..) => {}
-            SetColor(..) =>{}
         }
     }
 }
