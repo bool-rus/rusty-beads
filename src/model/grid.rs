@@ -1,9 +1,4 @@
-
-use std::num::NonZeroUsize;
-use crate::entities::{Side, Size};
-use std::fmt::Debug;
-use std::collections::HashSet;
-use std::hash::Hash;
+use super::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,9 +19,9 @@ pub struct Grid<T: Debug + Clone> {
 }
 
 impl<T: Debug + Clone> Grid<T> {
-    pub fn new(width: NonZeroUsize, height: NonZeroUsize, item: T) -> Self {
-        let width = width.get();
-        let height = height.get();
+    pub fn new(size: Size, item: T) -> Self {
+        let width = size.width.get();
+        let height = size.height.get();
         Self {
             width,
             height,
@@ -62,12 +57,6 @@ impl<T: Debug + Clone> Grid<T> {
             .ok_or("row out of bounds")?
             .get_mut(column)
             .ok_or("column out of bounds")?)
-    }
-    pub fn set(&mut self, row: usize, column: usize, value: T) -> Result<T,String> {
-        let prev = self.get_mut(row, column)?;
-        let result = prev.clone();
-        *prev = value;
-        Ok(result)
     }
     pub fn as_table(&self) -> Vec<&[T]> {
         self.data.as_slice().chunks(self.width).collect()
@@ -175,7 +164,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
         } else {
             let delta = self.width - width;
             for _ in 0..delta {
-                self.shrink(Side::Right);
+                self.shrink(Side::Right).unwrap();
             }
         }
         if height > self.height {
@@ -186,7 +175,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
         } else {
             let delta = self.height - height;
             for _ in 0..delta {
-                self.shrink(Side::Bottom);
+                self.shrink(Side::Bottom).unwrap();
             }
         }
     }
@@ -194,8 +183,7 @@ impl<T: Debug + Clone + Default> Grid<T> {
 
 impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
-        let value = NonZeroUsize::new(33usize).unwrap();
-        Self::new(value, value, T::default())
+        Self::new(Size::default(), T::default())
     }
 }
 

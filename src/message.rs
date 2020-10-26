@@ -1,5 +1,5 @@
 use crate::ui::{
-    GridMessage as GMsg,
+    GridMessage,
     RightMenuMessage as RMMsg,
     TopMenuMessage as TMMsg,
     RightPanelMessage as RPMsg,
@@ -7,10 +7,10 @@ use crate::ui::{
     LeftPanelMessage as LPMsg,
     PaletteMessage
 };
-use crate::entities::Color;
 use std::sync::Arc;
-use crate::grid::Grid;
-use crate::model::Model;
+use crate::model::{Model, Color};
+
+type GMsg = GridMessage<Model<Color>>;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -124,7 +124,8 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
-            GridUpdated(model) => LPMsg::GridUpdated(model),
+            GridUpdated(model) |
+            GridLoaded(model) => LPMsg::Resize(model.grid().size()),
             _ => LPMsg::Ignore,
         }
     }

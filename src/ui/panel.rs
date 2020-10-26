@@ -1,16 +1,14 @@
-use super::{files, icon, style};
+use crate::reimport::*;
+use crate::model::*;
+use super::{files, icon, style, widget};
+use super::{AppWidget, SvgButton};
 
 pub mod left {
-    use crate::reimport::*;
-    use crate::ui::{AppWidget, SvgButton};
+    use super::*;
     use std::num::{ParseIntError, NonZeroUsize};
     use super::files::Message as FilesMessage;
     use super::files::FSMenu;
     use crate::io::default_dir;
-    use crate::entities::{Side, Size, Color};
-    use std::sync::Arc;
-    use crate::grid::Grid;
-    use crate::model::Model;
 
     #[derive(Debug, Clone)]
     pub enum Message {
@@ -24,7 +22,6 @@ pub mod left {
         InputHeight(String),
         Grow(Side),
         Shrink(Side),
-        GridUpdated(Arc<Model<Color>>),
         FS(FilesMessage),
     }
 
@@ -41,14 +38,14 @@ pub mod left {
     }
 
     pub struct Panel {
-        model: Arc<Model<Color>>,
+        size: Size,
         state: State,
     }
 
     impl Default for Panel {
         fn default() -> Self {
             Self {
-                model: Default::default(),
+                size: Size::default(),
                 state: State::Empty,
             }
         }
@@ -69,13 +66,13 @@ pub mod left {
             use Message::*;
             match msg {
                 Hide => { self.state = State::Empty },
-                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.model.grid().size()))},
+                ShowResize => { self.state = State::Resize(ResizeWidget::new(self.size))},
                 ShowOpen => { self.state = State::FS(Box::new(FSMenu::open(default_dir())))},
                 ShowSave => { self.state = State::FS(Box::new(FSMenu::save(default_dir())))},
-                GridUpdated(model) => {
-                    self.model = model;
+                Resize(size) => {
+                    self.size = size;
                     if matches!(self.state, State::Resize(_)) {
-                        self.state = State::Resize(ResizeWidget::new(self.model.grid().size()));
+                        self.state = State::Resize(ResizeWidget::new(self.size));
                     }
                 }
                 msg => {
@@ -242,25 +239,16 @@ pub mod left {
 }
 
 pub mod right {
-    use crate::reimport::*;
-    use std::rc::Rc;
-    use crate::beads::{BeadsLine, BeadsLineBuilder};
-    use crate::entities::{Color, Schema};
-    use crate::ui::AppWidget;
-    use crate::grid::Grid;
-    use crate::ui::widget::{ColorBox, Gradient};
-    use std::cell::Cell;
+    use super::*;
+    use super::widget::{ColorBox, Gradient};
     use std::collections::HashMap;
     use std::sync::Arc;
     use super::style::Colored;
     use super::icon;
-    use crate::model::{Model, Bead};
+    use std::fmt::Debug;
 
     #[derive(Debug, Copy, Clone)]
     pub enum ColorPart {
-        RED(f32),
-        GREEN(f32),
-        BLUE(f32),
         Hue(f32),
         Saturation(f32),
         Lightness(f32),
@@ -271,7 +259,7 @@ pub mod right {
         ShowBeads,
         ShowColors,
         Hide,
-        GridUpdated(Arc<Model<Color>>),
+        GridUpdated(Arc<dyn AsBeadsLine + Send + Sync>),
         ToggleCheckbox(usize),
         AddColor(Color),
         ConfigColor(ColorPart),
@@ -285,17 +273,20 @@ pub mod right {
         Colors(ColorMenu),
     }
 
-    impl Default for State {
-        fn default() -> Self {
-            State::None
-        }
-    }
-
-    #[derive(Default)]
     pub struct RightPanel {
-        model: Arc<Model<Color>>,
+        line_ref: Arc<dyn AsBeadsLine>,
         scroll: scrollable::State,
         state: State,
+    }
+
+    impl RightPanel {
+        pub fn new(line_ref: Arc<dyn AsBeadsLine>) -> Self {
+            Self {
+                line_ref,
+                scroll: Default::default(),
+                state: State::None,
+            }
+        }
     }
 
     impl AppWidget for RightPanel {
@@ -323,19 +314,22 @@ pub mod right {
                 Message::ShowBeads => {
                     self.state = State::Beads(
                         BeadsWidget {
-                            model: self.model.clone(),
+                            line_ref: self.line_ref.clone(),
                         }
                     );
                 }
-                Message::GridUpdated(grid) => self.model = grid,
+                Message::GridUpdated(grid) => self.line_ref = grid,
                 _ => {}
             }
         }
     }
 
+    pub trait AsBeadsLine :  Debug + AsRef<BeadsLine<Bead<Color>>> {}
+    impl <T: AsRef< BeadsLine<Bead<Color>> > + Debug> AsBeadsLine for T {}
+
     #[derive(Debug)]
     struct BeadsWidget {
-        model: Arc<Model<Color>>
+        line_ref: Arc<dyn AsBeadsLine>
     }
     const SYMBOLS: [&str;26] = ["A","B","C","D","E","F","G","H","I","J","K","L","M",
                                 "N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
@@ -344,7 +338,8 @@ pub mod right {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let summary = self.model.line_color().summary();
+            let line = self.line_ref.as_ref().as_ref();
+            let summary = line.map(|x|x.color.clone()).summary();
             let mut sorted_summary: Vec<_> = summary.iter().collect();
             let undefined = "?";
             sorted_summary.sort_unstable_by_key(|(&color, _)| { color.to_string() });
@@ -360,7 +355,7 @@ pub mod right {
                     .into()
             }).collect()).into();
 
-            let line = self.model.line().line().iter()
+            let schema = line.line().iter()
                 .enumerate()
                 .map(|(i, (Bead {color, filled}, count))|{
                     Row::new().spacing(5).align_items(Align::Center)
@@ -372,21 +367,22 @@ pub mod right {
                         .push(ColorBox::new(color.clone()))
                         .push(Text::new(count.to_string()))
                         .into()
-                });
+                })
+                .collect();
 
-            let line = Column::with_children(line.collect()).spacing(1).into();
+            let schema = Column::with_children(schema).spacing(1).into();
             Column::with_children(vec![
-                Text::new(format!("Width: {}", self.model.width())).into(),
+                Text::new(format!("Width: {}", line.width)).into(),
                 Text::new("Summary").into(),
                 summary,
-                Text::new("Scheme").into(),
-                line
+                Text::new("Schema").into(),
+                schema
             ]).into()
         }
 
         fn update(&mut self, msg: Self::Message) {
             match msg {
-                Message::GridUpdated(model) => self.model = model,
+                Message::GridUpdated(model) => self.line_ref = model,
                 _ => {},
             }
         }
@@ -411,11 +407,6 @@ pub mod right {
         }
     }
 
-    fn color_space<'a, M: 'a, S: 'static + iced::container::StyleSheet>(stylesheet: S) -> Element<'a, M> {
-        Container::new(Space::new(Length::Units(10), Length::Units(10)))
-            .style(stylesheet)
-            .into()
-    }
     fn hsl_2_color(hsl: colors::Hsl) -> iced::Color {
         let (r,g,b) = colors::Srgb::from(hsl).into_components();
         iced::Color::from_rgb(r,g,b)
@@ -425,7 +416,6 @@ pub mod right {
 
         fn view(&mut self) -> Element<'_, Self::Message> {
             let (h_state,s_state,l_state) = &mut self.sliders;
-            let color = hsl_2_color(self.hsl.clone());
             let (hue, sat, light) = self.hsl.clone().into_components();
             let hue = hue.to_positive_degrees();
             let column = Column::new().width(Length::Units(300))
@@ -476,7 +466,6 @@ pub mod right {
                         ColorPart::Hue(hue) => self.hsl.hue = colors::RgbHue::from_degrees(hue),
                         ColorPart::Saturation(sat) => self.hsl.saturation = sat,
                         ColorPart::Lightness(lightness) => self.hsl.lightness = lightness,
-                        _ => unimplemented!()
                     }
                 },
                 _ => {}

@@ -1,9 +1,7 @@
-
+use super::{Serialize, Deserialize};
 use std::fmt;
-use std::str::{FromStr};
-use std::num::{ParseIntError, NonZeroUsize};
-use serde::{Serialize, Deserialize};
-
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Clone, Hash, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Color {
@@ -86,42 +84,4 @@ impl From<iced::Color> for Color {
             b: (max * color.b) as u8,
         }
     }
-}
-#[derive(Debug, Copy, Clone)]
-pub enum Side { Top, Left, Right, Bottom }
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum Schema {
-    FirstOffset,
-    SecondOffset,
-    Straight,
-}
-
-impl Schema {
-    pub fn switch(self) -> Self {
-        use Schema::*;
-        match self {
-            FirstOffset => SecondOffset,
-            SecondOffset => Straight,
-            Straight => FirstOffset,
-        }
-    }
-}
-
-impl Default for Schema {
-    fn default() -> Self {
-        Schema::FirstOffset
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Size {
-    pub width: NonZeroUsize,
-    pub height: NonZeroUsize,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Coord {
-    pub x: usize,
-    pub y: usize,
 }

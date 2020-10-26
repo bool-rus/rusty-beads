@@ -1,11 +1,7 @@
-use crate::entities::*;
-use crate::grid::Grid;
-use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use core::mem;
 use std::sync::Arc;
-use crate::model::{Model, Bead, ColorTrait};
-use crate::beads::BeadsLineBuilder;
+use crate::model::*;
 
 #[derive(Debug, Clone)]
 pub enum Message<T: ColorTrait> {
@@ -73,7 +69,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 Some(self.updated())
             },
             ToggleLineItem(index) => {
-                self.model.toggle_filled(index);
+                self.model.toggle_filled(index)?;
                 Some(self.updated())
             },
             SchemaChange => {

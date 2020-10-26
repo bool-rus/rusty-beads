@@ -1,33 +1,5 @@
-use crate::grid::Grid;
-use crate::beads::{BeadsLine, BeadsLineBuilder};
-use std::hash::Hash;
-use std::fmt::Debug;
-use std::mem;
-use crate::entities::{Side, Size, Schema};
-use std::num::NonZeroUsize;
-use serde::{Serialize, Deserialize};
-
-pub trait ColorTrait: Debug + Clone + Hash + Eq + PartialEq {}
-
-impl<T> ColorTrait for T where T: Debug + Clone + Hash + Eq + PartialEq {}
-
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Bead<T: ColorTrait> {
-    pub color: T,
-    pub filled: bool,
-}
-
-impl<T: ColorTrait> From<&T> for Bead<T> {
-    fn from(color: &T) -> Self {
-        Bead{color: color.clone(), filled: false}
-    }
-}
-
-impl<T: ColorTrait + Default> Default for Bead<T> {
-    fn default() -> Self {
-        Bead {color: T::default(), filled: false}
-    }
-}
+use super::*;
+use super::line_builder::BeadsLineBuilder;
 
 impl<T: ColorTrait + Default> Default for Model<T> {
     fn default() -> Self {
@@ -73,10 +45,10 @@ impl<T: ColorTrait> Model<T> {
         &self.line
     }
     pub fn schema(&self) -> Schema {
-        self.line.knit_type
+        self.line.schema
     }
     pub fn set_schema(&mut self, schema: Schema) {
-        self.line.knit_type = schema;
+        self.line.schema = schema;
         self.unfill_grid();
         self.update_line();
     }
@@ -84,14 +56,11 @@ impl<T: ColorTrait> Model<T> {
         self.grid = self.grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false});
     }
     fn update_line(&mut self) {
-        let builder: BeadsLineBuilder = self.line.knit_type.into();
+        let builder: BeadsLineBuilder = self.line.schema.into();
         self.line = builder.build(self.grid.as_table());
     }
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
-    }
-    pub fn line_color(&self) -> BeadsLine<T> {
-        self.line.map(|bead|bead.color.clone())
     }
     pub fn set(&mut self, row: usize, column: usize, color: T) -> Result<Option<Bead<T>>, String> {
         let prev = self.grid.get_mut(row, column)?;
@@ -99,7 +68,7 @@ impl<T: ColorTrait> Model<T> {
             Ok(None)
         } else {
             let mut bead = Bead{ color, filled: false };
-            mem::swap(prev, &mut bead);
+            core::mem::swap(prev, &mut bead);
             if bead.filled {
                 self.unfill_grid();
             }
@@ -134,5 +103,23 @@ impl<T: ColorTrait + Default> Model<T> {
         self.grid.resize(size);
         self.unfill_grid();
         self.update_line();
+    }
+}
+
+impl<T: ColorTrait> AsRef<BeadsLine<Bead<T>>> for Model<T> {
+    fn as_ref(&self) -> &BeadsLine<Bead<T>> {
+        &self.line
+    }
+}
+
+impl<T: ColorTrait> AsRef<Grid<Bead<T>>> for Model<T> {
+    fn as_ref(&self) -> &Grid<Bead<T>> {
+        &self.grid
+    }
+}
+
+impl<T: ColorTrait> GetSchema for Model<T> {
+    fn get_schema(&self) -> Schema {
+        self.line.schema
     }
 }

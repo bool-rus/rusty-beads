@@ -1,16 +1,14 @@
-use crate::grid::Grid;
-use crate::entities::Color;
+use crate::model::{Grid, ColorBead, Color, Bead};
 use std::fs::File;
 use std::io::{Write, BufReader};
 use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
-use crate::beads::BeadsLine;
-use crate::model::Bead;
+use crate::model::beads::BeadsLine;
 use serde::Deserialize;
 
-pub fn save(path: &PathBuf, line: &BeadsLine<Bead<Color>>) -> Result<(), String> {
+pub fn save(path: &PathBuf, line: &BeadsLine<ColorBead>) -> Result<(), String> {
     let mut file = File::create(path)
         .map_err(|e|e.to_string())?;
     let serialized = serde_json::to_string(line)
@@ -19,7 +17,7 @@ pub fn save(path: &PathBuf, line: &BeadsLine<Bead<Color>>) -> Result<(), String>
         .map_err(|e|e.to_string())
 }
 
-pub fn load_line(path: &PathBuf) -> Result<BeadsLine<Bead<Color>>, String> {
+pub fn load_line(path: &PathBuf) -> Result<BeadsLine<ColorBead>, String> {
     let file = File::open(path).map_err(|e| e.to_string())?;
     let reader = BufReader::new(file);
     let mut deserializer = serde_json::Deserializer::from_reader(reader);
@@ -27,7 +25,7 @@ pub fn load_line(path: &PathBuf) -> Result<BeadsLine<Bead<Color>>, String> {
 }
 
 
-pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<Bead<Color>>, String> {
+pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<ColorBead>, String> {
     let mut data = Vec::with_capacity(10000usize);
     let csv = Csv::from_file(file).map_err(|e|e.to_string())?;
     let mut first = true;

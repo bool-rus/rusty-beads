@@ -1,27 +1,25 @@
 mod reimport;
-mod grid;
-mod entities;
+mod model;
 mod ui;
 mod wrapper;
 mod io;
-mod beads;
 mod message;
 mod service;
-mod model;
 
 use reimport::*;
 use message::Message;
 use ui::*;
 use std::cell::{Cell};
-use crate::entities::Schema;
-use crate::service::AppService;
+use service::AppService;
 use std::rc::Rc;
+use model::{Model, Color};
+use std::sync::Arc;
 
 
 struct App {
     service: AppService,
     top_menu: TopMenu,
-    grid_plate: GridPlate,
+    grid_plate: GridPlate<Model<Color>>,
     right_panel: RightPanel,
     right_menu: RightMenu,
     left_menu: LeftMenu,
@@ -32,11 +30,12 @@ struct App {
 impl Default for App {
     fn default() -> Self {
         let mouse_hold = Rc::new(Cell::new(false));
+        let model = Arc::new(Model::default());
         Self {
             service: Default::default(),
             top_menu: Default::default(),
-            grid_plate: GridPlate::new(mouse_hold.clone()),
-            right_panel: RightPanel::default(),
+            grid_plate: GridPlate::new(mouse_hold.clone(), model.clone()),
+            right_panel: RightPanel::new(model.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
             mouse_hold,

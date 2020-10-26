@@ -1,14 +1,12 @@
-use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher, Rectangle};
+use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};
-use iced::{Size, Color, Element, Length, Point, Background, Vector};
+use iced::{Size, Color, Element, Length, Point, Background};
 use crate::wrapper::Wrappable;
 use std::hash::Hash;
 use std::cell::Cell;
 use std::rc::Rc;
-use iced_native::window::Backend;
 use iced_wgpu::triangle::{Mesh2D, Vertex2D};
-use iced_native::layout::{Node, Limits};
 
 pub struct ColorBox<T> {
     color: Color,
@@ -198,7 +196,6 @@ impl Gradient {
         let color_b = [0.0, 0.0, 1.0, 1.0];
         let color_br = [1.0, 0.0, 1.0, 1.0];
         let chunk = 1.0/6.0;
-        let h = 1.0;
         Mesh2D {
             vertices: vec![
                 Vertex2D { position: [0.0,      0.0],   color: color_r },
