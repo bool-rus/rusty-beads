@@ -1,25 +1,38 @@
 use super::*;
 use super::line_builder::BeadsLineBuilder;
 
-impl<T: ColorTrait + Default> Default for Model<T> {
+impl<T: ColorTrait> Default for Model<T> {
     fn default() -> Self {
         let grid: Grid<_> = Default::default();
         let builder: BeadsLineBuilder = Schema::default().into();
         let line = builder.build(grid.as_table());
-        Model {grid, line}
+        let palette = Palette::new();
+        Model {palette, grid, line}
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Model<T: ColorTrait> {
+    palette: Palette<T>,
     grid: Grid<Bead<T>>,
     line: BeadsLine<Bead<T>>,
+}
+
+fn create_palette<T: ColorTrait>(line: &BeadsLine<Bead<T>>) -> Palette<T> {
+    line.map(|Bead{color, ..}|{color.clone()})
+        .summary()
+        .keys()
+        .fold(Palette::new(),|mut palette, item| {
+            palette.add_color(item.clone());
+            palette
+        })
 }
 
 impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
     fn from(line: BeadsLine<Bead<T>>) -> Self {
         let grid = line.grid();
-        Model {grid, line}
+        let palette = create_palette(&line);
+        Model {palette, grid, line}
     }
 }
 
@@ -27,7 +40,8 @@ impl <T: ColorTrait> From<Grid<Bead<T>>> for Model<T> {
     fn from(grid: Grid<Bead<T>>) -> Self {
         let builder: BeadsLineBuilder = Schema::default().into();
         let line = builder.build(grid.as_table());
-        Model {line, grid}
+        let palette = create_palette(&line);
+        Model {palette, line, grid}
     }
 }
 
