@@ -2,6 +2,8 @@ use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::style::ToggledOn;
 use super::SvgButton;
+use crate::model::{Color, Model};
+use std::sync::Arc;
 
 pub mod top {
     use super::*;
@@ -17,10 +19,10 @@ pub mod top {
         active_mode: ActiveMode,
     }
 
-    impl Default for TopMenu {
-        fn default() -> Self {
+    impl TopMenu {
+        pub fn new(model: Arc<Model<Color>>) -> Self {
             TopMenu {
-                palette: Default::default(),
+                palette: Palette::new(model),
                 save: SvgButton::new(icon::SAVE),
                 load: SvgButton::new(icon::OPEN),
                 undo: SvgButton::new(icon::UNDO),

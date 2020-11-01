@@ -1,41 +1,38 @@
 use crate::model::*;
+use crate::model;
 use crate::reimport::*;
 use super::AppWidget;
 use std::collections::HashSet;
+use std::sync::Arc;
+
+pub trait AsPalette :  std::fmt::Debug + AsRef<model::Palette<Color>> {}
+impl <T: AsRef<model::Palette<Color>>  + std::fmt::Debug > AsPalette for T {}
+
+type PaletteArc = Arc<dyn AsPalette + Send + Sync>;
+
+
 
 pub struct Palette {
-    buttons: Vec<(Color, button::State)>,
-    active_color: usize,
+    model: PaletteArc,
+    buttons: Vec<button::State>,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    ActivateColor(usize),
-    AddColor(Color),
-    RemoveColor,
-    Loaded(HashSet<Color>),
+    ActivateColor(Color),
+    Updated(PaletteArc),
+}
+
+fn create_buttons(palette: &model::Palette<Color>) -> Vec<button::State> {
+    (1..palette.colors().len())
+        .map(|_|button::State::new())
+        .collect()
 }
 
 impl Palette {
-    pub fn new(colors: Vec<Color>) -> Self {
-        Self {
-            buttons: colors.into_iter().map(|item| { (item, Default::default()) }).collect(),
-            active_color: 0,
-        }
-    }
-    fn add(&mut self, color: Color) {
-        self.buttons.push((color, Default::default()));
-    }
-
-    fn remove(&mut self) {
-        if self.buttons.len() > 1 {
-            self.buttons.remove(self.active_color);
-            self.active_color = std::cmp::min(self.active_color, self.buttons.len() - 1)
-        }
-
-    }
-    pub fn active_color(&self) -> Color {
-        self.buttons.get(self.active_color).unwrap().0 //TODO:  обработать none
+    pub fn new(model: PaletteArc) -> Self {
+        let buttons = create_buttons(model.as_ref().as_ref());
+        Self { model, buttons }
     }
 }
 
@@ -43,21 +40,23 @@ impl AppWidget for Palette {
     type Message = Message;
 
     fn view(&mut self) -> Element<'_, Message> {
-        let mut rows = [Vec::new(), Vec::new()];
-        let active_color = self.active_color;
-        self.buttons.iter_mut().enumerate().for_each(|(i, (color, state))|{
-            let index = i % 2;
-            let space = Space::new(Length::Units(7), Length::Units(5));
-            let mut button = Button::new(
-                state,
-                space,
-            ).style(crate::ui::style::ColorButton(color.clone().into()));
-            if active_color != i {
-                button = button.on_press(Message::ActivateColor(i))
-            }
-            rows[index].push(button.into());
-        });
-        let [top, bot] = rows;
+        let [top, bot] = self.model.as_ref().as_ref().colors().iter()
+            .zip(self.buttons.iter_mut())
+            .map(|((color, &active),btn)| {
+                let space = Space::new(Length::Units(7), Length::Units(5));
+                let mut button = Button::new(
+                    btn,
+                    space,
+                ).style(crate::ui::style::ColorButton(color.clone().into()));
+                if !active {
+                    button = button.on_press(Message::ActivateColor(color.clone()));
+                }
+                button
+            }).enumerate()
+            .fold([Vec::new(), Vec::new()], |mut vecs, (i, btn)|{
+                vecs[i%2].push(Element::new(btn));
+                vecs
+            });
         Column::new()
             .push(Row::with_children(top))
             .push(Row::with_children(bot))
@@ -66,16 +65,15 @@ impl AppWidget for Palette {
 
     fn update(&mut self, msg: Self::Message) {
         match msg {
-            Message::ActivateColor(i) => self.active_color = i,
-            Message::AddColor(color) => self.add(color),
-            Message::RemoveColor => self.remove(),
-            Message::Loaded(colors) => self.buttons = colors.into_iter()
-                .map(|color|{(color, Default::default())})
-                .collect(),
+            Message::Updated(model) => {
+                self.buttons = create_buttons(model.as_ref().as_ref());
+                self.model = model;
+            },
+            _ => {}
         }
     }
 }
-
+/*
 impl Default for Palette {
     fn default() -> Self {
         Palette::new(vec![
@@ -106,3 +104,4 @@ impl Default for Palette {
         ])
     }
 }
+ */

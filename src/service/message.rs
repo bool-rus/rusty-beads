@@ -6,6 +6,7 @@ use crate::ui::{
     FilesMessage as FMsg,
     RightPanelMessage as RPMsg,
     LeftMenuMessage as LMMsg,
+    PaletteMessage as PMsg,
 };
 
 impl From<Message> for GridServiceMessage<Color> {
@@ -13,14 +14,17 @@ impl From<Message> for GridServiceMessage<Color> {
         use Message::*;
         use GridServiceMessage as GSMsg;
         match msg {
-            SetGridColor(coord, color) => GSMsg::Point(coord, color),
+            Grid(GMsg::GridClicked(coord)) => GSMsg::Draw(coord),
             LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
             LeftMenu(LMMsg::SchemaChange) => GSMsg::SchemaChange,
             RightPanel(RPMsg::ToggleCheckbox(index)) => GSMsg::ToggleLineItem(index),
+            RightPanel(RPMsg::AddColor(color)) => GSMsg::AddColor(color),
+            RightPanel(RPMsg::RemoveColor) => GSMsg::RemoveColor,
             TopMenu(TMMsg::Undo) => GSMsg::Undo,
             TopMenu(TMMsg::Redo) => GSMsg::Redo,
+            TopMenu(TMMsg::Palette(PMsg::ActivateColor(color))) => GSMsg::ActivateColor(color),
             _ => GSMsg::Ignore
         }
     }

@@ -61,6 +61,15 @@ impl<T: ColorTrait> Model<T> {
     pub fn schema(&self) -> Schema {
         self.line.schema
     }
+    pub fn add_color(&mut self, color: T) {
+        self.palette.add_color(color);
+    }
+    pub fn activate_color(&mut self, color: T) -> T {
+        self.palette.activate(color)
+    }
+    pub fn remove_color(&mut self) {
+        self.palette.remove_color();
+    }
     pub fn set_schema(&mut self, schema: Schema) {
         self.line.schema = schema;
         self.unfill_grid();
@@ -76,7 +85,8 @@ impl<T: ColorTrait> Model<T> {
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())
     }
-    pub fn set(&mut self, row: usize, column: usize, color: T) -> Result<Option<Bead<T>>, String> {
+    pub fn set(&mut self, row: usize, column: usize) -> Result<Option<Bead<T>>, String> {
+        let color = self.palette.activated().clone();
         let prev = self.grid.get_mut(row, column)?;
         if color.eq(&prev.color) {
             Ok(None)
@@ -129,6 +139,12 @@ impl<T: ColorTrait> AsRef<BeadsLine<Bead<T>>> for Model<T> {
 impl<T: ColorTrait> AsRef<Grid<Bead<T>>> for Model<T> {
     fn as_ref(&self) -> &Grid<Bead<T>> {
         &self.grid
+    }
+}
+
+impl<T: ColorTrait> AsRef<Palette<T>> for Model<T> {
+    fn as_ref(&self) -> &Palette<T> {
+        &self.palette
     }
 }
 

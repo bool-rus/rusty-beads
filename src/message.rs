@@ -15,7 +15,6 @@ type GMsg = GridMessage<Model<Color>>;
 #[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
-    SetGridColor(Coord, Color),
     Grid(GMsg),
     RightMenu(RMMsg),
     TopMenu(TMMsg),
@@ -72,11 +71,7 @@ impl From<Message> for TMMsg {
             Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
             Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
             Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
-            Message::RightPanel(RPMsg::AddColor(color)) => TMMsg::Palette(PaletteMessage::AddColor(color)),
-            Message::RightPanel(RPMsg::RemoveColor) => TMMsg::Palette(PaletteMessage::RemoveColor),
-            Message::GridLoaded(model) => {
-                TMMsg::Palette(PaletteMessage::Loaded(model.grid_color().unique_items()))
-            }
+            Message::GridUpdated(model) => TMMsg::Palette(PaletteMessage::Updated(model)),
             _ => TMMsg::Ignore,
         }
     }
