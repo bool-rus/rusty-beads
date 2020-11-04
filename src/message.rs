@@ -22,7 +22,6 @@ pub enum Message {
     RightPanel(RPMsg),
     LeftMenu(LMMsg),
     GridUpdated(Arc<Model<Color>>),
-    GridLoaded(Arc<Model<Color>>),
     Error(String),
 }
 
@@ -103,7 +102,7 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            GridUpdated(model) | GridLoaded(model) => GMsg::GridUpdated(model),
+            GridUpdated(model) => GMsg::GridUpdated(model),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
             _ => GMsg::Ignore
@@ -120,8 +119,7 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
-            GridUpdated(model) |
-            GridLoaded(model) => LPMsg::Resize(model.grid().size()),
+            GridUpdated(model) => LPMsg::Resize(model.grid().size()),
             _ => LPMsg::Ignore,
         }
     }
@@ -135,7 +133,7 @@ impl From<Message> for RPMsg {
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
             RightMenu(RMMsg::ShowColors) => RPMsg::ShowColors,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
-            GridUpdated(model) | GridLoaded(model) => RPMsg::GridUpdated(model),
+            GridUpdated(model) => RPMsg::GridUpdated(model),
             _ => RPMsg::Ignore
         }
     }

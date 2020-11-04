@@ -34,8 +34,7 @@ impl From<GridServiceMessage<Color>> for Message {
     fn from(msg: GridServiceMessage<Color>) -> Self {
         use GridServiceMessage::*;
         match msg {
-            Updated(v) => Message::GridUpdated(v),
-            Loaded(v) => Message::GridLoaded(v),
+            Updated(v) | Loaded(v) => Message::GridUpdated(v),
             _ => Message::Ignore
         }
     }
