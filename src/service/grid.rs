@@ -145,7 +145,12 @@ mod test {
     use crate::service::Service as _;
 
     fn make() -> Service<u8> {
-        let mut s = Service::default();
+        let mut model = Model::default();
+        model.add_color(1);
+        model.add_color(2);
+        model.activate_color(3);
+        let mut s = Service::new(model);
+
         for _ in 1..10 {
             s.service(Message::Grow(Side::Top));
             s.service(Message::Grow(Side::Left));
@@ -156,10 +161,13 @@ mod test {
     #[test]
     fn test_undo() {
         let mut s = make();
-        s.service(Message::Draw(Coord{ x: 0, y: 0 }, 33));
-        s.service(Message::Draw(Coord{ x: 0, y: 0 }, 34));
-        s.service(Message::Draw(Coord{ x: 0, y: 0 }, 34));
-        s.service(Message::Draw(Coord{ x: 0, y: 0 }, 35));
+        s.service(Message::ActivateColor(33));
+        s.service(Message::Draw(Coord{ x: 0, y: 0 }));
+        s.service(Message::ActivateColor(34));
+        s.service(Message::Draw(Coord{ x: 0, y: 0 }));
+        s.service(Message::Draw(Coord{ x: 0, y: 0 }));
+        s.service(Message::ActivateColor(35));
+        s.service(Message::Draw(Coord{ x: 0, y: 0 }));
         let vars: Vec<_> = vec![Message::Undo; 2].into_iter().map(|m|{
            match s.service(m).expect("undo must return message").unwrap() {
                Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
