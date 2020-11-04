@@ -1,23 +1,22 @@
 use super::*;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{BuildHasher, BuildHasherDefault};
+use fxhash::FxHashMap;
 
 #[derive(Debug, Clone)]
 pub struct Palette<T: ColorTrait> {
-    colors: HashMap<T, bool,  BuildHasherDefault<DefaultHasher>>,
+    colors: FxHashMap<T, bool>,
     activated: T,
 }
 
 impl<T: ColorTrait> Palette<T> {
     pub fn new() -> Self {
-        let mut colors = HashMap::default();
+        let mut colors = FxHashMap::default();
         colors.insert(T::default(), true);
         Self {colors, activated: T::default()}
     }
     pub fn activated(&self) -> &T {
         &self.activated
     }
-    pub fn colors(&self) -> &HashMap<T, bool, BuildHasherDefault<DefaultHasher>> {
+    pub fn colors(&self) -> &FxHashMap<T, bool> {
         &self.colors
     }
     pub fn add_color(&mut self, color: T) {
