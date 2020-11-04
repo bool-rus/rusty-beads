@@ -127,15 +127,10 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
     }
 }
 
-pub struct MouseListener(Rc<Cell<bool>>);
+pub struct MouseListener<M>(pub M);
 
-impl MouseListener {
-    pub fn new(hold: Rc<Cell<bool>>) -> Self {
-        Self(hold)
-    }
-}
 
-impl<Message: Clone> Widget<Message, Renderer> for MouseListener {
+impl<Message: Clone> Widget<Message, Renderer> for MouseListener<Message> {
     fn width(&self) -> Length {
         Length::Units(0)
     }
@@ -166,13 +161,13 @@ impl<Message: Clone> Widget<Message, Renderer> for MouseListener {
                 event: Event,
                 _layout: Layout<'_>,
                 _cursor_position: Point,
-                _messages: &mut Vec<Message>,
+                messages: &mut Vec<Message>,
                 _renderer: &Renderer,
                 _clipboard: Option<&dyn Clipboard>) {
         if let Event::Mouse(mouse::Event::Input{state, button: mouse::Button::Left}) = event {
             match state {
-                ButtonState::Pressed => {self.0.set(true)},
-                ButtonState::Released => {self.0.set(false)},
+                ButtonState::Pressed => {},
+                ButtonState::Released => {messages.push(self.0.clone())},
             }
         }
     }

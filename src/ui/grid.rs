@@ -11,17 +11,19 @@ use std::fmt::Debug;
 #[derive(Debug, Clone)]
 pub enum Message<T: Debug + Send + Sync> {
     Ignore,
-    GridClicked(Coord),
+    Press(Coord),
+    Move(Coord),
     GridUpdated(Arc<T>),
     Rotate(isize),
     SetRotation(f32),
     ZoomIn,
     ZoomOut,
+    MouseRelease,
 }
 
 pub struct GridPlate<T> {
     grid_ref: Arc<T>,
-    mouse_hold: Rc<Cell<bool>>,
+    mouse_hold: bool,
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
@@ -31,10 +33,10 @@ pub struct GridPlate<T> {
 }
 
 impl<T> GridPlate<T> {
-    pub fn new(mouse_hold: Rc<Cell<bool>>, grid_ref: Arc<T>) -> Self {
+    pub fn new(grid_ref: Arc<T>) -> Self {
         Self {
             grid_ref,
-            mouse_hold ,
+            mouse_hold: false,
             rotation: 0,
             half_size: 6,
             slider: Default::default(),
@@ -84,9 +86,9 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
                     let mut widget = ColorBox::new(color.clone())
                         .width(full)
                         .height(full)
-                        .on_press(Message::GridClicked(coord).into());
-                    if self.mouse_hold.get() {
-                        widget = widget.on_over(Message::GridClicked(coord));
+                        .on_press(Message::Press(coord).into());
+                    if self.mouse_hold {
+                        widget = widget.on_over(Message::Move(coord));
                     }
                     if *filled {
                         widget = widget.border_color(iced::Color::WHITE);
@@ -122,6 +124,7 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
     fn update(&mut self, msg: Message<T>) {
         use Message::*;
         match msg {
+            MouseRelease => self.mouse_hold = false,
             GridUpdated(model) => self.grid_ref = model,
             Rotate(rotation) => { self.rotation += rotation; }
             SetRotation(rotation) => {
@@ -131,7 +134,8 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
             }
             ZoomIn => { self.half_size += 1; }
             ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
-            Ignore | GridClicked(..) => {}
+            Press(..) => self.mouse_hold = true,
+            Move(..) | Ignore => {}
         }
     }
 }

@@ -14,7 +14,7 @@ impl From<Message> for GridServiceMessage<Color> {
         use Message::*;
         use GridServiceMessage as GSMsg;
         match msg {
-            Grid(GMsg::GridClicked(coord)) => GSMsg::Draw(coord),
+            Grid(GMsg::Move(coord)) | Grid(GMsg::Press(coord)) => GSMsg::Draw(coord),
             LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),

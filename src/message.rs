@@ -23,6 +23,7 @@ pub enum Message {
     LeftMenu(LMMsg),
     GridUpdated(Arc<Model<Color>>),
     Error(String),
+    MouseRelease,
 }
 
 impl From<TMMsg> for Message {
@@ -105,6 +106,7 @@ impl From<Message> for GMsg {
             GridUpdated(model) => GMsg::GridUpdated(model),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
+            MouseRelease => GMsg::MouseRelease,
             _ => GMsg::Ignore
         }
     }

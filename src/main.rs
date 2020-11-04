@@ -53,12 +53,10 @@ struct App {
     right_menu: RightMenu,
     left_menu: LeftMenu,
     left_panel: LeftPanel,
-    mouse_hold: Rc<Cell<bool>>,
 }
 
 impl Default for App {
     fn default() -> Self {
-        let mouse_hold = Rc::new(Cell::new(false));
         let model = default_colors().into_iter().fold(Model::default(), |mut model, color| {
             model.add_color(color);
             model
@@ -68,11 +66,10 @@ impl Default for App {
         Self {
             service,
             top_menu: TopMenu::new(model.clone()),
-            grid_plate: GridPlate::new(mouse_hold.clone(), model.clone()),
+            grid_plate: GridPlate::new(model.clone()),
             right_panel: RightPanel::new(model.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
-            mouse_hold,
             left_panel: Default::default(),
         }
     }
@@ -115,7 +112,7 @@ impl Sandbox for App {
             .width(Length::Units(25));
         let content = Container::new(self.grid_plate.view().map(From::from));
         let row = Row::new().spacing(5)
-            .push(Element::new(ui::MouseListener::new(self.mouse_hold.clone())))
+            .push(Element::new(ui::MouseListener(Message::MouseRelease)))
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)
