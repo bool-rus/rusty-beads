@@ -143,6 +143,19 @@ impl<T: Debug + Clone> Grid<T> {
             },
         }
     }
+    pub fn rotate(&mut self, rotation: isize) {
+        let mut rotation = rotation % (self.width as isize);
+        if rotation < 0 {
+            rotation = rotation + self.width as isize;
+        }
+        let rotation = rotation as usize;
+        self.data = self.data.as_slice()
+            .chunks(self.width)
+            .map(|arr|arr.into_iter().cycle().skip(rotation).take(self.width))
+            .flatten()
+            .map(Clone::clone)
+            .collect()
+    }
     pub fn map<X: Debug + Clone, F: FnMut(&T)->X>(&self, fun: F) -> Grid<X> {
         Grid {
             width: self.width,
@@ -193,4 +206,10 @@ impl<T: Eq + Hash + Clone + Debug> Grid<T> {
         self.data.iter().for_each(|it|{set.insert(it.clone());});
         set
     }
+}
+
+#[test]
+fn negative_remainder() {
+    assert_eq!(-3, -3 % 10);
+    assert_eq!(-3, -13 %10);
 }

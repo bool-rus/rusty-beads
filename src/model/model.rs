@@ -120,6 +120,11 @@ impl<T: ColorTrait> Model<T> {
         self.update_line();
         Ok(())
     }
+    pub fn rotate(&mut self, rotation: isize) {
+        self.grid.rotate(rotation);
+        self.unfill_grid();
+        self.update_line();
+    }
 }
 
 impl<T: ColorTrait + Default> Model<T> {
