@@ -1,4 +1,5 @@
 use super::*;
+use itertools::Itertools;
 
 #[derive(Debug)]
 pub enum Error {
@@ -60,6 +61,9 @@ impl<T: Debug + Clone> Grid<T> {
     }
     pub fn as_table(&self) -> Vec<&[T]> {
         self.data.as_slice().chunks(self.width).collect()
+    }
+    pub fn as_iter_iter(&self) -> impl Iterator<Item=impl Iterator<Item=&T> + Clone> {
+        self.data.as_slice().chunks(self.width).map(|chunk|chunk.into_iter())
     }
     fn decreased_height(&self) -> Result<usize, String> {
         if self.height < 2 {

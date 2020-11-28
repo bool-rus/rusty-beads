@@ -1,9 +1,7 @@
 use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
-use std::rc::Rc;
-use std::cell::Cell;
-use std::sync::Arc;
+use std::{sync::Arc, iter};
 use crate::model::*;
 use std::fmt::Debug;
 
@@ -70,34 +68,32 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
-            grid.as_table().iter().enumerate().map(|(row, arr)| {
-                let mut children= Vec::with_capacity(arr.len() + 2);
-                let index = row % 2;
-                children.push(Element::from(
-                    Space::new(portions[index],full)
-                ));
-                let iter = arr.iter()
-                    .cycle()
-                    .zip(range.clone().into_iter().cycle())
+            grid.as_iter_iter().enumerate().map(|(index, row)| {
+                let index = index % 2;
+                let children = iter::once( //left cell (maybe half)
+                    Space::new(portions[index],full).into()
+                ).chain( //cells with beads
+                    row.cycle()
+                    .zip(range.clone().into_iter())
                     .skip(rotation)
-                    .take(width);
-                children.extend(iter.map(|(Bead {color, filled}, col)| {
-                    let coord = Coord{x:row, y:col};
-                    let mut widget = ColorBox::new(color.clone())
-                        .width(full)
-                        .height(full)
-                        .on_press(Message::Press(coord).into());
-                    if self.mouse_hold {
-                        widget = widget.on_over(Message::Move(coord));
-                    }
-                    if *filled {
-                        widget = widget.border_color(iced::Color::WHITE);
-                    }
-                    widget.into()
-                }));
-                children.push(
-                    Space::new(portions[index+1],full).into()
-                );
+                    .take(width)
+                    .map(|(Bead {color, filled}, col)| {
+                        let coord = Coord{x:index, y:col};
+                        let mut widget = ColorBox::new(color.clone())
+                            .width(full)
+                            .height(full)
+                            .on_press(Message::Press(coord).into());
+                        if self.mouse_hold {
+                            widget = widget.on_over(Message::Move(coord));
+                        }
+                        if *filled {
+                            widget = widget.border_color(iced::Color::WHITE);
+                        }
+                        widget.into()
+                    })
+                ).chain( //right cell
+                    iter::once(Space::new(portions[index+1],full).into())
+                ).collect();
                 Row::with_children(children).into()
             }).collect());
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
