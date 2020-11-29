@@ -68,7 +68,7 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
-            grid.as_iter_iter().enumerate().map(|(index, row)| {
+            grid.as_table_iter().enumerate().map(|(index, row)| {
                 let index = index % 2;
                 let children = iter::once( //left cell (maybe half)
                     Space::new(portions[index],full).into()

@@ -34,10 +34,10 @@ impl Into<Schema> for BeadsLineBuilder {
 }
 
 impl BeadsLineBuilder {
-    pub fn build<T: Clone + Eq + Hash>(&self, table: Vec<&[T]>) -> BeadsLine<T> {
-        let width = table.get(0).map(|row|row.len()).unwrap_or(0);
+    pub fn build<'a, T, I1, I2>(&self, iter: I1, width: NonZeroUsize) -> BeadsLine<T> 
+    where T: Clone + Eq + Hash + 'a, I2: DoubleEndedIterator<Item = &'a T> + Clone, I1: Iterator<Item=I2> {
+        let width = width.get();
         let knit_type = (*self).into();
-        let iter = table.into_iter().map(|line|line.iter().map(|x|x));
         match self {
             BeadsLineBuilder::LRSquare => {
                 let line = zip_line(iter.flatten());
@@ -139,18 +139,34 @@ mod tests {
             (0..(size+2)).for_each(|_|{vec.extend(chunk.iter())});
             Self(vec, size)
         }
-        fn table(&self)->Vec<&[usize]> {
-            self.0.chunks(self.1).collect()
+        fn width(&self) -> NonZeroUsize {
+            NonZeroUsize::new(self.1).unwrap()
         }
+        fn table(&self)-> impl Iterator<Item=impl DoubleEndedIterator<Item=&usize> + Clone> {
+            self.0.chunks(self.1).map(|x|x.into_iter()).map(|x|x)
+        }
+    }
+
+    fn assert_eq_iters<'a, T, L, R, IL, IR>(left: L, right: R ) 
+    where L: Iterator<Item=IL>, IL: Iterator<Item=&'a T>,
+    R: Iterator<Item=IR>, IR: Iterator<Item=&'a T>,
+    T: 'a + Eq + Debug {
+        left.zip(right)
+        .for_each(|(left, right)|{
+            left.zip(right)
+            .for_each(|(left, right)|{
+                assert_eq!(left, right)
+            })
+        })
     }
 
     #[test]
     fn line_square() {
         let n = 7;
         let table = Table::new(n);
-        let bline = BeadsLineBuilder::RLSquare.build(table.table());
+        let bline = BeadsLineBuilder::RLSquare.build(table.table(), table.width());
         let (line, summary) = (bline.line(), bline.summary());
-        let height = table.table().len();
+        let height = table.table().count();
         assert_eq!(line.len(), n*height);
         assert_eq!(summary.get(&3),Some(&height));
 
@@ -159,7 +175,7 @@ mod tests {
             obj
         }).collect();
 
-        assert_eq!(bline.grid().as_table(), table.table())
+        assert_eq_iters(bline.grid().as_table_iter(), table.table())
     }
 
     /*
@@ -176,8 +192,8 @@ mod tests {
     fn line_offset() {
         let n = 4;
         let table = Table::new(n);
-        let height = table.table().len();
-        let bline = BeadsLineBuilder::RLOffset(true).build(table.table());
+        let height = table.table().count();
+        let bline = BeadsLineBuilder::RLOffset(true).build(table.table(), table.width());
         let (line, summary) = (bline.line(), bline.summary());
         let sum:usize = line.iter()
             .map(|&(i,c)|{c})
@@ -192,9 +208,9 @@ mod tests {
             (1, 1), (0, 1), (3, 1),
         ]);
 
-        assert_eq!(bline.grid().as_table(), table.table());
+        assert_eq_iters(bline.grid().as_table_iter(), table.table());
 
-        let bline = BeadsLineBuilder::RLOffset(false).build(table.table());
+        let bline = BeadsLineBuilder::RLOffset(false).build(table.table(), table.width());
         let (line, summary) = (bline.line(), bline.summary());
 
         assert_eq!( line.as_slice() , &[
@@ -206,6 +222,6 @@ mod tests {
             (1, 1), (0, 1), (3, 1), (2, 1),
         ]);
 
-        assert_eq!(bline.grid().as_table(), table.table())
+        assert_eq_iters(bline.grid().as_table_iter(), table.table())
     }
 }

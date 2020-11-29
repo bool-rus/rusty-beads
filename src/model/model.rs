@@ -5,7 +5,7 @@ impl<T: ColorTrait> Default for Model<T> {
     fn default() -> Self {
         let grid: Grid<_> = Default::default();
         let builder: BeadsLineBuilder = Schema::default().into();
-        let line = builder.build(grid.as_table());
+        let line = builder.build(grid.as_table_iter(), grid.size().width);
         let palette = Palette::new();
         Model {palette, grid, line}
     }
@@ -39,7 +39,7 @@ impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
 impl <T: ColorTrait> From<Grid<Bead<T>>> for Model<T> {
     fn from(grid: Grid<Bead<T>>) -> Self {
         let builder: BeadsLineBuilder = Schema::default().into();
-        let line = builder.build(grid.as_table());
+        let line = builder.build(grid.as_table_iter(), grid.size().width);
         let palette = create_palette(&line);
         Model {palette, line, grid}
     }
@@ -80,7 +80,7 @@ impl<T: ColorTrait> Model<T> {
     }
     fn update_line(&mut self) {
         let builder: BeadsLineBuilder = self.line.schema.into();
-        self.line = builder.build(self.grid.as_table());
+        self.line = builder.build(self.grid.as_table_iter(), self.grid.size().width);
     }
     pub fn grid_color(&self) -> Grid<T> {
         self.grid.map(|bead|bead.color.clone())

@@ -1,5 +1,4 @@
 use super::*;
-use itertools::Itertools;
 
 #[derive(Debug)]
 pub enum Error {
@@ -59,10 +58,7 @@ impl<T: Debug + Clone> Grid<T> {
             .get_mut(column)
             .ok_or("column out of bounds")?)
     }
-    pub fn as_table(&self) -> Vec<&[T]> {
-        self.data.as_slice().chunks(self.width).collect()
-    }
-    pub fn as_iter_iter(&self) -> impl Iterator<Item=impl Iterator<Item=&T> + Clone> {
+    pub fn as_table_iter(&self) -> impl Iterator<Item=impl DoubleEndedIterator<Item=&T> + Clone> {
         self.data.as_slice().chunks(self.width).map(|chunk|chunk.into_iter())
     }
     fn decreased_height(&self) -> Result<usize, String> {
@@ -94,12 +90,12 @@ impl<T: Debug + Clone> Grid<T> {
                 let width = self.width + 1;
                 let mut data = Vec::with_capacity(self.height * width);
                 match side {
-                    Side::Left => self.as_table().into_iter().for_each(|row| {
+                    Side::Left => self.as_table_iter().for_each(|row| {
                         data.push(value.clone());
-                        data.extend_from_slice(row);
+                        data.extend(row.map(Clone::clone));
                     }),
-                    Side::Right => self.as_table().into_iter().for_each(|row|{
-                        data.extend_from_slice(row);
+                    Side::Right => self.as_table_iter().for_each(|row|{
+                        data.extend(row.map(Clone::clone));
                         data.push(value.clone());
                     }),
                     _ => {unreachable!()},
@@ -132,7 +128,7 @@ impl<T: Debug + Clone> Grid<T> {
                     _ => unreachable!(),
                 };
                 let mut data = Vec::with_capacity(width * self.height);
-                data.extend(self.as_table().iter().map(|row| {
+                data.extend(self.data.chunks(width).map(|row| {
                     (&row[range.clone()]).iter().map(Clone::clone)
                 }).flatten());
                 self.width = width;
