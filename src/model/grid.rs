@@ -139,9 +139,12 @@ impl<T: Debug + Clone> Grid<T> {
                     _ => unreachable!(),
                 };
                 let mut data = Vec::with_capacity(width * self.height);
-                data.extend(self.data.chunks(width).map(|row| {
-                    (&row[range.clone()]).iter().map(Clone::clone)
-                }).flatten());
+                data.extend(
+                    self.data.chunks(self.width)
+                    .map(|row| 
+                        (&row[range.clone()]).iter().map(Clone::clone)
+                    ).flatten()
+                );
                 self.width = width;
                 self.data = data;
                 Ok(())
