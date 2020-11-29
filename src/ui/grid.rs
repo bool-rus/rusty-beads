@@ -68,16 +68,16 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
-            grid.as_table_iter().enumerate().map(|(index, row)| {
-                let index = index % 2;
+            grid.as_full_table_iter().enumerate().map(|(index, row)| {
+                let portion_index = index % 2;
                 let children = iter::once( //left cell (maybe half)
-                    Space::new(portions[index],full).into()
+                    Space::new(portions[portion_index],full).into()
                 ).chain( //cells with beads
                     row.cycle()
-                    .zip(range.clone().into_iter())
+                    .zip(range.clone().into_iter().cycle())
                     .skip(rotation)
                     .take(width)
-                    .map(|(Bead {color, filled}, col)| {
+                    .map(|((Bead {color, filled}, first), col)| {
                         let coord = Coord{x:index, y:col};
                         let mut widget = ColorBox::new(color.clone())
                             .width(full)
@@ -86,13 +86,16 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
                         if self.mouse_hold {
                             widget = widget.on_over(Message::Move(coord));
                         }
+                        if *first {
+                            widget = widget.border_color(iced::Color::from_rgb(0.9, 0.0, 0.0))
+                        }
                         if *filled {
                             widget = widget.border_color(iced::Color::WHITE);
                         }
                         widget.into()
                     })
                 ).chain( //right cell
-                    iter::once(Space::new(portions[index+1],full).into())
+                    iter::once(Space::new(portions[portion_index+1],full).into())
                 ).collect();
                 Row::with_children(children).into()
             }).collect());

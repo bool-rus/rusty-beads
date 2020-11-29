@@ -58,23 +58,23 @@ impl BeadsLineBuilder {
         }
     }
     pub fn grid<T: Clone + Debug>(&self, width: usize, line: Vec<&T>) -> Grid<T> {
-
+        let line: Vec<_> = line.into_iter().enumerate().map(|(i, obj)|(obj.clone(), i % width == 0)).collect();
         let data = match self {
-            BeadsLineBuilder::LRSquare => line.iter().map(|&i|i.clone()).collect(),
+            BeadsLineBuilder::LRSquare => line,
             BeadsLineBuilder::RLSquare => line
                 .chunks(width)
-                .map(|row|row.iter().rev().map(|&i|i.clone()))
+                .map(|row|row.iter().rev().map(|obj|obj.clone()))
                 .flatten()
                 .collect(),
             BeadsLineBuilder::LROffset(first_offset) => iter_to_grid_data(
                 *first_offset,
                 width,
-                line.chunks(width).map(|row|row.iter().map(|&i|i))
+                line.chunks(width).map(|row|row.iter()),
             ),
             BeadsLineBuilder::RLOffset(first_offset) => iter_to_grid_data(
                 *first_offset,
                 width,
-                line.chunks(width).map(|row|row.iter().rev().map(|&i|i))
+                line.chunks(width).map(|row|row.iter().rev())
             ),
         };
 

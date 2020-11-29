@@ -15,7 +15,7 @@ impl ToString for Error {
 pub struct Grid<T: Debug + Clone> {
     width: usize,
     height: usize,
-    data: Vec<T>,
+    data: Vec<(T, bool)>,
 }
 
 impl<T: Debug + Clone> Grid<T> {
@@ -25,12 +25,12 @@ impl<T: Debug + Clone> Grid<T> {
         Self {
             width,
             height,
-            data: vec![item; width*height],
+            data: vec![(item, false); width*height], //TODO: возможно, стоит переделать
         }
     }
-    pub fn frow_raw(width: NonZeroUsize, data: Vec<T>) -> Result<Self, Error>{
+    pub fn frow_raw(width: NonZeroUsize, data: Vec<(T, bool)>) -> Result<Self, Error>{
         let width = width.get();
-        if data.len() % width >0 {
+        if data.len() % width > 0 {
             Err(Error::InvalidDataSize)
         } else {
             let height = data.len()/width;
@@ -56,10 +56,20 @@ impl<T: Debug + Clone> Grid<T> {
             .nth(row)
             .ok_or("row out of bounds")?
             .get_mut(column)
+            .map(|x|&mut x.0)
             .ok_or("column out of bounds")?)
     }
     pub fn as_table_iter(&self) -> impl Iterator<Item=impl DoubleEndedIterator<Item=&T> + Clone> {
-        self.data.as_slice().chunks(self.width).map(|chunk|chunk.into_iter())
+        self.data.as_slice()
+        .chunks(self.width)
+        .map(
+            |chunk|chunk.into_iter().map(|x|&x.0)
+        )
+    }
+    pub fn as_full_table_iter(&self) -> impl Iterator<Item=impl DoubleEndedIterator<Item=&(T, bool)> + Clone> {
+        self.data.as_slice()
+        .chunks(self.width)
+        .map(IntoIterator::into_iter)
     }
     fn decreased_height(&self) -> Result<usize, String> {
         if self.height < 2 {
@@ -76,6 +86,7 @@ impl<T: Debug + Clone> Grid<T> {
         }
     }
     pub fn grow(&mut self, side: Side, value: T) {
+        let value = (value, false);
         match side {
             Side::Top => {
                 self.height += 1;
@@ -90,11 +101,11 @@ impl<T: Debug + Clone> Grid<T> {
                 let width = self.width + 1;
                 let mut data = Vec::with_capacity(self.height * width);
                 match side {
-                    Side::Left => self.as_table_iter().for_each(|row| {
+                    Side::Left => self.as_full_table_iter().for_each(|row| {
                         data.push(value.clone());
                         data.extend(row.map(Clone::clone));
                     }),
-                    Side::Right => self.as_table_iter().for_each(|row|{
+                    Side::Right => self.as_full_table_iter().for_each(|row|{
                         data.extend(row.map(Clone::clone));
                         data.push(value.clone());
                     }),
@@ -156,11 +167,13 @@ impl<T: Debug + Clone> Grid<T> {
             .map(Clone::clone)
             .collect()
     }
-    pub fn map<X: Debug + Clone, F: FnMut(&T)->X>(&self, fun: F) -> Grid<X> {
+    pub fn map<X: Debug + Clone, F: Fn(&T)->X>(&self, fun: F) -> Grid<X> {
         Grid {
             width: self.width,
             height: self.height,
-            data: self.data.iter().map(fun).collect(),
+            data: self.data.iter().map(
+                |(obj, first)|(fun(obj), *first)
+            ).collect(),
         }
     }
 }
@@ -197,14 +210,6 @@ impl<T: Debug + Clone + Default> Grid<T> {
 impl<T: Debug + Default + Clone> Default for Grid<T> {
     fn default() -> Self {
         Self::new(Size::default(), T::default())
-    }
-}
-
-impl<T: Eq + Hash + Clone + Debug> Grid<T> {
-    pub fn unique_items(&self) -> HashSet<T> {
-        let mut set = HashSet::new();
-        self.data.iter().for_each(|it|{set.insert(it.clone());});
-        set
     }
 }
 
