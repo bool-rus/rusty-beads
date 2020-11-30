@@ -70,10 +70,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 Some(self.updated())
             },
             Resize(size) => {
-                let prev = Size {
-                    width: NonZeroUsize::new(self.model.width()).unwrap(),
-                    height: NonZeroUsize::new(self.model.height()).unwrap(),
-                };
+                let prev = self.model.size();
                 self.push_undo(Resize(prev));
                 self.model.resize(size);
                 Some(self.updated())

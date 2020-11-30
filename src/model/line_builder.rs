@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Debug, Copy, Clone)]
+#[allow(dead_code)]
 pub enum BeadsLineBuilder {
     LRSquare,
     RLSquare,
@@ -170,7 +171,7 @@ mod tests {
         assert_eq!(line.len(), n*height);
         assert_eq!(summary.get(&3),Some(&height));
 
-        let vec: Vec<usize> = line.iter().map(|&(obj, count)|{
+        let _vec: Vec<usize> = line.iter().map(|&(obj, count)|{
             assert_eq!(count, 1);
             obj
         }).collect();
@@ -194,9 +195,9 @@ mod tests {
         let table = Table::new(n);
         let height = table.table().count();
         let bline = BeadsLineBuilder::RLOffset(true).build(table.table(), table.width());
-        let (line, summary) = (bline.line(), bline.summary());
+        let (line, _summary) = (bline.line(), bline.summary());
         let sum:usize = line.iter()
-            .map(|&(i,c)|{c})
+            .map(|&(_i,c)|{c})
             .sum();
         assert_eq!(sum, n*height);
         assert_eq!( line.as_slice() , &[
@@ -211,7 +212,7 @@ mod tests {
         assert_eq_iters(bline.grid().as_table_iter(), table.table());
 
         let bline = BeadsLineBuilder::RLOffset(false).build(table.table(), table.width());
-        let (line, summary) = (bline.line(), bline.summary());
+        let (line, _summary) = (bline.line(), bline.summary());
 
         assert_eq!( line.as_slice() , &[
             (3, 1), (2, 1), (1, 1), (0, 1),

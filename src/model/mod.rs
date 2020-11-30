@@ -1,5 +1,5 @@
 use std::num::NonZeroUsize;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
@@ -66,8 +66,40 @@ impl Default for Size {
     }
 }
 
+impl Size {
+    pub fn capacity(&self) -> usize {
+        self.width.get() * self.height.get()
+    }
+    pub fn width(&self) -> usize {
+        self.width.get()
+    }
+    pub fn height(&self) -> usize {
+        self.height.get()
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
+}
+
+pub trait Increasable {
+    fn increase(self) -> Self;
+}
+
+pub trait Decreasable {
+    fn decrease(self) -> Option<Self> where Self: Sized;
+}
+
+impl Increasable for NonZeroUsize {
+    fn increase(self) -> Self {
+        NonZeroUsize::new(self.get() + 1).unwrap()
+    }
+}
+
+impl Decreasable for NonZeroUsize {
+    fn decrease(self) -> Option<Self> {
+        NonZeroUsize::new(self.get() - 1)
+    }
 }
