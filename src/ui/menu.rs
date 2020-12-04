@@ -176,6 +176,7 @@ pub mod left {
         SchemaChange,
         ZoomIn,
         ZoomOut,
+        MoveSeam(isize),
     }
 
     #[derive(PartialEq, Clone, Copy)]
@@ -190,7 +191,7 @@ pub mod left {
         }
     }
 
-    pub struct Menu {
+    pub struct Menu { //TODO: зарефакторить все под SvgButton
         active: ActiveMode,
         toggle_resize: State,
         zoom_in: State,
@@ -231,8 +232,8 @@ pub mod left {
                 .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
-                .push(self.seam_left.button())
-                .push(self.seam_right.button())
+                .push(self.seam_left.button().on_press(Message::MoveSeam(-1)))
+                .push(self.seam_right.button().on_press(Message::MoveSeam(1)))
                 .into()
         }
 

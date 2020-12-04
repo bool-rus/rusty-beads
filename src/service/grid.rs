@@ -20,6 +20,7 @@ pub enum Message<T: ColorTrait> {
     AddColor(T),
     RemoveColor,
     DrawColor(Coord, T),
+    MoveSeam(isize),
 }
 
 pub struct Service<T: ColorTrait> {
@@ -129,6 +130,10 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                     self.push_undo(DrawColor(coord, color));
                 });
                 self.model.activate_color(prev_activated);
+                Some(self.updated())
+            }
+            MoveSeam(direction) => {
+                self.model.rotate(direction);
                 Some(self.updated())
             }
             Updated(_) | Ignore => None,
