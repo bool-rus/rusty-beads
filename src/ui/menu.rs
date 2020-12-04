@@ -166,6 +166,7 @@ pub mod right {
 pub mod left {
     use super::*;
     use button::State;
+    use iced::Svg;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -189,13 +190,29 @@ pub mod left {
         }
     }
 
-    #[derive(Default)]
     pub struct Menu {
         active: ActiveMode,
         toggle_resize: State,
         zoom_in: State,
         zoom_out: State,
         schema_change: State,
+        seam_left: SvgButton,
+        seam_right: SvgButton,
+    }
+    
+    impl Default for Menu {
+        fn default() -> Self {
+            use icon::*;
+            Menu {
+                active: Default::default(),
+                toggle_resize: Default::default(),
+                zoom_in: Default::default(),
+                zoom_out: Default::default(),
+                schema_change: Default::default(),
+                seam_left: SvgButton::new(SEAM_LEFT),
+                seam_right: SvgButton::new(SEAM_RIGHT),
+            }
+        }
     }
 
     impl AppWidget for Menu {
@@ -214,6 +231,8 @@ pub mod left {
                 .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
                 .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
                 .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
+                .push(self.seam_left.button())
+                .push(self.seam_right.button())
                 .into()
         }
 
