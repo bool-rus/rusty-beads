@@ -32,12 +32,6 @@ pub mod top {
         }
     }
 
-    impl TopMenu {
-        pub fn palette(&self) -> &Palette {
-            &self.palette
-        }
-    }
-
     #[derive(Debug,Clone,Copy)]
     enum ActiveMode {
         Empty,
@@ -165,8 +159,6 @@ pub mod right {
 
 pub mod left {
     use super::*;
-    use button::State;
-    use iced::Svg;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -193,10 +185,10 @@ pub mod left {
 
     pub struct Menu { //TODO: зарефакторить все под SvgButton
         active: ActiveMode,
-        toggle_resize: State,
-        zoom_in: State,
-        zoom_out: State,
-        schema_change: State,
+        toggle_resize: SvgButton,
+        zoom_in: SvgButton,
+        zoom_out: SvgButton,
+        schema_change: SvgButton,
         seam_left: SvgButton,
         seam_right: SvgButton,
     }
@@ -206,10 +198,10 @@ pub mod left {
             use icon::*;
             Menu {
                 active: Default::default(),
-                toggle_resize: Default::default(),
-                zoom_in: Default::default(),
-                zoom_out: Default::default(),
-                schema_change: Default::default(),
+                toggle_resize: SvgButton::new(RESIZE),
+                zoom_in: SvgButton::new(ZOOM_IN),
+                zoom_out: SvgButton::new(ZOOM_OUT),
+                schema_change: SvgButton::new(CHANGE_SCHEMA),
                 seam_left: SvgButton::new(SEAM_LEFT),
                 seam_right: SvgButton::new(SEAM_RIGHT),
             }
@@ -220,18 +212,19 @@ pub mod left {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let mut resize_btn = Button::new(&mut self.toggle_resize, icon::RESIZE.svg()).on_press(Message::ShowResize);
-
-            match self.active {
-                ActiveMode::Empty => {},
-                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide).style(ToggledOn) },
+            let (msg, toggled_on)  = match self.active {
+                ActiveMode::Empty => (Message::ShowResize, false),
+                ActiveMode::Resize => (Message::Hide, true),
+            };
+            let mut resize_btn = self.toggle_resize.button().on_press(msg);
+            if toggled_on {
+                resize_btn = resize_btn.style(ToggledOn);
             }
-
             Column::new().width(Length::Fill).spacing(5)
                 .push(resize_btn)
-                .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
-                .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
-                .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
+                .push(self.zoom_in.button().on_press(Message::ZoomIn))
+                .push(self.zoom_out.button().on_press(Message::ZoomOut))
+                .push(self.schema_change.button().on_press(Message::SchemaChange))
                 .push(self.seam_left.button().on_press(Message::MoveSeam(-1)))
                 .push(self.seam_right.button().on_press(Message::MoveSeam(1)))
                 .into()
