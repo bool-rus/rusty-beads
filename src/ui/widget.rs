@@ -1,14 +1,10 @@
-use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher, Rectangle};
+use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher};
 use iced_wgpu::{Primitive, Renderer, Defaults};
 use iced_native::input::{mouse, ButtonState};
-use iced::{Size, Color, Element, Length, Point, Background, Vector};
+use iced::{Size, Color, Element, Length, Point, Background};
 use crate::wrapper::Wrappable;
 use std::hash::Hash;
-use std::cell::Cell;
-use std::rc::Rc;
-use iced_native::window::Backend;
 use iced_wgpu::triangle::{Mesh2D, Vertex2D};
-use iced_native::layout::{Node, Limits};
 
 pub struct ColorBox<T> {
     color: Color,
@@ -16,6 +12,7 @@ pub struct ColorBox<T> {
     height: Length,
     press_message: Option<T>,
     over_message: Option<T>,
+    border_color: Color,
 }
 
 impl <T> ColorBox<T> {
@@ -26,7 +23,12 @@ impl <T> ColorBox<T> {
             height: Length::Units(30),
             press_message: None,
             over_message: None,
+            border_color: Color::BLACK,
         }
+    }
+    pub fn border_color(mut self, color: Color) -> Self {
+        self.border_color = color;
+        self
     }
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
@@ -77,7 +79,7 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
                 background: Background::Color(self.color.clone().into()),
                 border_radius: 0,
                 border_width: 1,
-                border_color: iced::Color::BLACK,
+                border_color: self.border_color,
             },
             MouseCursor::OutOfBounds,
         )
@@ -123,15 +125,10 @@ impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
     }
 }
 
-pub struct MouseListener(Rc<Cell<bool>>);
+pub struct MouseListener<M>(pub M);
 
-impl MouseListener {
-    pub fn new(hold: Rc<Cell<bool>>) -> Self {
-        Self(hold)
-    }
-}
 
-impl<Message: Clone> Widget<Message, Renderer> for MouseListener {
+impl<Message: Clone> Widget<Message, Renderer> for MouseListener<Message> {
     fn width(&self) -> Length {
         Length::Units(0)
     }
@@ -162,13 +159,13 @@ impl<Message: Clone> Widget<Message, Renderer> for MouseListener {
                 event: Event,
                 _layout: Layout<'_>,
                 _cursor_position: Point,
-                _messages: &mut Vec<Message>,
+                messages: &mut Vec<Message>,
                 _renderer: &Renderer,
                 _clipboard: Option<&dyn Clipboard>) {
         if let Event::Mouse(mouse::Event::Input{state, button: mouse::Button::Left}) = event {
             match state {
-                ButtonState::Pressed => {self.0.set(true)},
-                ButtonState::Released => {self.0.set(false)},
+                ButtonState::Pressed => {},
+                ButtonState::Released => {messages.push(self.0.clone())},
             }
         }
     }
@@ -192,7 +189,6 @@ impl Gradient {
         let color_b = [0.0, 0.0, 1.0, 1.0];
         let color_br = [1.0, 0.0, 1.0, 1.0];
         let chunk = 1.0/6.0;
-        let h = 1.0;
         Mesh2D {
             vertices: vec![
                 Vertex2D { position: [0.0,      0.0],   color: color_r },

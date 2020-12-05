@@ -1,5 +1,5 @@
 use crate::ui::{
-    GridMessage as GMsg,
+    GridMessage,
     RightMenuMessage as RMMsg,
     TopMenuMessage as TMMsg,
     RightPanelMessage as RPMsg,
@@ -7,9 +7,10 @@ use crate::ui::{
     LeftPanelMessage as LPMsg,
     PaletteMessage
 };
-use crate::entities::Color;
 use std::sync::Arc;
-use crate::grid::Grid;
+use crate::model::{Model, Color};
+
+type GMsg = GridMessage<Model<Color>>;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -20,9 +21,9 @@ pub enum Message {
     LeftPanel(LPMsg),
     RightPanel(RPMsg),
     LeftMenu(LMMsg),
-    GridUpdated(Arc<Grid<Color>>),
-    GridLoaded(Arc<Grid<Color>>),
+    GridUpdated(Arc<Model<Color>>),
     Error(String),
+    MouseRelease,
 }
 
 impl From<TMMsg> for Message {
@@ -70,11 +71,7 @@ impl From<Message> for TMMsg {
             Message::LeftMenu(LMMsg::ShowResize) => TMMsg::Hide,
             Message::LeftPanel(LPMsg::FS(FilesMessage::Open(..))) |
             Message::LeftPanel(LPMsg::FS(FilesMessage::Save(..))) => TMMsg::Hide,
-            Message::RightPanel(RPMsg::AddColor(color)) => TMMsg::Palette(PaletteMessage::AddColor(color)),
-            Message::RightPanel(RPMsg::RemoveColor) => TMMsg::Palette(PaletteMessage::RemoveColor),
-            Message::GridLoaded(grid) => {
-                TMMsg::Palette(PaletteMessage::Loaded(grid.unique_items()))
-            }
+            Message::GridUpdated(model) => TMMsg::Palette(PaletteMessage::Updated(model)),
             _ => TMMsg::Ignore,
         }
     }
@@ -106,11 +103,11 @@ impl From<Message> for GMsg {
         use Message::*;
         match msg  {
             Grid(msg) => msg,
-            GridLoaded(v) |
-            GridUpdated(v) => GMsg::GridUpdated(v),
+            GridUpdated(model) => GMsg::GridUpdated(model),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
-            LeftMenu(LMMsg::SchemaChange) => GMsg::SchemaChange,
+            Message::LeftMenu(LMMsg::MoveSeam(moving)) => GMsg::Rotate(-moving),
+            MouseRelease => GMsg::MouseRelease,
             _ => GMsg::Ignore
         }
     }
@@ -125,8 +122,7 @@ impl From<Message> for LPMsg {
             TopMenu(TMMsg::Save) => LPMsg::ShowSave,
             TopMenu(TMMsg::Hide) | LeftMenu(LMMsg::Hide) => LPMsg::Hide,
             LeftMenu(LMMsg::ShowResize) => LPMsg::ShowResize,
-            GridLoaded(grid) |
-            GridUpdated(grid) => LPMsg::GridUpdated(grid),
+            GridUpdated(model) => LPMsg::Resize(model.grid().size()),
             _ => LPMsg::Ignore,
         }
     }
@@ -140,9 +136,7 @@ impl From<Message> for RPMsg {
             RightMenu(RMMsg::ShowBeads) => RPMsg::ShowBeads,
             RightMenu(RMMsg::ShowColors) => RPMsg::ShowColors,
             RightMenu(RMMsg::Hide) => RPMsg::Hide,
-            GridLoaded(grid) |
-            GridUpdated(grid) => RPMsg::GridUpdated(grid),
-            LeftMenu(LMMsg::SchemaChange) => RPMsg::Refresh,
+            GridUpdated(model) => RPMsg::GridUpdated(model),
             _ => RPMsg::Ignore
         }
     }

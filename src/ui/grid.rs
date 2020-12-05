@@ -1,29 +1,27 @@
 use crate::reimport::*;
 use super::AppWidget;
 use super::widget::ColorBox;
-use crate::grid::Grid;
-use crate::entities::{Color, Schema, Coord};
-use std::rc::Rc;
-use std::cell::Cell;
-use std::sync::Arc;
+use std::{sync::Arc, iter};
+use crate::model::*;
+use std::fmt::Debug;
+
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum Message<T: Debug + Send + Sync> {
     Ignore,
-    GridClicked(Coord),
-    SetColor(Coord, Color),//TODO: надо бы убрать, здесь неактуально
-    GridUpdated(Arc<Grid<Color>>),
+    Press(Coord),
+    Move(Coord),
+    GridUpdated(Arc<T>),
     Rotate(isize),
     SetRotation(f32),
-    SchemaChange,
     ZoomIn,
     ZoomOut,
+    MouseRelease,
 }
 
-pub struct GridPlate {
-    grid: Arc<Grid<Color>>,
-    mouse_hold: Rc<Cell<bool>>,
-    schema: Rc<Cell<Schema>>,
+pub struct GridPlate<T> {
+    grid_ref: Arc<T>,
+    mouse_hold: bool,
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
@@ -32,26 +30,17 @@ pub struct GridPlate {
     rot_r: button::State,
 }
 
-impl GridPlate {
-    pub fn new(schema: Rc<Cell<Schema>>, mouse_hold: Rc<Cell<bool>>) -> Self {
+impl<T> GridPlate<T> {
+    pub fn new(grid_ref: Arc<T>) -> Self {
         Self {
-            grid: Arc::new(Grid::default()),
-            mouse_hold ,
-            schema,
+            grid_ref,
+            mouse_hold: false,
             rotation: 0,
             half_size: 6,
             slider: Default::default(),
             scroll: Default::default(),
             rot_l: Default::default(),
             rot_r: Default::default(),
-        }
-    }
-    fn switch_schema(&mut self) {
-        use Schema::*;
-        match self.schema.get() {
-            FirstOffset => self.schema.set(Straight),
-            SecondOffset => self.schema.set(FirstOffset),
-            Straight => self.schema.set(SecondOffset),
         }
     }
 }
@@ -62,48 +51,52 @@ fn normalize_rotation(rot: isize, width: usize) -> usize {
     if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
 }
 
-impl AppWidget for GridPlate {
-    type Message = Message;
+impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for GridPlate<T> {
+    type Message = Message<T>;
 
-
-    fn view(&mut self) -> Element<'_, Message> {
+    fn view(&mut self) -> Element<'_, Message<T>> {
         let full = Length::Units(self.half_size * 2);
         let half = Length::Units(self.half_size);
-        let portions = match self.schema.get() {
+        let grid = self.grid_ref.as_ref().as_ref();
+        let schema = self.grid_ref.get_schema();
+        let portions = match schema {
             Schema::FirstOffset => [full, half, full],
             Schema::SecondOffset => [half, full, half],
             Schema::Straight => [half, half, half],
         };
-        let grid = &self.grid;
         let width = grid.width();
         let range = 0..width;
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
-            grid.as_table().iter().enumerate().map(|(row, arr)| {
-                let mut children= Vec::with_capacity(arr.len() + 2);
-                let index = row % 2;
-                children.push(Element::from(
-                    Space::new(portions[index],full)
-                ));
-                let iter = arr.iter()
-                    .cycle()
+            grid.as_full_table_iter().enumerate().map(|(index, row)| {
+                let portion_index = index % 2;
+                let children = iter::once( //left cell (maybe half)
+                    Space::new(portions[portion_index],full).into()
+                ).chain( //cells with beads
+                    row.cycle()
                     .zip(range.clone().into_iter().cycle())
                     .skip(rotation)
-                    .take(width);
-                children.extend(iter.map(|(item, col)| {
-                    let coord = Coord{x:row, y:col};
-                    let mut widget = ColorBox::new(item.clone())
-                        .width(full)
-                        .height(full)
-                        .on_press(Message::GridClicked(coord).into());
-                    if self.mouse_hold.get() {
-                        widget = widget.on_over(Message::GridClicked(coord))
-                    }
-                    widget.into()
-                }));
-                children.push(
-                    Space::new(portions[index+1],full).into()
-                );
+                    .take(width)
+                    .map(|((Bead {color, filled}, first), col)| {
+                        let coord = Coord{x:index, y:col};
+                        let mut widget = ColorBox::new(color.clone())
+                            .width(full)
+                            .height(full)
+                            .on_press(Message::Press(coord).into());
+                        if self.mouse_hold {
+                            widget = widget.on_over(Message::Move(coord));
+                        }
+                        if *first {
+                            widget = widget.border_color(iced::Color::from_rgb(0.9, 0.0, 0.0))
+                        }
+                        if *filled {
+                            widget = widget.border_color(iced::Color::WHITE);
+                        }
+                        widget.into()
+                    })
+                ).chain( //right cell
+                    iter::once(Space::new(portions[portion_index+1],full).into())
+                ).collect();
                 Row::with_children(children).into()
             }).collect());
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
@@ -127,21 +120,21 @@ impl AppWidget for GridPlate {
         ).into()
     }
 
-    fn update(&mut self, msg: Message) {
+    fn update(&mut self, msg: Message<T>) {
         use Message::*;
         match msg {
-            GridUpdated(grid) => self.grid = grid,
+            MouseRelease => self.mouse_hold = false,
+            GridUpdated(model) => self.grid_ref = model,
             Rotate(rotation) => { self.rotation += rotation; }
             SetRotation(rotation) => {
-                let width = self.grid.width() as f32;
+                let width = self.grid_ref.as_ref().as_ref().width() as f32;
                 let rotation = width*rotation;
                 self.rotation = rotation.round() as isize;
             }
             ZoomIn => { self.half_size += 1; }
             ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
-            SchemaChange => self.switch_schema(),
-            Ignore | GridClicked(..) => {}
-            SetColor(..) =>{}
+            Press(..) => self.mouse_hold = true,
+            Move(..) | Ignore => {}
         }
     }
 }

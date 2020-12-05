@@ -4,6 +4,9 @@ use crate::ui::{
     TopMenuMessage as TMMsg,
     LeftPanelMessage as LPMsg,
     FilesMessage as FMsg,
+    RightPanelMessage as RPMsg,
+    LeftMenuMessage as LMMsg,
+    PaletteMessage as PMsg,
 };
 
 impl From<Message> for GridServiceMessage<Color> {
@@ -11,12 +14,18 @@ impl From<Message> for GridServiceMessage<Color> {
         use Message::*;
         use GridServiceMessage as GSMsg;
         match msg {
-            Grid(GMsg::SetColor(coord, color)) => GSMsg::Point(coord, color),
+            Grid(GMsg::Move(coord)) | Grid(GMsg::Press(coord)) => GSMsg::Draw(coord),
             LeftPanel(LPMsg::Grow(side)) => GSMsg::Grow(side),
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
+            LeftMenu(LMMsg::SchemaChange) => GSMsg::SchemaChange,
+            Message::LeftMenu(LMMsg::MoveSeam(x)) => GSMsg::MoveSeam(x),
+            RightPanel(RPMsg::ToggleCheckbox(index)) => GSMsg::ToggleLineItem(index),
+            RightPanel(RPMsg::AddColor(color)) => GSMsg::AddColor(color),
+            RightPanel(RPMsg::RemoveColor) => GSMsg::RemoveColor,
             TopMenu(TMMsg::Undo) => GSMsg::Undo,
             TopMenu(TMMsg::Redo) => GSMsg::Redo,
+            TopMenu(TMMsg::Palette(PMsg::ActivateColor(color))) => GSMsg::ActivateColor(color),
             _ => GSMsg::Ignore
         }
     }
@@ -26,8 +35,7 @@ impl From<GridServiceMessage<Color>> for Message {
     fn from(msg: GridServiceMessage<Color>) -> Self {
         use GridServiceMessage::*;
         match msg {
-            Updated(v) => Message::GridUpdated(v),
-            Loaded(v) => Message::GridLoaded(v),
+            Updated(v) | Loaded(v) => Message::GridUpdated(v),
             _ => Message::Ignore
         }
     }

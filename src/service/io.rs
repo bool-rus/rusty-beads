@@ -1,19 +1,18 @@
-use crate::grid::Grid;
-use crate::entities::Color;
 use std::sync::Arc;
 use std::path::PathBuf;
+use crate::model::*;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Open(PathBuf),
     Save(PathBuf),
-    Loaded(Arc<Grid<Color>>),
-    GridUpdated(Arc<Grid<Color>>),
+    Loaded(Arc<Model<Color>>),
+    GridUpdated(Arc<Model<Color>>),
     Ignore,
 }
 #[derive(Default)]
 pub struct Service {
-    grid: Arc<Grid<Color>>
+    model: Arc<Model<Color>>
 }
 
 impl super::Service for Service {
@@ -22,15 +21,25 @@ impl super::Service for Service {
     fn service(&mut self, msg: Self::Message) -> Result<Option<Self::Message>, String> {
         use Message::*;
         Ok( match msg {
-            Open(path) => Some(Loaded(
-                Arc::new(crate::io::read(path).map_err(|e|e.to_string())?)
-            )),
+            Open(path) => {
+                let model = Arc::new(match crate::io::load_line(&path) {
+                    Ok(line) => {
+                        Model::from(line)
+                    }
+                    Err(_e) => {
+                        let grid = crate::io::load_grid(&path)?;
+                        Model::from(grid)
+                    }
+                });
+                self.model = model.clone();
+                Some(Loaded(model))
+            },
             Save(path) => {
-                crate::io::write(path, self.grid.as_table()).map_err(|e|e.to_string())?;
+                crate::io::save(&path, self.model.line())?;
                 None
             },
-            GridUpdated(grid) => {
-                self.grid = grid;
+            GridUpdated(model) => {
+                self.model = model;
                 None
             },
             Ignore | Loaded(_) => None,

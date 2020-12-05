@@ -1,45 +1,72 @@
+#![windows_subsystem = "windows"]
 mod reimport;
-mod grid;
-mod entities;
+mod model;
 mod ui;
 mod wrapper;
 mod io;
-mod beads;
 mod message;
 mod service;
 
 use reimport::*;
 use message::Message;
 use ui::*;
-use std::cell::{Cell};
-use crate::entities::Schema;
-use crate::service::AppService;
-use std::rc::Rc;
+use service::AppService;
+use model::{Model, Color};
+use std::sync::Arc;
 
+fn default_colors() -> Vec<Color> {
+    vec![
+        Color { r: 0x61 ,   g: 0x00,    b: 0x00 },
+        Color { r: 0xff,    g: 0x00,    b: 0x88 },
+        Color { r: 0x98,    g: 0x02,    b: 0x2f },
+        Color { r: 0xcf,    g: 0x32,    b: 0x00 },
+        Color { r: 0xff,    g: 0x32,    b: 0x32 },
+        Color { r: 0xfd,    g: 0x8c,    b: 0x0e },
+        Color { r: 0xff,    g: 0xe6,    b: 0x11 },
+        Color { r: 0xff,    g: 0xfc,    b: 0x72 },
+        Color { r: 0x88,    g: 0x0c,    b: 0x14 },
+        Color { r: 0xb0,    g: 0x5e,    b: 0x07 },
+        Color { r: 0x29,    g: 0x13,    b: 0x9c },
+        Color { r: 0x3f,    g: 0x9b,    b: 0xe3 },
+        Color { r: 0x69,    g: 0xc7,    b: 0xac },
+        Color { r: 0x9a,    g: 0xcc,    b: 0xb0 },
+        Color { r: 0x49,    g: 0x8c,    b: 0x55 },
+        Color { r: 0x00,    g: 0xb1,    b: 0x5a },
+        Color { r: 0x3e,    g: 0xe0,    b: 0x19 },
+        Color { r: 0x8d,    g: 0xe4,    b: 0x6f },
+        Color { r: 0x8c,    g: 0x62,    b: 0xd3 },
+        Color { r: 0xc8,    g: 0xb5,    b: 0xff },
+        Color { r: 0xdd,    g: 0xdd,    b: 0xdd },
+        Color { r: 0x90,    g: 0x93,    b: 0x9e },
+        Color { r: 0x00,    g: 0x00,    b: 0x00 },
+    ]
+}
 
 struct App {
     service: AppService,
     top_menu: TopMenu,
-    grid_plate: GridPlate,
+    grid_plate: GridPlate<Model<Color>>,
     right_panel: RightPanel,
     right_menu: RightMenu,
     left_menu: LeftMenu,
     left_panel: LeftPanel,
-    mouse_hold: Rc<Cell<bool>>,
 }
 
 impl Default for App {
     fn default() -> Self {
-        let schema = Rc::new(Cell::new(Schema::FirstOffset));
-        let mouse_hold = Rc::new(Cell::new(false));
+        let model = default_colors().into_iter().fold(Model::default(), |mut model, color| {
+            model.add_color(color);
+            model
+        });
+        let service = AppService::new(model.clone());
+        let model = Arc::new(model);
         Self {
-            service: Default::default(),
-            top_menu: Default::default(),
-            grid_plate: GridPlate::new(schema.clone(), mouse_hold.clone()),
-            right_panel: RightPanel::new( schema.clone()),
+            service,
+            top_menu: TopMenu::new(model.clone()),
+            grid_plate: GridPlate::new(model.clone()),
+            right_panel: RightPanel::new(model.clone()),
             right_menu: RightMenu::default(),
             left_menu: LeftMenu::default(),
-            mouse_hold,
             left_panel: Default::default(),
         }
     }
@@ -73,7 +100,6 @@ impl Sandbox for App {
     }
 
     fn view(&mut self) -> Element<'_, Message> {
-        let active_color = self.top_menu.palette().active_color();
         let top = Container::new(self.top_menu.view().map(From::from))
             .height(Length::Units(30));
         let bottom = Container::new(Text::new(""));
@@ -81,14 +107,9 @@ impl Sandbox for App {
             .width(Length::Units(30));
         let right = Container::new(self.right_menu.view().map(From::from))
             .width(Length::Units(25));
-        let content = Container::new(self.grid_plate.view().map(move |msg| {
-            match msg { //TODO: как-то неочевидно, надо переделать
-                GridMessage::GridClicked(coord) => Message::Grid(GridMessage::SetColor(coord, active_color)),
-                msg => Message::Grid(msg)
-            }
-        }));
+        let content = Container::new(self.grid_plate.view().map(From::from));
         let row = Row::new().spacing(5)
-            .push(Element::new(ui::MouseListener::new(self.mouse_hold.clone())))
+            .push(Element::new(ui::MouseListener(Message::MouseRelease)))
             .width(Length::Fill)
             .height(Length::Fill)
             .push(left)

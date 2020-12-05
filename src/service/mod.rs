@@ -1,3 +1,5 @@
+use crate::model::*;
+
 mod io;
 mod message;
 mod grid;
@@ -5,20 +7,25 @@ mod grid;
 use grid::{Service as GridService, Message as GridServiceMessage};
 use io::{Service as IOService, Message as IOMessage};
 use crate::message::Message;
-use crate::entities::Color;
 
 
 pub trait Service {
     type Message;
     fn service(&mut self, msg: Self::Message) -> Result<Option<Self::Message>, String>;
 }
-#[derive(Default)]
+
 pub struct AppService {
     grid: GridService<Color>,
     io: IOService,
 }
 
 impl AppService {
+    pub fn new(model: Model<Color>) -> Self {
+        Self {
+            grid: GridService::new(model),
+            io: Default::default(),
+        }
+    }
     fn process_with_result(&mut self, msg: Message) -> Result<Option<Message>, String> {
         let grid_msg;
         if let Some(io_response) = self.io.service(msg.clone().into())? {

@@ -2,6 +2,8 @@ use crate::reimport::*;
 use super::{AppWidget, icon, palette};
 use super::style::ToggledOn;
 use super::SvgButton;
+use crate::model::{Color, Model};
+use std::sync::Arc;
 
 pub mod top {
     use super::*;
@@ -17,22 +19,16 @@ pub mod top {
         active_mode: ActiveMode,
     }
 
-    impl Default for TopMenu {
-        fn default() -> Self {
+    impl TopMenu {
+        pub fn new(model: Arc<Model<Color>>) -> Self {
             TopMenu {
-                palette: Default::default(),
+                palette: Palette::new(model),
                 save: SvgButton::new(icon::SAVE),
                 load: SvgButton::new(icon::OPEN),
                 undo: SvgButton::new(icon::UNDO),
                 redo: SvgButton::new(icon::REDO),
                 active_mode: Default::default(),
             }
-        }
-    }
-
-    impl TopMenu {
-        pub fn palette(&self) -> &Palette {
-            &self.palette
         }
     }
 
@@ -163,7 +159,6 @@ pub mod right {
 
 pub mod left {
     use super::*;
-    use button::State;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Message {
@@ -173,6 +168,7 @@ pub mod left {
         SchemaChange,
         ZoomIn,
         ZoomOut,
+        MoveSeam(isize),
     }
 
     #[derive(PartialEq, Clone, Copy)]
@@ -187,31 +183,50 @@ pub mod left {
         }
     }
 
-    #[derive(Default)]
-    pub struct Menu {
+    pub struct Menu { //TODO: зарефакторить все под SvgButton
         active: ActiveMode,
-        toggle_resize: State,
-        zoom_in: State,
-        zoom_out: State,
-        schema_change: State,
+        toggle_resize: SvgButton,
+        zoom_in: SvgButton,
+        zoom_out: SvgButton,
+        schema_change: SvgButton,
+        seam_left: SvgButton,
+        seam_right: SvgButton,
+    }
+    
+    impl Default for Menu {
+        fn default() -> Self {
+            use icon::*;
+            Menu {
+                active: Default::default(),
+                toggle_resize: SvgButton::new(RESIZE),
+                zoom_in: SvgButton::new(ZOOM_IN),
+                zoom_out: SvgButton::new(ZOOM_OUT),
+                schema_change: SvgButton::new(CHANGE_SCHEMA),
+                seam_left: SvgButton::new(SEAM_LEFT),
+                seam_right: SvgButton::new(SEAM_RIGHT),
+            }
+        }
     }
 
     impl AppWidget for Menu {
         type Message = Message;
 
         fn view(&mut self) -> Element<'_, Self::Message> {
-            let mut resize_btn = Button::new(&mut self.toggle_resize, icon::RESIZE.svg()).on_press(Message::ShowResize);
-
-            match self.active {
-                ActiveMode::Empty => {},
-                ActiveMode::Resize => { resize_btn = resize_btn.on_press(Message::Hide).style(ToggledOn) },
+            let (msg, toggled_on)  = match self.active {
+                ActiveMode::Empty => (Message::ShowResize, false),
+                ActiveMode::Resize => (Message::Hide, true),
+            };
+            let mut resize_btn = self.toggle_resize.button().on_press(msg);
+            if toggled_on {
+                resize_btn = resize_btn.style(ToggledOn);
             }
-
             Column::new().width(Length::Fill).spacing(5)
                 .push(resize_btn)
-                .push(Button::new(&mut self.zoom_in, icon::ZOOM_IN.svg()).on_press(Message::ZoomIn))
-                .push(Button::new(&mut self.zoom_out, icon::ZOOM_OUT.svg()).on_press(Message::ZoomOut))
-                .push(Button::new(&mut self.schema_change, icon::CHANGE_SCHEMA.svg()).on_press(Message::SchemaChange))
+                .push(self.zoom_in.button().on_press(Message::ZoomIn))
+                .push(self.zoom_out.button().on_press(Message::ZoomOut))
+                .push(self.schema_change.button().on_press(Message::SchemaChange))
+                .push(self.seam_left.button().on_press(Message::MoveSeam(-1)))
+                .push(self.seam_right.button().on_press(Message::MoveSeam(1)))
                 .into()
         }
 

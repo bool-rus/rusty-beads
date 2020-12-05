@@ -1,54 +1,54 @@
-use crate::grid::Grid;
-use crate::entities::Color;
+use crate::model::{Grid, ColorBead, Color, Bead};
 use std::fs::File;
-use std::io::Write;
+use std::io::{Write, BufReader};
 use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
+use crate::model::beads::BeadsLine;
+use serde::Deserialize;
 
-pub fn write<T: AsRef<Path>>(file: T, table: Vec<&[Color]>) -> std::io::Result<()> {
+pub fn save(path: &PathBuf, line: &BeadsLine<ColorBead>) -> Result<(), String> {
+    let mut file = File::create(path)
+        .map_err(|e|e.to_string())?;
+    let serialized = serde_json::to_string(line)
+        .map_err(|e|e.to_string())?;
+    file.write_all(serialized.as_bytes())
+        .map_err(|e|e.to_string())
+}
 
-    let mut file = File::create(file)?;
-    for row in table.into_iter() {
-        let mut first = true;
-        for item in row.iter() {
-            if first {
-                first = false;
-            } else {
-                write!(&mut file, ",")?;
-            }
-            write!(&mut file, "{:X}", item)?;
-        }
-        write!(&mut file, "\n")?;
-    }
-
-    Ok(())
+pub fn load_line(path: &PathBuf) -> Result<BeadsLine<ColorBead>, String> {
+    let file = File::open(path).map_err(|e| e.to_string())?;
+    let reader = BufReader::new(file);
+    let mut deserializer = serde_json::Deserializer::from_reader(reader);
+    BeadsLine::deserialize(&mut deserializer).map_err(|e|e.to_string())
 }
 
 
-pub fn read<T: AsRef<Path>>(file: T) -> Result<Grid<Color>,quick_csv::error::Error> {
+pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<ColorBead>, String> {
     let mut data = Vec::with_capacity(10000usize);
-    let csv = Csv::from_file(file)?;
+    let csv = Csv::from_file(file).map_err(|e|e.to_string())?;
     let mut first = true;
     let mut width = 0usize;
-    let mut counter = 0usize;
     for row in csv.into_iter() {
-        let row = row?;
+        let row = row.map_err(|e|e.to_string())?;
         if first {
             first = false;
             width = row.len();
         }
-        counter += 1;
-        row.columns()?.for_each(|item| {
+        row.columns().map_err(|e|e.to_string())?.for_each(|item| {
             data.push(Color::from_str(item).unwrap())
         })
     }
-    Ok(Grid::frow_raw(
-        NonZeroUsize::new(width).unwrap(),
-        NonZeroUsize::new(counter).unwrap(),
-        data
-    ).unwrap())
+    let width = NonZeroUsize::new(width).ok_or("invalid width".to_string())?;
+    let data = data.into_iter().map(|color|(color, false)).collect();
+    let grid = Grid::frow_raw(width, data)
+        .map_err(|e|e.to_string())?
+        .map(|item|Bead {
+        color: item.clone(),
+        filled: false,
+    });
+    Ok(grid)
 }
 
 pub fn default_dir() -> PathBuf {

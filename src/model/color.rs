@@ -1,10 +1,9 @@
-
+use super::{Serialize, Deserialize};
 use std::fmt;
-use std::str::{FromStr};
-use std::num::{ParseIntError, NonZeroUsize};
+use std::num::ParseIntError;
+use std::str::FromStr;
 
-
-#[derive(Clone, Hash, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Hash, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -85,25 +84,4 @@ impl From<iced::Color> for Color {
             b: (max * color.b) as u8,
         }
     }
-}
-#[derive(Debug, Copy, Clone)]
-pub enum Side { Top, Left, Right, Bottom }
-
-#[derive(Debug, Copy, Clone)]
-pub enum Schema {
-    FirstOffset,
-    SecondOffset,
-    Straight,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Size {
-    pub width: NonZeroUsize,
-    pub height: NonZeroUsize,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Coord {
-    pub x: usize,
-    pub y: usize,
 }
