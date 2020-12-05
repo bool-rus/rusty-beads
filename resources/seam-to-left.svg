@@ -3,9 +3,8 @@
   <defs>
     <bx:grid x="0" y="0" width="10" height="10"/>
   </defs>
-  <rect x="230" y="50" width="100" height="100" style="fill: none; stroke: rgb(222, 2, 2); stroke-width: 16px;"/>
-  <rect x="280" y="150" width="100" height="100" style="fill: none; stroke: rgb(222, 2, 2); stroke-width: 16px;"/>
-  <rect x="330" y="250" width="100" height="100" style="fill: none; stroke: rgb(222, 2, 2); stroke-width: 16px;"/>
-  <rect x="380" y="350" width="100" height="100" style="fill: none; stroke: rgb(222, 2, 2); stroke-width: 16px;"/>
-  <path d="M 337.512 536.666 H 455.889 L 455.889 459.999 L 607.52 574.999 L 455.889 689.998 L 455.889 613.332 H 337.512 V 536.666 Z" style="fill: rgb(3, 3, 164);" transform="matrix(-1, -0.000812, -0.000812, 1, 617.990963, -239.618887)" bx:shape="arrow 337.512 459.999 270.008 229.999 76.666 151.631 0 1@863848fb"/>
+  <rect x="220" y="40" width="150" height="140" style="stroke: rgb(222, 2, 2); stroke-width: 30px; fill: rgb(255, 255, 255);"/>
+  <path d="M 262.501 559.794 H 354.569 L 354.569 479.823 L 472.502 599.779 L 354.569 719.734 L 354.569 639.764 H 262.501 V 559.794 Z" style="fill: rgb(3, 3, 164);" transform="matrix(-1, -0.000508, 0.000508, -1, 482.25824, 929.97406)" bx:shape="arrow 262.501 479.823 210.001 239.911 79.97 117.933 0 1@d9366c9e"/>
+  <rect x="260" y="180" width="150" height="140" style="stroke: rgb(222, 2, 2); stroke-width: 30px; fill: rgb(255, 255, 255);"/>
+  <rect x="310" y="320" width="150" height="140" style="stroke: rgb(222, 2, 2); stroke-width: 30px; fill: rgb(255, 255, 255);"/>
 </svg>
