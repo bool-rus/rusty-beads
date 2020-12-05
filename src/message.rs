@@ -106,6 +106,7 @@ impl From<Message> for GMsg {
             GridUpdated(model) => GMsg::GridUpdated(model),
             LeftMenu(LMMsg::ZoomIn) => GMsg::ZoomIn,
             LeftMenu(LMMsg::ZoomOut) => GMsg::ZoomOut,
+            Message::LeftMenu(LMMsg::MoveSeam(moving)) => GMsg::Rotate(-moving),
             MouseRelease => GMsg::MouseRelease,
             _ => GMsg::Ignore
         }

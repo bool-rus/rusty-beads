@@ -21,6 +21,9 @@ pub const RESIZE: SvgData = SvgData(include_bytes!("../../resources/resize.svg")
 
 pub const CHANGE_SCHEMA: SvgData = SvgData(include_bytes!("../../resources/change-schema.svg"));
 
+pub const SEAM_LEFT: SvgData = SvgData(include_bytes!("../../resources/seam-to-left.svg"));
+pub const SEAM_RIGHT: SvgData = SvgData(include_bytes!("../../resources/seam-to-right.svg"));
+
 pub const SAVE: SvgData = SvgData(include_bytes!("../../resources/save.svg"));
 pub const OPEN: SvgData = SvgData(include_bytes!("../../resources/open.svg"));
 pub const FOLDER: SvgData = SvgData(include_bytes!("../../resources/folder.svg"));

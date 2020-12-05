@@ -41,6 +41,7 @@ pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<ColorBead>, String> {
         })
     }
     let width = NonZeroUsize::new(width).ok_or("invalid width".to_string())?;
+    let data = data.into_iter().map(|color|(color, false)).collect();
     let grid = Grid::frow_raw(width, data)
         .map_err(|e|e.to_string())?
         .map(|item|Bead {

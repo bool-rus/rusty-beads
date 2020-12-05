@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="-15" y="-15" width="5" height="5"/>
+  </defs>
+  <path style="paint-order: fill; fill: rgb(240, 38, 38);" d="M 10.001 95 C 5.591 97.76 78.158 24.12 96.947 36.771 L 105 4.95 C 85.617 -4.164 3.369 83.946 10.001 95 Z"/>
+  <path style="paint-order: fill; fill: rgb(240, 38, 38);" d="M 5 10 C 4.79 10.196 72.581 93.311 90 80 L 95 104.309 C 76.948 113.868 -3.806 26.029 5 10 Z" transform="matrix(-1, 0, 0, -1, 99.999533, 115.00016)"/>
+</svg>

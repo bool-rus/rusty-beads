@@ -19,6 +19,7 @@ impl From<Message> for GridServiceMessage<Color> {
             LeftPanel(LPMsg::Shrink(side)) => GSMsg::Shrink(side),
             LeftPanel(LPMsg::Resize(size)) => GSMsg::Resize(size),
             LeftMenu(LMMsg::SchemaChange) => GSMsg::SchemaChange,
+            Message::LeftMenu(LMMsg::MoveSeam(x)) => GSMsg::MoveSeam(x),
             RightPanel(RPMsg::ToggleCheckbox(index)) => GSMsg::ToggleLineItem(index),
             RightPanel(RPMsg::AddColor(color)) => GSMsg::AddColor(color),
             RightPanel(RPMsg::RemoveColor) => GSMsg::RemoveColor,

@@ -20,6 +20,7 @@ pub enum Message<T: ColorTrait> {
     AddColor(T),
     RemoveColor,
     DrawColor(Coord, T),
+    MoveSeam(isize),
 }
 
 pub struct Service<T: ColorTrait> {
@@ -70,10 +71,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 Some(self.updated())
             },
             Resize(size) => {
-                let prev = Size {
-                    width: NonZeroUsize::new(self.model.width()).unwrap(),
-                    height: NonZeroUsize::new(self.model.height()).unwrap(),
-                };
+                let prev = self.model.size();
                 self.push_undo(Resize(prev));
                 self.model.resize(size);
                 Some(self.updated())
@@ -134,6 +132,10 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
                 self.model.activate_color(prev_activated);
                 Some(self.updated())
             }
+            MoveSeam(direction) => {
+                self.model.rotate(direction);
+                Some(self.updated())
+            }
             Updated(_) | Ignore => None,
         })
     }
@@ -170,14 +172,22 @@ mod test {
         s.service(Message::Draw(Coord{ x: 0, y: 0 }));
         let vars: Vec<_> = vec![Message::Undo; 2].into_iter().map(|m|{
            match s.service(m).expect("undo must return message").unwrap() {
-               Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
+               Message::Updated(grid) => grid.as_ref().grid().as_table_iter()
+               .nth(0).unwrap()
+               .nth(0)
+               .map(|Bead{color, ..}|*color)
+               .unwrap(),
                _ => {panic!("undo must return updated")},
            }
         }).collect();
         assert_eq!(vars, vec![34,33]);
         let vars: Vec<_> = vec![Message::Redo; 2].into_iter().map(|m|{
             match s.service(m).expect("redo must return message").unwrap() {
-                Message::Updated(grid) => {grid.grid_color().as_table()[0][0]},
+                Message::Updated(grid) => grid.as_ref().grid().as_table_iter()
+                .nth(0).unwrap()
+                .nth(0)
+                .map(|Bead{color, ..}|*color)
+                .unwrap(),
                 _ => {panic!("undo must return updated")},
             }
         }).collect();
