@@ -10,9 +10,7 @@ mod service;
 use reimport::*;
 use message::Message;
 use ui::*;
-use std::cell::{Cell};
 use service::AppService;
-use std::rc::Rc;
 use model::{Model, Color};
 use std::sync::Arc;
 
@@ -38,7 +36,6 @@ fn default_colors() -> Vec<Color> {
         Color { r: 0x8d,    g: 0xe4,    b: 0x6f },
         Color { r: 0x8c,    g: 0x62,    b: 0xd3 },
         Color { r: 0xc8,    g: 0xb5,    b: 0xff },
-        Color { r: 0xff,    g: 0xff,    b: 0xff },
         Color { r: 0xdd,    g: 0xdd,    b: 0xdd },
         Color { r: 0x90,    g: 0x93,    b: 0x9e },
         Color { r: 0x00,    g: 0x00,    b: 0x00 },

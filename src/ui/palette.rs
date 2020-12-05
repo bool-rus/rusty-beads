@@ -2,9 +2,7 @@ use crate::model::*;
 use crate::model;
 use crate::reimport::*;
 use super::AppWidget;
-use std::collections::HashSet;
 use std::sync::Arc;
-use std::cmp::Ord;
 
 pub trait AsPalette :  std::fmt::Debug + AsRef<model::Palette<Color>> {}
 impl <T: AsRef<model::Palette<Color>>  + std::fmt::Debug > AsPalette for T {}
@@ -23,7 +21,7 @@ pub enum Message {
 }
 
 fn create_buttons(palette: &model::Palette<Color>) -> Vec<button::State> {
-    (1..palette.colors().len())
+    (0..palette.colors().len())
         .map(|_|button::State::new())
         .collect()
 }

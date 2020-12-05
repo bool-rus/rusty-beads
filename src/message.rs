@@ -8,7 +8,7 @@ use crate::ui::{
     PaletteMessage
 };
 use std::sync::Arc;
-use crate::model::{Model, Color, Coord};
+use crate::model::{Model, Color};
 
 type GMsg = GridMessage<Model<Color>>;
 

@@ -174,9 +174,6 @@ impl<T: Debug + Clone> Grid<T> {
     pub fn width(&self) -> usize {
         self.size.width.get()
     }
-    pub fn height(&self) -> usize {
-        self.size.height.get()
-    }
     pub fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut T, String> {
         Ok(self.data
             .as_mut_slice()

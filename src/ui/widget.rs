@@ -4,8 +4,6 @@ use iced_native::input::{mouse, ButtonState};
 use iced::{Size, Color, Element, Length, Point, Background};
 use crate::wrapper::Wrappable;
 use std::hash::Hash;
-use std::cell::Cell;
-use std::rc::Rc;
 use iced_wgpu::triangle::{Mesh2D, Vertex2D};
 
 pub struct ColorBox<T> {

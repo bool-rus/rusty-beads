@@ -26,7 +26,7 @@ impl super::Service for Service {
                     Ok(line) => {
                         Model::from(line)
                     }
-                    Err(e) => {
+                    Err(_e) => {
                         let grid = crate::io::load_grid(&path)?;
                         Model::from(grid)
                     }
