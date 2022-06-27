@@ -106,11 +106,19 @@ impl<T: ColorTrait> Model<T> {
         Ok(filled)
     }
     pub fn grow(&mut self, side: Side, value: T) {
+        if matches!(side, Side::Top) {
+            self.grid = self.line.grow_top();
+            return
+        }
         let mut grid = self.simplified_grid();
         grid.grow(side, Bead {color: value, filled: false});
         self.update_from_simplified(grid);
     }
     pub fn shrink(&mut self, side: Side) -> Result<(), String>{
+        if matches!(side, Side::Top) {
+            self.grid = self.line.shrink_top();
+            return Ok(())
+        }
         let mut grid = self.simplified_grid();
         grid.shrink(side)?;
         self.update_from_simplified(grid);

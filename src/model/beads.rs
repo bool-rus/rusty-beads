@@ -1,3 +1,4 @@
+use crate::wrapper::{Uncompressable, Compressable};
 
 use super::*;
 use super::line_builder::BeadsLineBuilder;
@@ -7,6 +8,35 @@ pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub width: usize,
     pub(super) line: Vec<(T,usize)>,
     pub schema: Schema,
+}
+
+impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
+    #[must_use]
+    pub fn grow_top(&mut self) -> Grid<T> {
+        let default_item = T::default();
+        if let Some((first_item, count)) = self.line.first_mut() {
+            if first_item == &default_item {
+                *count += self.width;
+                return self.grid();
+            }
+        } 
+        let mut buf = Vec::with_capacity(self.line.len() + 1);
+        buf.push((default_item, self.width));
+        std::mem::swap(&mut buf, &mut self.line);
+        self.line.append(&mut buf);
+        self.grid()
+    }
+    pub fn shrink_top(&mut self) -> Grid<T> {
+        let first = self.line.first().unwrap().clone().0;
+        let mut buf = vec![(first,1)];
+        std::mem::swap(&mut buf, &mut self.line);
+        self.line = buf.into_iter()
+        .uncompress()
+        .skip(self.width)
+        .compress()
+        .collect();
+        self.grid()
+    }
 }
 
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
