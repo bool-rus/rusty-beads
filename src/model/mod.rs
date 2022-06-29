@@ -47,7 +47,7 @@ impl Schema {
 
 impl Default for Schema {
     fn default() -> Self {
-        Schema::FirstOffset
+        Schema::SecondOffset
     }
 }
 

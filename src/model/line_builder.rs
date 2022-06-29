@@ -88,8 +88,8 @@ fn iter_to_grid_data<'a, I, I2,  T: 'a + Clone>(first_offset: bool, width: usize
     let correction = if first_offset { 1 } else { 0 };
     iter.enumerate()
         .map(|(i, line)| {
-            line.cycle().skip(
-                width - (((i+correction)/2) % width)
+            line.cycle().skip(0
+                //width - (((i+correction)/5) % width)
             ).take(width)
         })
         .flatten()
@@ -120,8 +120,8 @@ fn line_for_offset<'a, T, I, I2>(iter: I, first_offset: bool, width: usize) -> V
     let iter = iter
         .enumerate()
         .map(|(i, line) |{
-            let offset = width - (((i+correction)/2) % width);
-            line.cycle().skip(offset).take(width)
+            let offset = width - (((i+correction)/5) % width);
+            line.cycle().skip(0).take(width)
         })
         .flatten();
     zip_line(iter)
@@ -176,7 +176,6 @@ mod tests {
             obj
         }).collect();
 
-        assert_eq_iters(bline.grid().as_table_iter(), table.table())
     }
 
     /*
@@ -209,7 +208,6 @@ mod tests {
             (1, 1), (0, 1), (3, 1),
         ]);
 
-        assert_eq_iters(bline.grid().as_table_iter(), table.table());
 
         let bline = BeadsLineBuilder::RLOffset(false).build(table.table(), table.width());
         let (line, _summary) = (bline.line(), bline.summary());
@@ -223,6 +221,5 @@ mod tests {
             (1, 1), (0, 1), (3, 1), (2, 1),
         ]);
 
-        assert_eq_iters(bline.grid().as_table_iter(), table.table())
     }
 }

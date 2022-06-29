@@ -51,33 +51,29 @@ fn normalize_rotation(rot: isize, width: usize) -> usize {
     if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
 }
 
-impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for GridPlate<T> {
+impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>> AppWidget for GridPlate<T> {
     type Message = Message<T>;
 
     fn view(&mut self) -> Element<'_, Message<T>> {
-        let full = Length::Units(self.half_size * 2);
+        let chunks = 5usize;
+        let full = Length::Units(self.half_size * chunks as u16);
         let half = Length::Units(self.half_size);
         let grid = self.grid_ref.as_ref().as_ref();
-        let schema = self.grid_ref.get_schema();
-        let portions = match schema {
-            Schema::FirstOffset => [full, half, full],
-            Schema::SecondOffset => [half, full, half],
-            Schema::Straight => [half, half, half],
-        };
-        let width = grid.width();
-        let range = 0..width;
+        let (data, width) = grid.data();
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
-            grid.as_full_table_iter().enumerate().map(|(index, row)| {
-                let portion_index = index % 2;
-                let children = iter::once( //left cell (maybe half)
-                    Space::new(portions[portion_index],full).into()
-                ).chain( //cells with beads
-                    row.cycle()
-                    .zip(range.clone().into_iter().cycle())
+            data.chunks(width).into_iter().enumerate().map(|(index, row)| {
+                let row = row.into_iter();
+                let portion_index = index % chunks;
+                let rotation = rotation + (width - (index/chunks)%width);
+                let children = iter::once(half) //left cell (maybe half)
+                .cycle().take(portion_index)
+                .map(|w|Space::new(w, full).into())
+                .chain( //cells with beads
+                    row.copied().enumerate().rev().cycle()
                     .skip(rotation)
                     .take(width)
-                    .map(|((Bead {color, filled}, first), col)| {
+                    .map(|(col, Bead {color, filled})| {
                         let coord = Coord{x:index, y:col};
                         let mut widget = ColorBox::new(color.clone())
                             .width(full)
@@ -86,7 +82,7 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
                         if self.mouse_hold {
                             widget = widget.on_over(Message::Move(coord));
                         }
-                        if *first {
+                        if col == 0 {
                             widget = widget.border_color(iced::Color::from_rgb(0.9, 0.0, 0.0))
                         }
                         if *filled {
@@ -94,8 +90,6 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
                         }
                         widget.into()
                     })
-                ).chain( //right cell
-                    iter::once(Space::new(portions[portion_index+1],full).into())
                 ).collect();
                 Row::with_children(children).into()
             }).collect());
