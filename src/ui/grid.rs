@@ -55,12 +55,39 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
     type Message = Message<T>;
 
     fn view(&mut self) -> Element<'_, Message<T>> {
-        let chunks = 5usize;
+        let chunks = 7usize;
         let full = Length::Units(self.half_size * chunks as u16);
         let half = Length::Units(self.half_size);
         let grid = self.grid_ref.as_ref().as_ref();
+        let width = grid.width();
         let (data, width) = grid.data();
         let rotation = normalize_rotation(self.rotation, width);
+        let grid = Column::with_children(
+            grid.table(rotation).map(|row|{
+                let beads::BeadsRow {row, offset, iter} = row;
+                let spaces = iter::once(half).cycle().take(offset).map(|w|Space::new(w,full).into());
+                let cells = iter.take(width).map(|(col, Bead {color, filled})| {
+                    let coord = Coord{x:row, y:col};
+
+                    let mut widget = ColorBox::new(color.clone())
+                        .width(full)
+                        .height(full)
+                        .on_press(Message::Press(coord).into());
+                    if self.mouse_hold {
+                        widget = widget.on_over(Message::Move(coord));
+                    }
+                    if col == 0 {
+                        widget = widget.border_color(iced::Color::from_rgb(0.9, 0.0, 0.0))
+                    }
+                    if *filled {
+                        widget = widget.border_color(iced::Color::WHITE);
+                    }
+                    widget.into()
+                });
+                Row::with_children(spaces.chain(cells).collect()).into()
+            }).collect()
+        );
+        /* 
         let grid = Column::with_children(
             data.chunks(width).into_iter().enumerate().map(|(index, row)| {
                 let row = row.into_iter();
@@ -92,7 +119,7 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
                     })
                 ).collect();
                 Row::with_children(children).into()
-            }).collect());
+            }).collect());*/
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
             .width(Length::Fill)
             .height(Length::Fill)

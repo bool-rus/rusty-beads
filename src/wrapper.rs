@@ -97,6 +97,10 @@ impl<'a, I, T> Iterator for Uncompressed<'a,I,T> where I: Iterator<Item=&'a (T, 
             self.next()
         }
     }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (lower, higher) = self.iter.size_hint();
+        (lower + self.left, higher.map(|x|x + self.left))
+    }
 }
 
 pub trait Uncompressable<'a,I,T> {
@@ -124,6 +128,10 @@ impl<'a,I,T> Iterator for Chunked<I> where I: Iterator<Item = &'a T> + 'a, T: 'a
             buf.push(self.iter.next()?);
         }
         Some(buf)  
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (lower, higher) = self.iter.size_hint();
+        (lower/self.chunk_size + 1, higher.map(|n|n/self.chunk_size + 1))
     }
 }
 

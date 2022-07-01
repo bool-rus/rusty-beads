@@ -1,4 +1,4 @@
-use crate::wrapper::{Uncompressable, Compressable};
+use crate::wrapper::{Uncompressable, Compressable, Chunkable};
 
 use super::*;
 
@@ -36,6 +36,22 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn data(&self) -> (Vec<&T>, usize) {
         (self.line.iter().uncompress().collect(), self.width)
     }
+    pub fn table(&self, rotation: usize) -> impl Iterator<Item=BeadsRow<'_, T>> {
+        let width = self.width;
+        let base_offset = 7;
+        let offset_step = 3;
+        self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
+            let rotation = width - (rotation + row_num*offset_step/base_offset) % width;
+            let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
+            BeadsRow {row: row_num, offset: row_num*offset_step % base_offset, iter:  Box::new(iter) }
+        })
+    }
+}
+
+pub struct BeadsRow<'a, T> {
+    pub row: usize,
+    pub offset: usize,
+    pub iter: Box<dyn Iterator<Item=(usize, &'a T)> + 'a>,
 }
 
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
@@ -152,6 +168,10 @@ impl<T: ColorTrait + Default> Default for Bead<T> {
 
 #[cfg(test)]
 mod test {
+    use std::time::Instant;
+    use super::*;
+    use crate::wrapper::*;
+
     #[test]
     fn test_iters() {
         let x = [1,2,3,4,5,6,7,8,9,0];
@@ -166,4 +186,92 @@ mod test {
             Box::new(data.into_iter())
         }
     }
+
+    struct X<T>(Vec<(T, usize)>);
+    struct Y<'a, T>(Vec<&'a T>);
+
+    impl <'a, T> Y<'a,T> {
+        fn twisted_iter_table(&self, width: usize, revert_chunk: bool) -> impl Iterator<Item=impl Iterator<Item=&T>> {
+            self.0.chunks(width)
+            .enumerate()
+            .map(move |(n, chunk)|{
+                let iter = chunk.iter().copied();
+                let x: Box<dyn Iterator<Item=&T>> = if revert_chunk {
+                   Box::new( twist_iterator(iter.rev(), n, width) )
+                } else {
+                    Box::new(twist_iterator(iter, n, width))
+                };
+                x
+            })
+        }
+    }
+
+
+    impl<T> X<T> {
+        fn twisted_iter_table(&self, width: usize, revert_chunk: bool) -> impl Iterator<Item=impl Iterator<Item=&T>> {
+            self.0.iter().uncompress().chunks(width)
+            .enumerate()
+            .map(move |(n, chunk)|{
+                let iter = chunk.into_iter();
+                let x: Box<dyn Iterator<Item=&T>> = if revert_chunk {
+                   Box::new( twist_iterator(iter.rev(), n, width) )
+                } else {
+                    Box::new(twist_iterator(iter, n, width))
+                };
+                x
+            })
+        }
+    }
+
+    fn twist_iterator<I:Iterator+Clone>(iter: I, n: usize, width: usize) -> impl Iterator<Item = I::Item> {
+        iter.cycle().skip(n%width).take(width)
+    }
+
+    #[test]
+    fn test_twisted() {
+        let x = X((1..10).into_iter().map(|x|(x,1)).collect());
+        let twisted:Vec<_> = x.twisted_iter_table(3,false).flatten().copied().collect();
+        assert_eq!(twisted, vec![1,2,3,5,6,4,9,7,8]);
+        let twisted_rev: Vec<_> = x.twisted_iter_table(3,true).flatten().copied().collect();
+        assert_eq!(twisted_rev, vec![3,2,1,5,4,6,7,9,8])
+    }
+
+
+    #[test] 
+    fn bgg() {
+        let v = (0..2000u32).into_iter().map(|x|(x, 100)).collect();
+        let x = X(v);
+        let start = Instant::now();
+        for _ in 0..10 {
+            let table = x.twisted_iter_table(5,true);
+            let v = table.fold(Vec::new(), |mut v, iter| {
+                v.push(
+                    iter.fold(Vec::with_capacity(5), |mut v, x|{
+                        v.push(*x);
+                        v
+                    }).len()
+                );
+                v
+            });
+            v.len();
+        }
+        println!("with iters: {:?}", start.elapsed());
+        let start = Instant::now();
+        for _ in 0..10 {
+            let y = Y(x.0.iter().uncompress().collect());
+            let table = x.twisted_iter_table(50,true);
+            let v = table.fold(Vec::new(), |mut v, iter| {
+                v.push(
+                    iter.fold(Vec::with_capacity(50), |mut v, x|{
+                        v.push(*x);
+                        v
+                    }).len()
+                );
+                v
+            });
+            v.len();
+        }
+        println!("with data: {:?}", start.elapsed());
+    }
+
 }
