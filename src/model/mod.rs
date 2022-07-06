@@ -21,8 +21,6 @@ pub use palette::Palette;
 
 pub type ColorBead = Bead<Color>;
 
-pub type BeadGrid = Grid<Bead<Color>>;
-
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 

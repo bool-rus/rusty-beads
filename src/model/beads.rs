@@ -53,9 +53,6 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
         .compress()
         .collect();
     }
-    pub fn data(&self) -> (Vec<&T>, usize) {
-        (self.line.iter().uncompress().collect(), self.width)
-    }
 }
 
 pub struct BeadsRow<'a, T> {
@@ -76,16 +73,6 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
             let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
             BeadsRow {row: row_num, offset: schema.calculate_offset(row_num), iter:  Box::new(iter) }
         })
-    }
-    pub fn update_from_iter_iter<'a, I>(&mut self, table: I) where T: 'a, I: Iterator<Item=BeadsRow<'a, T>> {
-        let grid: Vec<_> = table.map(|br|br.iter).flatten().collect();
-        let width = grid.first().unwrap().0;
-        self.line = grid.chunks(width).map(|row|{
-            let offset = row.last().unwrap().0;
-            row.iter().rev().cycle().skip(width - offset).take(width).map(|&(_, obj)|obj)
-        }).flatten().compress()
-        .map(|(obj, count)|(obj.clone(), count))
-        .collect();
     }
     pub fn set_value(&mut self, value: T, coord: Coord) -> Option<T> {
         let index = coord.x + self.width * coord.y;

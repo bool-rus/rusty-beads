@@ -1,7 +1,6 @@
 use std::convert::TryInto;
 
 use super::*;
-use super::grid::SimplifiedGrid;
 
 impl<T: ColorTrait> Default for Model<T> {
     fn default() -> Self {
@@ -106,10 +105,6 @@ impl<T: ColorTrait> Model<T> {
     }
 }
 
-
-fn unfill_grid<T: Debug + Clone + ColorTrait>(grid: Grid<Bead<T>>) -> Grid<Bead<T>> { //TODO: плохой метод, надо его убрать
-    grid.map(|Bead { color, ..}|Bead{color: color.clone(), filled: false})
-}
 
 impl<T: ColorTrait + Default> Model<T> {
     pub fn resize(&mut self, size: Size) {
