@@ -140,7 +140,7 @@ impl<T: Default + ColorTrait> super::Service for Service<T> {
     }
 }
 
-#[cfg(test)]
+#[cfg(disable)]
 mod test {
     use super::*;
     use crate::service::Service as _;
@@ -153,14 +153,13 @@ mod test {
         let mut s = Service::new(model);
 
         for _ in 1..10 {
-            s.service(Message::Grow(Side::Top));
-            s.service(Message::Grow(Side::Left));
+            s.service(Message::Grow(Side::Top)).unwrap();
+            s.service(Message::Grow(Side::Left)).unwrap();
         }
         s
     }
 
     #[test]
-    #[cfg(none)]
     fn test_undo() {
         let mut s = make();
         s.service(Message::ActivateColor(33));

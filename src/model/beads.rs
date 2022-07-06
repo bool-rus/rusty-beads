@@ -172,45 +172,11 @@ impl<T: ColorTrait + Default> Default for Bead<T> {
 
 #[cfg(test)]
 mod test {
-    use std::{time::Instant, collections::hash_map::RandomState};
+    use std::time::Instant;
     use super::*;
     use rand::Rng;
-    use crate::wrapper::*;
-
-    #[test]
-    fn test_iters() {
-        let x = [1,2,3,4,5,6,7,8,9,0];
-        let z = x.into_iter();
-        let y: Vec<_> = x.into_iter().take(4).collect();
-        println!("y: {:?}", y);
-    }
-    fn test_iterators<T>(data: &[T]) -> Box<dyn Iterator<Item=&T> + '_> {
-        if data.len() > 10 {
-            Box::new(data.into_iter().rev())
-        } else {
-            Box::new(data.into_iter())
-        }
-    }
 
     struct X<T>(Vec<(T, usize)>);
-    struct Y<'a, T>(Vec<&'a T>);
-
-    impl <'a, T> Y<'a,T> {
-        fn twisted_iter_table(&self, width: usize, revert_chunk: bool) -> impl Iterator<Item=impl Iterator<Item=&T>> {
-            self.0.chunks(width)
-            .enumerate()
-            .map(move |(n, chunk)|{
-                let iter = chunk.iter().copied();
-                let x: Box<dyn Iterator<Item=&T>> = if revert_chunk {
-                   Box::new( twist_iterator(iter.rev(), n, width) )
-                } else {
-                    Box::new(twist_iterator(iter, n, width))
-                };
-                x
-            })
-        }
-    }
-
 
     impl<T> X<T> {
         fn twisted_iter_table(&self, width: usize, revert_chunk: bool) -> impl Iterator<Item=impl Iterator<Item=&T>> {
@@ -243,7 +209,7 @@ mod test {
 
 
     #[test] 
-    fn bgg() {
+    fn load_test() {
         let v = (0..2000u32).into_iter().map(|x|(x, 100)).collect();
         let x = X(v);
         let start = Instant::now();
@@ -263,7 +229,6 @@ mod test {
         println!("with iters: {:?}", start.elapsed());
         let start = Instant::now();
         for _ in 0..10 {
-            let y = Y(x.0.iter().uncompress().collect());
             let table = x.twisted_iter_table(50,true);
             let v = table.fold(Vec::new(), |mut v, iter| {
                 v.push(

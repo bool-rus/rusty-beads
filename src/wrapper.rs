@@ -163,7 +163,7 @@ mod test {
         let z: Vec<_> = x.as_bytes().into_iter().map(|x|*x).compress().collect();
         let y: Vec<_> = x.as_bytes().into_iter().compress().map(|(i,c)|(*i,c)).collect();
         assert_eq!(
-            vec![(1,1), (2,2), (3,3), (4,4), (5,5)],
+            vec![(b'a',2), (b'b',4), (b'c',5)],
             z
         );
         assert_eq!(z,y);
