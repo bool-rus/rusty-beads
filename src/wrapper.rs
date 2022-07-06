@@ -66,22 +66,6 @@ impl<'a,I,T> Clone for Uncompressed<'a,I,T> where I: Clone {
         Self { item: self.item, left: self.left, iter: self.iter.clone() }
     }
 }
-/* 
-impl<I,T> Iterator for Uncompressed<I,T> where I: Iterator<Item=(T, usize)>, T: Clone {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.left > 0 {
-            self.left -= 1;
-            Some(self.item.clone())
-        } else {
-            let (item, left) = self.iter.next()?;
-            self.item = item;
-            self.left = left;
-            self.next()
-        }
-    }
-}*/
 
 impl<'a, I, T> Iterator for Uncompressed<'a,I,T> where I: Iterator<Item=&'a (T, usize)>, T: 'a {
     type Item = &'a T;

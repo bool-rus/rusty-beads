@@ -12,9 +12,9 @@ pub struct BeadsLine<T: Eq + Hash + Clone> {
 impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
 
     pub fn simplified_grid(&self) -> SimplifiedGrid<T> {
-        let data: Vec<_> = self.table(0)
-        .map(|br|br.iter.map(|(_, obj)|obj.clone()))
-        .flatten().collect();
+        let data = self.table(0)
+        .map(|br|br.iter)
+        .flatten().map(|(_, obj)|obj.clone()).collect();
         SimplifiedGrid::from_raw(NonZeroUsize::new(self.width).unwrap(), data)
     }
 
