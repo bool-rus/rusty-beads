@@ -24,6 +24,11 @@ pub struct SimplifiedGrid<T: Debug + Clone> {
 }
 
 impl <T: Debug + Clone + Default> SimplifiedGrid<T> {
+    pub fn from_raw(width: NonZeroUsize, data: Vec<T>) -> Self {
+        let height = NonZeroUsize::new(data.len()/width.get()).unwrap();
+        let size = Size {width, height: height};
+        Self {size, data}
+    }
     pub fn size(&self) -> Size {
         self.size
     }

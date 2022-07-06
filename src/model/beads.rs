@@ -1,6 +1,6 @@
 use crate::wrapper::{Uncompressable, Compressable, Chunkable};
 
-use super::*;
+use super::{*, grid::SimplifiedGrid};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BeadsLine<T: Eq + Hash + Clone> {
@@ -10,6 +10,28 @@ pub struct BeadsLine<T: Eq + Hash + Clone> {
 }
 
 impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
+
+    pub fn simplified_grid(&self) -> SimplifiedGrid<T> {
+        let data: Vec<_> = self.table(0)
+        .map(|br|br.iter.map(|(_, obj)|obj.clone()))
+        .flatten().collect();
+        SimplifiedGrid::from_raw(NonZeroUsize::new(self.width).unwrap(), data)
+    }
+
+    pub fn from_simplified_grid(grid: SimplifiedGrid<T>, schema: Schema) -> Self {
+        let base_offset = 7;
+        let offset_step = 3;
+        let width = grid.size().width();
+        let line = grid.as_table_iter().enumerate().map(|(n, i)|{
+            let offset = width - (n*offset_step/base_offset)%width;
+            i.rev().cycle().skip(offset).take(width)
+        }).flatten().compress()
+        .map(|(obj,count)|(obj.clone(), count))
+        .collect();
+        
+        Self {width, line, schema}
+    }
+
     pub fn grow_top(&mut self) {
         let default_item = T::default();
         if let Some((first_item, count)) = self.line.first_mut() {
@@ -36,16 +58,6 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn data(&self) -> (Vec<&T>, usize) {
         (self.line.iter().uncompress().collect(), self.width)
     }
-    pub fn table(&self, rotation: usize) -> impl Iterator<Item=BeadsRow<'_, T>> {
-        let width = self.width;
-        let base_offset = 7;
-        let offset_step = 3;
-        self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
-            let rotation = width - (rotation + row_num*offset_step/base_offset) % width;
-            let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
-            BeadsRow {row: row_num, offset: row_num*offset_step % base_offset, iter:  Box::new(iter) }
-        })
-    }
 }
 
 pub struct BeadsRow<'a, T> {
@@ -57,6 +69,26 @@ pub struct BeadsRow<'a, T> {
 impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn width(&self) -> usize {
         self.width
+    }
+    pub fn table(&self, rotation: usize) -> impl Iterator<Item=BeadsRow<'_, T>> {
+        let width = self.width;
+        let base_offset = 7;
+        let offset_step = 3;
+        self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
+            let rotation = width - (rotation + row_num*offset_step/base_offset) % width;
+            let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
+            BeadsRow {row: row_num, offset: row_num*offset_step % base_offset, iter:  Box::new(iter) }
+        })
+    }
+    pub fn update_from_iter_iter<'a, I>(&mut self, table: I) where T: 'a, I: Iterator<Item=BeadsRow<'a, T>> {
+        let grid: Vec<_> = table.map(|br|br.iter).flatten().collect();
+        let width = grid.first().unwrap().0;
+        self.line = grid.chunks(width).map(|row|{
+            let offset = row.last().unwrap().0;
+            row.iter().rev().cycle().skip(width - offset).take(width).map(|&(_, obj)|obj)
+        }).flatten().compress()
+        .map(|(obj, count)|(obj.clone(), count))
+        .collect();
     }
     pub fn set_value(&mut self, value: T, coord: Coord) -> Option<T> {
         let index = coord.x + self.width * coord.y;
@@ -168,8 +200,9 @@ impl<T: ColorTrait + Default> Default for Bead<T> {
 
 #[cfg(test)]
 mod test {
-    use std::time::Instant;
+    use std::{time::Instant, collections::hash_map::RandomState};
     use super::*;
+    use rand::Rng;
     use crate::wrapper::*;
 
     #[test]
@@ -272,6 +305,20 @@ mod test {
             v.len();
         }
         println!("with data: {:?}", start.elapsed());
+    }
+
+    #[test]
+    fn test_line_from_table() {
+        let width = 40;
+        let mut rng = rand::thread_rng();
+        let x = (0..(width*width)).into_iter().map(|_|rng.gen_range(0..10u32)).compress();
+        let mut line = BeadsLine { width, line: x.collect(), schema: Default::default() };
+        let line_backup =line.clone();
+        let grid = line.simplified_grid();
+        let line = BeadsLine::from_simplified_grid(grid, Default::default());
+        
+        assert_eq!(line_backup.line, line.line)
+
     }
 
 }
