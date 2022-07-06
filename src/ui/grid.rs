@@ -25,7 +25,7 @@ pub struct GridPlate<T> {
     rotation: isize,
     scroll: scrollable::State,
     slider: slider::State,
-    half_size: u16,
+    box_size: u16,
     rot_l: button::State,
     rot_r: button::State,
 }
@@ -36,7 +36,7 @@ impl<T> GridPlate<T> {
             grid_ref,
             mouse_hold: false,
             rotation: 0,
-            half_size: 6,
+            box_size: 15,
             slider: Default::default(),
             scroll: Default::default(),
             rot_l: Default::default(),
@@ -57,14 +57,18 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
     fn view(&mut self) -> Element<'_, Message<T>> {
         let grid = self.grid_ref.as_ref().as_ref();
         let chunks = self.grid_ref.get_schema().base();
-        let full = Length::Units(self.half_size * chunks as u16);
-        let half = Length::Units(self.half_size);
+        let chunk_width = {
+            let x = self.box_size as usize / chunks;
+            if x == 0 { 1 } else { x }
+        } as u16;
+        let box_size = chunk_width * chunks as u16;
+        let full = Length::Units(box_size);
         let width = grid.width();
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
             grid.table(rotation).map(|row|{
                 let beads::BeadsRow {row, offset, iter} = row;
-                let spaces = iter::once(half).cycle().take(offset).map(|w|Space::new(w,full).into());
+                let space = Space::new(Length::Units(chunk_width * offset as u16), full).into();
                 let cells = iter.take(width).map(|(col, Bead {color, filled})| {
                     let coord = Coord{x:row, y:col};
 
@@ -83,7 +87,7 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
                     }
                     widget.into()
                 });
-                Row::with_children(spaces.chain(cells).collect()).into()
+                Row::with_children(iter::once(space).chain(cells).collect()).into()
             }).collect()
         );
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
@@ -118,8 +122,8 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
                 let rotation = width*rotation;
                 self.rotation = rotation.round() as isize;
             }
-            ZoomIn => { self.half_size += 1; }
-            ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
+            ZoomIn => { self.box_size += 1; }
+            ZoomOut => if self.box_size > 1 { self.box_size -= 1; },
             Press(..) => self.mouse_hold = true,
             Move(..) | Ignore => {}
         }

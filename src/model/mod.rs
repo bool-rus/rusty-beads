@@ -36,7 +36,7 @@ impl Schema {
             Self {base_offset: 1, offset_step: 0} => Self {base_offset: 4, offset_step: 1},
             Self {base_offset: 4, offset_step: 1} => Self {base_offset: 3, offset_step: 1},
             Self {base_offset: 3, offset_step: 1} => Self {base_offset: 7, offset_step: 3},
-            Self {base_offset: 7, offset_step: 3} => Self {base_offset: 2, offset_step: 1},
+            Self {base_offset: 5, offset_step: 2} => Self {base_offset: 2, offset_step: 1},
             Self {base_offset: 2, offset_step: 1} => Self {base_offset: 1, offset_step: 0},
             _ => Self {base_offset: 1, offset_step: 0}
         }
