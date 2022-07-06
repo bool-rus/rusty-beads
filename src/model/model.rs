@@ -2,7 +2,6 @@ use std::convert::TryInto;
 
 use super::*;
 use super::grid::SimplifiedGrid;
-use super::line_builder::BeadsLineBuilder;
 
 impl<T: ColorTrait> Default for Model<T> {
     fn default() -> Self {
@@ -36,9 +35,8 @@ impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
 
 impl <T: ColorTrait> From<Grid<Bead<T>>> for Model<T> {
     fn from(grid: Grid<Bead<T>>) -> Self {
-        let builder: BeadsLineBuilder = Schema::default().into();
-        let line = builder.build(grid.as_table_iter(), grid.size().width);
-        let grid = line.grid();
+        let schema = Schema::default();
+        let line = BeadsLine::from_simplified_grid(grid.simplify(), schema);
         let palette = create_palette(&line);
         Model {palette, line }
     }
@@ -69,11 +67,6 @@ impl<T: ColorTrait> Model<T> {
     pub fn set_schema(&mut self, schema: Schema) {
         self.line.schema = schema;
     }
-    fn simplified_grid(&mut self) -> SimplifiedGrid<Bead<T>> {
-        let grid = self.line.grid();
-        let grid = unfill_grid(grid);
-        grid.simplify()
-    }
     pub fn set(&mut self, row: usize, column: usize) -> Result<Option<Bead<T>>, String> {
         let color = self.palette.activated().clone();
         let bead = Bead{ color, filled: false };
@@ -91,33 +84,25 @@ impl<T: ColorTrait> Model<T> {
             self.line.grow_top();
             return
         }
-        let mut grid = self.simplified_grid();
+        let mut grid = self.line.simplified_grid();
         grid.grow(side, Bead {color: value, filled: false});
-        self.update_from_simplified(grid);
+        self.line = BeadsLine::from_simplified_grid(grid, self.schema());
     }
     pub fn shrink(&mut self, side: Side) -> Result<(), String>{
         if matches!(side, Side::Top) {
             self.line.shrink_top();
             return Ok(())
         }
-        let mut grid = self.simplified_grid();
+        let mut grid = self.line.simplified_grid();
         grid.shrink(side)?;
-        self.update_from_simplified(grid);
+        self.line = BeadsLine::from_simplified_grid(grid, self.schema());
         Ok(())
     }
     
-    fn update_from_simplified(&mut self, grid: SimplifiedGrid<Bead<T>>) {
-        let builder: BeadsLineBuilder = self.line.schema.into();
-        self.line = builder.build(
-            grid.as_table_iter(), 
-            grid.size().width
-        );
-    }
-
     pub fn rotate(&mut self, rotation: isize) {
-        let mut grid = self.simplified_grid();
+        let mut grid = self.line.simplified_grid();
         grid.rotate(rotation);
-        self.update_from_simplified(grid);
+        self.line = BeadsLine::from_simplified_grid(grid, self.schema());
     }
 }
 
@@ -128,9 +113,9 @@ fn unfill_grid<T: Debug + Clone + ColorTrait>(grid: Grid<Bead<T>>) -> Grid<Bead<
 
 impl<T: ColorTrait + Default> Model<T> {
     pub fn resize(&mut self, size: Size) {
-        let mut grid = self.simplified_grid();
+        let mut grid = self.line.simplified_grid();
         grid.resize(size);
-        self.update_from_simplified(grid);
+        self.line = BeadsLine::from_simplified_grid(grid, self.schema());
     }
 }
 

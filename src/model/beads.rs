@@ -19,12 +19,10 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     }
 
     pub fn from_simplified_grid(grid: SimplifiedGrid<T>, schema: Schema) -> Self {
-        let base_offset = 7;
-        let offset_step = 3;
         let width = grid.size().width();
         let line = grid.as_table_iter().enumerate().map(|(n, i)|{
-            let offset = width - (n*offset_step/base_offset)%width;
-            i.rev().cycle().skip(offset).take(width)
+            let rot = schema.calculate_rotation(n, width, 0);
+            i.rev().cycle().skip(rot).take(width)
         }).flatten().compress()
         .map(|(obj,count)|(obj.clone(), count))
         .collect();
@@ -72,12 +70,11 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     }
     pub fn table(&self, rotation: usize) -> impl Iterator<Item=BeadsRow<'_, T>> {
         let width = self.width;
-        let base_offset = 7;
-        let offset_step = 3;
+        let schema = self.schema;
         self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
-            let rotation = width - (rotation + row_num*offset_step/base_offset) % width;
+            let rotation = schema.calculate_rotation(row_num, width, rotation);
             let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
-            BeadsRow {row: row_num, offset: row_num*offset_step % base_offset, iter:  Box::new(iter) }
+            BeadsRow {row: row_num, offset: schema.calculate_offset(row_num), iter:  Box::new(iter) }
         })
     }
     pub fn update_from_iter_iter<'a, I>(&mut self, table: I) where T: 'a, I: Iterator<Item=BeadsRow<'a, T>> {
@@ -157,18 +154,6 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
             }
             summary
         })
-    }
-    pub fn grid(&self) -> Grid<T> {
-        let capacity = self.line.iter().map(|(_, count)|*count).sum();
-        let unzipped = self.line.iter().fold(
-            Vec::with_capacity(capacity),
-            |mut data,(item, count)| {
-                (0..*count).for_each(|_|data.push(item));
-                data
-            }
-        );
-        let builder: line_builder::BeadsLineBuilder = self.schema.into();
-        builder.grid(self.width, unzipped)
     }
     pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
         BeadsLine {
@@ -308,11 +293,11 @@ mod test {
     }
 
     #[test]
-    fn test_line_from_table() {
+    fn test_from_grid() {
         let width = 40;
         let mut rng = rand::thread_rng();
         let x = (0..(width*width)).into_iter().map(|_|rng.gen_range(0..10u32)).compress();
-        let mut line = BeadsLine { width, line: x.collect(), schema: Default::default() };
+        let line = BeadsLine { width, line: x.collect(), schema: Default::default() };
         let line_backup =line.clone();
         let grid = line.simplified_grid();
         let line = BeadsLine::from_simplified_grid(grid, Default::default());

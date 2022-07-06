@@ -55,12 +55,11 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
     type Message = Message<T>;
 
     fn view(&mut self) -> Element<'_, Message<T>> {
-        let chunks = 7usize;
+        let grid = self.grid_ref.as_ref().as_ref();
+        let chunks = self.grid_ref.get_schema().base();
         let full = Length::Units(self.half_size * chunks as u16);
         let half = Length::Units(self.half_size);
-        let grid = self.grid_ref.as_ref().as_ref();
         let width = grid.width();
-        let (data, width) = grid.data();
         let rotation = normalize_rotation(self.rotation, width);
         let grid = Column::with_children(
             grid.table(rotation).map(|row|{
@@ -87,39 +86,6 @@ impl<T: Debug + Send + Sync + Clone + GetSchema + AsRef<BeadsLine<Bead<Color>>>>
                 Row::with_children(spaces.chain(cells).collect()).into()
             }).collect()
         );
-        /* 
-        let grid = Column::with_children(
-            data.chunks(width).into_iter().enumerate().map(|(index, row)| {
-                let row = row.into_iter();
-                let portion_index = index % chunks;
-                let rotation = rotation + (width - (index/chunks)%width);
-                let children = iter::once(half) //left cell (maybe half)
-                .cycle().take(portion_index)
-                .map(|w|Space::new(w, full).into())
-                .chain( //cells with beads
-                    row.copied().enumerate().rev().cycle()
-                    .skip(rotation)
-                    .take(width)
-                    .map(|(col, Bead {color, filled})| {
-                        let coord = Coord{x:index, y:col};
-                        let mut widget = ColorBox::new(color.clone())
-                            .width(full)
-                            .height(full)
-                            .on_press(Message::Press(coord).into());
-                        if self.mouse_hold {
-                            widget = widget.on_over(Message::Move(coord));
-                        }
-                        if col == 0 {
-                            widget = widget.border_color(iced::Color::from_rgb(0.9, 0.0, 0.0))
-                        }
-                        if *filled {
-                            widget = widget.border_color(iced::Color::WHITE);
-                        }
-                        widget.into()
-                    })
-                ).collect();
-                Row::with_children(children).into()
-            }).collect());*/
         let grid = Container::new(Scrollable::new(&mut self.scroll).push(grid))
             .width(Length::Fill)
             .height(Length::Fill)
