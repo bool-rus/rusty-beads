@@ -24,10 +24,34 @@ pub type ColorBead = Bead<Color>;
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 
+#[derive(Serialize, Deserialize)]
+enum SchemaOld {
+    FirstOffset,
+    SecondOffset,
+    Straight,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+enum SchemaCompat {
+    Old(SchemaOld),
+    Actual{base_offset: usize, offset_step: usize},
+}
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[serde(from = "SchemaCompat")]
 pub struct Schema {
     base_offset: usize,
     offset_step: usize,
+}
+
+impl From<SchemaCompat> for Schema {
+    fn from(value: SchemaCompat) -> Self {
+        match value {
+            SchemaCompat::Old(SchemaOld::Straight) => Self {base_offset: 1, offset_step: 0},
+            SchemaCompat::Old(_) => Self {base_offset: 2, offset_step: 1},
+            SchemaCompat::Actual { base_offset, offset_step } => Self {base_offset, offset_step},
+        }
+    }
 }
 
 impl Schema {
@@ -54,7 +78,7 @@ impl Schema {
 
 impl Default for Schema {
     fn default() -> Self {
-        Self {base_offset: 1, offset_step: 0}
+        Self {base_offset: 2, offset_step: 1}
     }
 }
 
