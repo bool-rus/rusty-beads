@@ -1,3 +1,5 @@
+use fxhash::FxHashMap;
+
 use crate::wrapper::{Uncompressable, Compressable, Chunkable};
 
 use super::{*, grid::SimplifiedGrid};
@@ -148,8 +150,11 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn line(&self) -> &Vec<(T, usize)> {
         &self.line
     }
-    pub fn summary(&self) -> HashMap<T, usize> {
-        self.line.iter().fold(HashMap::new(), |mut summary, (item, count)|{
+    pub fn line_mut(&mut self) -> &mut Vec<(T,usize)> {
+        &mut self.line
+    }
+    pub fn summary(&self) -> FxHashMap<T, usize> {
+        self.line.iter().fold(FxHashMap::default(), |mut summary, (item, count)|{
             if let Some(saved) = summary.get_mut(item) {
                 *saved += *count;
             } else {

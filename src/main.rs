@@ -28,55 +28,25 @@ struct MyApp {
     palette: palette::Palette,
 
     show_draw_options: bool,
-}
-
-struct Colors(Vec<Color32>);
-
-impl Default for Colors {
-    fn default() -> Self {
-        use Color32 as C;
-        Self (vec![C::default(), C::WHITE, C::BLACK, C::RED, C::BLUE, C::GREEN])
-    }
-}
-
-struct ColorBox<'a> {
-    options: &'a DrawOptions,
-    bead: &'a Bead<Color32>,
-    drawing_color: &'a Option<Color32>,
-    is_seam: bool,
-}
-
-impl <'a> egui::Widget for ColorBox<'a> {
-    fn ui(self, ui: &mut Ui) -> egui::Response {
-        let (rect, mut response) = ui.allocate_at_least(self.options.size, Sense::hover());
-        let mut color = self.bead.color;
-        if let Some(drawing_color) = self.drawing_color {
-            if response.hovered() && drawing_color != &self.bead.color {
-                response.mark_changed();
-                color = *drawing_color;
-            }
-        }
-        let stroke = if self.is_seam {
-            self.options.seam_stroke
-        } else {
-            self.options.stroke
-        };
-        ui.painter().rect(
-            rect,
-            self.options.rounding,
-            color,
-            stroke,
-        );
-        response
-    }
+    show_summary: bool,
 }
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let bl = &mut self.bead_line;
+        Window::new("summary").open(&mut self.show_summary).show(ctx, |ui| {
+            ui.horizontal_wrapped(|ui|{
+                for (bead, count) in bl.line_mut() {
+                    let text = format!("⬛ {}", *count);
+                    ui.checkbox(&mut bead.filled, RichText::new(text).color(bead.color));
+                }
+            });
+        });
         self.draw_options.show(ctx, &mut self.show_draw_options);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal_centered(|ui| {
                 ui.toggle_value(&mut self.show_draw_options, "⛭");
+                ui.toggle_value(&mut self.show_summary, "summary");
                 self.palette.show(ui);
             })
         });
@@ -135,5 +105,45 @@ impl eframe::App for MyApp {
                     });
                 });
         });
+    }
+}
+
+
+impl BeadsLine<Bead<Color32>> {
+
+}
+
+struct ColorBox<'a> {
+    options: &'a DrawOptions,
+    bead: &'a Bead<Color32>,
+    drawing_color: &'a Option<Color32>,
+    is_seam: bool,
+}
+
+impl <'a> egui::Widget for ColorBox<'a> {
+    fn ui(self, ui: &mut Ui) -> egui::Response {
+        let (rect, mut response) = ui.allocate_at_least(self.options.size, Sense::hover());
+        let mut color = self.bead.color;
+        if let Some(drawing_color) = self.drawing_color {
+            if response.hovered() && drawing_color != &self.bead.color {
+                response.mark_changed();
+                color = *drawing_color;
+            }
+        }
+        let mut stroke = if self.is_seam {
+            self.options.seam_stroke
+        } else {
+            self.options.stroke
+        };
+        if self.bead.filled {
+            stroke.color = Color32::RED;
+        }
+        ui.painter().rect(
+            rect,
+            self.options.rounding,
+            color,
+            stroke,
+        );
+        response
     }
 }
