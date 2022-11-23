@@ -32,7 +32,7 @@ impl DrawOptions {
             ui.add(Slider::new(&mut self.factor, 0.1..=10.0).text("×").logarithmic(true));
             self.size = self.origin_size * self.factor;
             ui.separator();
-            ui.add(Slider::new(&mut self.stroke.width, 0.0..=5.0).text("⛶"));
+            ui.add(Slider::new(&mut self.stroke.width, 0.0..=5.0).text("☐"));
             ui.horizontal(|ui| {
                 ui.color_edit_button_srgba(&mut self.stroke.color);
                 ui.label("border color");

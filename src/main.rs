@@ -9,6 +9,7 @@ mod wrapper;
 mod model;
 mod palette;
 mod settings;
+mod summary;
 
 fn main() {
 
@@ -33,20 +34,12 @@ struct MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let bl = &mut self.bead_line;
-        Window::new("summary").open(&mut self.show_summary).show(ctx, |ui| {
-            ui.horizontal_wrapped(|ui|{
-                for (bead, count) in bl.line_mut() {
-                    let text = format!("⬛ {}", *count);
-                    ui.checkbox(&mut bead.filled, RichText::new(text).color(bead.color));
-                }
-            });
-        });
+        self.bead_line.show_summary(ctx, &mut self.show_summary);
         self.draw_options.show(ctx, &mut self.show_draw_options);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal_centered(|ui| {
                 ui.toggle_value(&mut self.show_draw_options, "⛭");
-                ui.toggle_value(&mut self.show_summary, "summary");
+                ui.toggle_value(&mut self.show_summary, "");
                 self.palette.show(ui);
             })
         });
@@ -108,10 +101,6 @@ impl eframe::App for MyApp {
     }
 }
 
-
-impl BeadsLine<Bead<Color32>> {
-
-}
 
 struct ColorBox<'a> {
     options: &'a DrawOptions,
