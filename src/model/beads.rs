@@ -71,7 +71,13 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn width(&self) -> usize {
         self.width
     }
-    pub fn table(&self, rotation: usize) -> impl Iterator<Item=BeadsRow<'_, T>> {
+    fn normalize_rotation(&self, rot: isize) -> usize {
+        let width = self.width as isize;
+        let modulo = rot % width;
+        if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
+    }
+    pub fn table(&self, rotation: isize) -> impl Iterator<Item=BeadsRow<'_, T>> {
+        let rotation = self.normalize_rotation(rotation); 
         let width = self.width;
         let schema = self.schema;
         self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
