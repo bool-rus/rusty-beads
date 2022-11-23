@@ -9,6 +9,12 @@ pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub schema: Schema,
 }
 
+impl<T: Eq + Hash + Clone + Default> Default for BeadsLine<T> {
+    fn default() -> Self {
+        Self { width: 30, line: vec![(T::default(), 900)], schema: Default::default() }
+    }
+}
+
 impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
 
     pub fn simplified_grid(&self) -> SimplifiedGrid<T> {

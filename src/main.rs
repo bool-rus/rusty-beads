@@ -1,3 +1,108 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+
+use eframe::egui;
+use egui::{Color32, RichText, Ui, Stroke, Rounding, vec2, Vec2, Sense};
+use model::{Model, Bead, BeadsLine, Coord, beads::BeadsRow};
+
+mod wrapper;
+mod model;
+
+fn main() {
+
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Rusty Beads",
+        options,
+        Box::new(|_cc| Box::new(MyApp::default())),
+    );
+}
+
+#[derive(Default)]
+struct MyApp {
+    bead_line: BeadsLine<Bead<Color32>>,
+    draw_options: DrawOptions,
+    active_color: Color32,
+}
+
+
+struct DrawOptions {
+    size: Vec2,
+    stroke: Stroke,
+    rounding: Rounding,
+}
+
+impl Default for DrawOptions {
+    fn default() -> Self {
+        Self { 
+            size: vec2(10.0, 10.0), 
+            stroke: Stroke::new(0.4, Color32::WHITE), 
+            rounding: Default::default(), 
+        }
+    }
+}
+
+struct ColorBox<'a> {
+    options: &'a DrawOptions,
+    bead: &'a Bead<Color32>,
+    drawing_color: &'a Option<Color32>,
+}
+
+impl <'a> egui::Widget for ColorBox<'a> {
+    fn ui(self, ui: &mut Ui) -> egui::Response {
+        let (rect, mut response) = ui.allocate_at_least(self.options.size, Sense::hover());
+        let mut color = self.bead.color;
+        if let Some(drawing_color) = self.drawing_color {
+            if response.hovered() && drawing_color != &self.bead.color {
+                response.mark_changed();
+                color = *drawing_color;
+            }
+        }
+        ui.painter().rect(
+            rect,
+            self.options.rounding,
+            color,
+            self.options.stroke,
+        );
+        response
+    }
+}
+
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.horizontal_wrapped(|ui|{
+                
+                let drawing = ctx.input().pointer.any_down();
+                let drawing_color = if drawing {
+                    Some(Color32::RED)
+                } else {
+                    None
+                };
+
+                ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
+                ui.set_row_height(self.draw_options.size.y);
+                let box_width = self.draw_options.size.x;
+                let offset_tail = box_width / self.bead_line.schema.base() as f32;
+                let coord = self.bead_line.table(0).fold(None, |mut coord, row| {
+                    let BeadsRow { row, offset, iter } = row;
+                    ui.add_space(offset_tail * offset as f32);
+                    for (ncol, bead) in iter {
+                        if ui.add(ColorBox{options: &self.draw_options, bead, drawing_color: &drawing_color}).changed() {
+                            coord = Some(Coord{ x: ncol, y: row });
+                        }
+                    }
+                    ui.end_row();
+                    coord
+                }); 
+                if let (Some(coord), Some(ref color)) = (coord, drawing_color){
+                    self.bead_line.set_value(color.into(), coord);
+                }
+            });
+        });
+    }
+}
+
+/*
 #![windows_subsystem = "windows"]
 mod reimport;
 mod model;
@@ -137,3 +242,5 @@ fn main() {
         antialiasing: false,
     });
 }
+
+*/

@@ -13,13 +13,6 @@ impl<T> Wrappable for T {
         Wrapped(self)
     }
 }
-impl Hash for Wrapped<&iced::Color> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.into_linear().iter().for_each(|f|{
-            state.write(&f.to_be_bytes())
-        });
-    }
-}
 
 pub struct Compressed<I, T>{
     item: Option<(T, usize)>,

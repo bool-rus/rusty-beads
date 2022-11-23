@@ -67,21 +67,3 @@ impl fmt::Display for Color {
         write!(f, "{:X}", self)
     }
 }
-
-impl Into<iced::Color> for Color {
-    fn into(self) -> iced::Color {
-        let Self {r,g,b} = self;
-        iced::Color::from_rgb8(r,g,b)
-    }
-}
-
-impl From<iced::Color> for Color {
-    fn from(color: iced::Color) -> Self {
-        let max = u8::MAX as f32;
-        Self {
-            r: (max * color.r) as u8,
-            g: (max * color.g) as u8,
-            b: (max * color.b) as u8,
-        }
-    }
-}
