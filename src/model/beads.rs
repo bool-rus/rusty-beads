@@ -13,7 +13,7 @@ pub struct BeadsLine<T: Eq + Hash + Clone> {
 impl<T: Eq + Hash + Clone + Default> Default for BeadsLine<T> {
     fn default() -> Self {
         let width = 100;
-        let height = 50;
+        let height = 100;
         Self { width, height, line: vec![(T::default(), width * height)], schema: Default::default() }
     }
 }

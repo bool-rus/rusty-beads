@@ -4,41 +4,14 @@ use super::*;
 
 impl<T: ColorTrait> Default for Model<T> {
     fn default() -> Self {
-        let grid: Grid<_> = Default::default();
-        Model::from(grid)
+        //let grid: Grid<_> = Default::default();
+        todo!()//Model::from(grid)
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Model<T: ColorTrait> {
-    palette: Palette<T>,
     line: BeadsLine<Bead<T>>,
-}
-
-fn create_palette<T: ColorTrait>(line: &BeadsLine<Bead<T>>) -> Palette<T> {
-    line.map(|Bead{color, ..}|{color.clone()})
-        .summary()
-        .keys()
-        .fold(Palette::new(),|mut palette, item| {
-            palette.add_color(item.clone());
-            palette
-        })
-}
-
-impl<T: ColorTrait> From<BeadsLine<Bead<T>>> for Model<T> {
-    fn from(line: BeadsLine<Bead<T>>) -> Self {
-        let palette = create_palette(&line);
-        Model {palette, line}
-    }
-}
-
-impl <T: ColorTrait> From<Grid<Bead<T>>> for Model<T> {
-    fn from(grid: Grid<Bead<T>>) -> Self {
-        let schema = Schema::default();
-        let line = BeadsLine::from_simplified_grid(grid.simplify(), schema);
-        let palette = create_palette(&line);
-        Model {palette, line }
-    }
 }
 
 impl<T: ColorTrait> Model<T> {
@@ -54,23 +27,8 @@ impl<T: ColorTrait> Model<T> {
     pub fn schema(&self) -> Schema {
         self.line.schema
     }
-    pub fn add_color(&mut self, color: T) {
-        self.palette.add_color(color);
-    }
-    pub fn activate_color(&mut self, color: T) -> T {
-        self.palette.activate(color)
-    }
-    pub fn remove_color(&mut self) {
-        self.palette.remove_color();
-    }
     pub fn set_schema(&mut self, schema: Schema) {
         self.line.schema = schema;
-    }
-    pub fn set(&mut self, row: usize, column: usize) -> Result<Option<Bead<T>>, String> {
-        let color = self.palette.activated().clone();
-        let bead = Bead{ color, filled: false };
-        let result =  self.line.set_value(bead.clone(), Coord{x:column, y: row} );
-        Ok(result)
     }
     pub fn toggle_filled(&mut self, index: usize) -> Result<bool, String> {
         let obj = self.line.get_mut(index).ok_or("Toggle is out of bounds")?;
@@ -117,13 +75,6 @@ impl<T: ColorTrait + Default> Model<T> {
 impl<T: ColorTrait> AsRef<BeadsLine<Bead<T>>> for Model<T> {
     fn as_ref(&self) -> &BeadsLine<Bead<T>> {
         &self.line
-    }
-}
-
-
-impl<T: ColorTrait> AsRef<Palette<T>> for Model<T> {
-    fn as_ref(&self) -> &Palette<T> {
-        &self.palette
     }
 }
 
