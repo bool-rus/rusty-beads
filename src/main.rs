@@ -1,11 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::egui;
-use egui::{Color32, RichText, Ui, Stroke, Rounding, vec2, Vec2, Sense, Slider};
+use egui::{Color32, RichText, Ui, Stroke, Rounding, vec2, Vec2, Sense, Slider, ScrollArea};
 use model::{Model, Bead, BeadsLine, Coord, beads::BeadsRow};
 
 mod wrapper;
 mod model;
+mod palette;
 
 fn main() {
 
@@ -22,9 +23,7 @@ struct MyApp {
     bead_line: BeadsLine<Bead<Color32>>,
     rotation: isize,
     draw_options: DrawOptions,
-    colors: Colors,
-    active_color: Color32,
-    choise_color: Color32,
+    palette: palette::Palette,
 }
 
 
@@ -83,18 +82,7 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal_centered(|ui| {
-                for color in self.colors.0.clone() {
-                    ui.selectable_value(
-                        &mut self.active_color,
-                        color, 
-                        RichText::new("⬛").color(color)
-                    );
-                }
-                if ui.button("➕").clicked() {
-                    self.colors.0.push(self.choise_color);
-                    self.choise_color = Color32::RED;
-                }
-                ui.color_edit_button_srgba(&mut self.choise_color);
+                self.palette.show(ui);
             })
         });
         egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
@@ -108,32 +96,48 @@ impl eframe::App for MyApp {
             ui.add(Slider::new(&mut self.rotation, -w..=w).show_value(false));
         });
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal_wrapped(|ui|{
-                let drawing = ctx.input().pointer.any_down();
-                let drawing_color = if drawing {
-                    Some(self.active_color)
-                } else {
-                    None
-                };
-                ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
-                ui.set_row_height(self.draw_options.size.y);
-                let box_width = self.draw_options.size.x;
-                let offset_tail = box_width / self.bead_line.schema.base() as f32;
-                let coord = self.bead_line.table(self.rotation).fold(None, |mut coord, row| {
-                    let BeadsRow { row, offset, iter } = row;
-                    ui.add_space(offset_tail * offset as f32);
-                    for (ncol, bead) in iter {
-                        if ui.add(ColorBox{options: &self.draw_options, bead, drawing_color: &drawing_color}).changed() {
-                            coord = Some(Coord{ x: ncol, y: row });
+            let drawing = ctx.input().pointer.any_down();
+            let drawing_color = if drawing {
+                Some(self.palette.active_color())
+            } else {
+                None
+            };
+            ui.spacing_mut().icon_spacing = 0.0;
+            ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
+            let height = self.bead_line.height;
+            ScrollArea::vertical().enable_scrolling(!drawing)
+                .show_rows(ui, self.draw_options.size.y, height, |ui, range|{
+                    ui.horizontal_wrapped(|ui|{
+                        ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
+                        ui.set_row_height(self.draw_options.size.y);
+                        let box_width = self.draw_options.size.x;
+                        let offset_tail = box_width / self.bead_line.schema.base() as f32;
+                        let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
+                        let coord = self.bead_line.table(self.rotation)
+                            .skip(range.start)
+                            .take(range.end - range.start)
+                            .fold(None, |mut coord, row| {
+                            let BeadsRow { row, offset, iter } = row;
+                            let mut usage = offset_tail * offset as f32;
+                            ui.add_space(usage);
+                            for (ncol, bead) in iter {
+                                usage += box_width;
+                                if usage > max_width {
+                                    break;
+                                }
+                                if ui.add(ColorBox{options: &self.draw_options, bead, drawing_color: &drawing_color}).changed() {
+                                    coord = Some(Coord{ x: ncol, y: row });
+                                }
+                            }
+                            ui.add_space(offset_tail);
+                            ui.end_row();
+                            coord
+                        }); 
+                        if let (Some(coord), Some(ref color)) = (coord, drawing_color){
+                            self.bead_line.set_value(color.into(), coord);
                         }
-                    }
-                    ui.end_row();
-                    coord
-                }); 
-                if let (Some(coord), Some(ref color)) = (coord, drawing_color){
-                    self.bead_line.set_value(color.into(), coord);
-                }
-            });
+                    });
+                });
         });
     }
 }

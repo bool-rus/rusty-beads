@@ -5,13 +5,16 @@ use super::{*, grid::SimplifiedGrid};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BeadsLine<T: Eq + Hash + Clone> {
     pub width: usize,
+    pub height: usize,
     pub(super) line: Vec<(T,usize)>,
     pub schema: Schema,
 }
 
 impl<T: Eq + Hash + Clone + Default> Default for BeadsLine<T> {
     fn default() -> Self {
-        Self { width: 30, line: vec![(T::default(), 900)], schema: Default::default() }
+        let width = 100;
+        let height = 50;
+        Self { width, height, line: vec![(T::default(), width * height)], schema: Default::default() }
     }
 }
 
@@ -26,6 +29,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
 
     pub fn from_simplified_grid(grid: SimplifiedGrid<T>, schema: Schema) -> Self {
         let width = grid.size().width();
+        let height = grid.size().height();
         let line = grid.as_table_iter().enumerate().map(|(n, i)|{
             let rot = schema.calculate_rotation(n, width, 0);
             i.rev().cycle().skip(rot).take(width)
@@ -33,7 +37,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
         .map(|(obj,count)|(obj.clone(), count))
         .collect();
         
-        Self {width, line, schema}
+        Self {width, height, line, schema}
     }
 
     pub fn grow_top(&mut self) {
@@ -157,6 +161,7 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
         BeadsLine {
             width: self.width,
+            height: self.height,
             schema: self.schema,
             line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
         }
@@ -261,7 +266,7 @@ mod test {
         let width = 40;
         let mut rng = rand::thread_rng();
         let x = (0..(width*width)).into_iter().map(|_|rng.gen_range(0..10u32)).compress();
-        let line = BeadsLine { width, line: x.collect(), schema: Default::default() };
+        let line = BeadsLine { width, height: width, line: x.collect(), schema: Default::default() };
         let line_backup =line.clone();
         let grid = line.simplified_grid();
         let line = BeadsLine::from_simplified_grid(grid, Default::default());
