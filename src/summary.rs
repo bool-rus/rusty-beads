@@ -2,7 +2,7 @@ use crate::wrapper::Invertable;
 
 use super::*;
 
-impl BeadsLine<Bead<Color32>> {
+impl BeadsLine<Color32> {
     pub fn show_summary(&mut self, ctx: &Context, open: &mut bool ) {
         Window::new("summary").open(open).show(ctx, |ui| {
             ScrollArea::vertical().show(ui, |ui|{

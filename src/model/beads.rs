@@ -5,18 +5,18 @@ use crate::wrapper::{Uncompressable, Compressable, Chunkable};
 use super::{*, grid::SimplifiedGrid};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BeadsLine<T: Eq + Hash + Clone> {
+pub struct BeadsLine<T: Eq + Hash + Clone + Debug + Default> {
     pub width: usize,
     pub height: usize,
-    pub(super) line: Vec<(T,usize)>,
+    pub(super) line: Vec<(Bead<T>,usize)>,
     pub schema: Schema,
 }
 
-impl<T: Eq + Hash + Clone + Default> Default for BeadsLine<T> {
+impl<T: Eq + Hash + Clone + Default + Debug> Default for BeadsLine<T> {
     fn default() -> Self {
         let width = 100;
         let height = 100;
-        Self { width, height, line: vec![(T::default(), width * height)], schema: Default::default() }
+        Self { width, height, line: vec![(T::default().into(), width * height)], schema: Default::default() }
     }
 }
 
@@ -25,7 +25,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn simplified_grid(&self) -> SimplifiedGrid<T> {
         let data = self.table(0)
         .map(|br|br.iter)
-        .flatten().map(|(_, obj)|obj.clone()).collect();
+        .flatten().map(|(_, obj)|obj.color.clone()).collect();
         SimplifiedGrid::from_raw(NonZeroUsize::new(self.width).unwrap(), data)
     }
 
@@ -36,7 +36,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
             let rot = schema.calculate_rotation(n, width, 0);
             i.rev().cycle().skip(rot).take(width)
         }).flatten().compress()
-        .map(|(obj,count)|(obj.clone(), count))
+        .map(|(obj,count)|(obj.into(), count))
         .collect();
         
         Self {width, height, line, schema}
@@ -45,13 +45,13 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     pub fn grow_top(&mut self) {
         let default_item = T::default();
         if let Some((first_item, count)) = self.line.first_mut() {
-            if first_item == &default_item {
+            if &first_item.color == &default_item {
                 *count += self.width;
                 return;
             }
         } 
         let mut buf = Vec::with_capacity(self.line.len() + 1);
-        buf.push((default_item, self.width));
+        buf.push((default_item.into(), self.width));
         std::mem::swap(&mut buf, &mut self.line);
         self.line.append(&mut buf);
     }
@@ -73,7 +73,7 @@ pub struct BeadsRow<'a, T> {
     pub iter: Box<dyn Iterator<Item=(usize, &'a T)> + 'a>,
 }
 
-impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
+impl<T: Eq + Hash + Clone + Debug + Default + ColorTrait> BeadsLine<T> {
     pub fn width(&self) -> usize {
         self.width
     }
@@ -82,7 +82,7 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
         let modulo = rot % width;
         if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
     }
-    pub fn table(&self, rotation: isize) -> impl Iterator<Item=BeadsRow<'_, T>> {
+    pub fn table(&self, rotation: isize) -> impl Iterator<Item=BeadsRow<'_, Bead<T>>> {
         let rotation = self.normalize_rotation(rotation); 
         let width = self.width;
         let schema = self.schema;
@@ -92,7 +92,7 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
             BeadsRow {row: row_num, offset: schema.calculate_offset(row_num), iter:  Box::new(iter) }
         })
     }
-    pub fn set_value(&mut self, value: T, coord: Coord) -> Option<T> {
+    pub fn set_value(&mut self, value: T, coord: Coord) -> Option<Bead<T>> {
         let index = coord.x + self.width * coord.y;
         let mut buf = Vec::with_capacity(self.line.len() + 2);
         std::mem::swap(&mut buf, &mut self.line);
@@ -105,7 +105,7 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
                 self.line.push((obj, count));
                 continue;
             } 
-            if value == obj {
+            if value == obj.color {
                 self.line.push((obj, count));
                 break;
             }
@@ -114,17 +114,18 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
             let second_part = count - first_part - 1;
             if first_part == 0 {
                 if let Some((prev, count)) = self.line.last_mut() {
-                    if prev == &value {
+                    if &prev.color == &value {
                         *count += first_part + 1;
+                        prev.filled = false;
                     } else {     
-                        self.line.push((value, 1));
+                        self.line.push((value.into(), 1));
                     }
                 } else {
-                    self.line.push((value, 1));
+                    self.line.push((value.into(), 1));
                 }
             } else {
-                self.line.push((obj.clone(), first_part));
-                self.line.push((value, 1));
+                self.line.push((obj.unfill(), first_part));
+                self.line.push((value.into(), 1));
             }
             if second_part == 0 {
                 if let Some((next, count)) = iter.next() {
@@ -137,40 +138,41 @@ impl<T: Eq + Hash + Clone + Debug> BeadsLine<T> {
                     }
                 }
             } else {
-                self.line.push((obj, second_part));
+                self.line.push((obj.unfill(), second_part));
             }
             break;
         }
         self.line.extend(iter);
         return result;
     }
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut Bead<T>> {
         self.line.get_mut(index).map(|(obj, _count)|obj)
     }
-    pub fn line(&self) -> &Vec<(T, usize)> {
+    pub fn line(&self) -> &Vec<(Bead<T>, usize)> {
         &self.line
     }
-    pub fn line_mut(&mut self) -> &mut Vec<(T,usize)> {
+    pub fn line_mut(&mut self) -> &mut Vec<(Bead<T>,usize)> {
         &mut self.line
     }
     pub fn summary(&self) -> FxHashMap<T, usize> {
         self.line.iter().fold(FxHashMap::default(), |mut summary, (item, count)|{
-            if let Some(saved) = summary.get_mut(item) {
+            if let Some(saved) = summary.get_mut(&item.color) {
                 *saved += *count;
             } else {
-                summary.insert(item.clone(), *count);
+                summary.insert(item.color.clone(), *count);
             }
             summary
         })
     }
-    pub fn map<X: Debug + Hash + Eq + Clone, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
+    /* 
+    pub fn map<X: Debug + Hash + Eq + Clone + Default, F: Fn(&Bead<T>)->Bead<X>>(&self, fun: F) -> BeadsLine<Bead<X>> {
         BeadsLine {
             width: self.width,
             height: self.height,
             schema: self.schema,
             line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
         }
-    }
+    }*/
 }
 
 
@@ -180,9 +182,20 @@ pub struct Bead<T: ColorTrait> {
     pub filled: bool,
 }
 
+impl<T: ColorTrait> Bead<T> {
+    fn unfill(&self) -> Self{
+        Bead{color: self.color.clone(), filled: false}
+    }
+}
+
 impl<T: ColorTrait> From<&T> for Bead<T> {
     fn from(color: &T) -> Self {
         Bead{color: color.clone(), filled: false}
+    }
+}
+impl<T: ColorTrait> From<T> for Bead<T> {
+    fn from(color: T) -> Self {
+        Bead {color, filled:false}
     }
 }
 
@@ -270,7 +283,7 @@ mod test {
     fn test_from_grid() {
         let width = 40;
         let mut rng = rand::thread_rng();
-        let x = (0..(width*width)).into_iter().map(|_|rng.gen_range(0..10u32)).compress();
+        let x = (0..(width*width)).into_iter().map(|_|rng.gen_range(0..10u32).into()).compress();
         let line = BeadsLine { width, height: width, line: x.collect(), schema: Default::default() };
         let line_backup =line.clone();
         let grid = line.simplified_grid();

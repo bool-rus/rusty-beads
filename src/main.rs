@@ -23,7 +23,7 @@ fn main() {
 
 #[derive(Default)]
 struct MyApp {
-    bead_line: BeadsLine<Bead<Color32>>,
+    bead_line: BeadsLine<Color32>,
     rotation: isize,
     draw_options: DrawOptions,
     palette: palette::Palette,
@@ -92,8 +92,8 @@ impl eframe::App for MyApp {
                             ui.end_row();
                             coord
                         }); 
-                        if let (Some(coord), Some(ref color)) = (coord, drawing_color){
-                            self.bead_line.set_value(color.into(), coord);
+                        if let (Some(coord), Some(color)) = (coord, drawing_color){
+                            self.bead_line.set_value(color, coord);
                         }
                     });
                 });

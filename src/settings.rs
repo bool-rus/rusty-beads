@@ -17,7 +17,7 @@ impl Default for DrawOptions {
         Self { 
             size: vec2(10.0, 10.0), 
             stroke: Stroke::new(0.4, Color32::WHITE), 
-            filled_stroke: Stroke::new(0.4, Color32::WHITE), 
+            filled_stroke: Stroke::new(0.4, Color32::TRANSPARENT), 
             rounding: Default::default(), 
             seam_rounding: Rounding::same(5.0),
             factor: 1.0,
