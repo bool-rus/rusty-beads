@@ -1,5 +1,7 @@
 use std::hash::{Hasher, Hash};
 
+use egui::Color32;
+
 pub struct Wrapped<T>(T);
 pub trait Wrappable where Self: Sized{
     fn wrap(&self)->Wrapped<&Self>;
@@ -119,6 +121,23 @@ pub trait Chunkable {
 impl<'a,I,T> Chunkable for I where I: Iterator<Item = &'a T> + 'a, T: 'a {
     fn chunks(self, chunk_size: usize) -> Chunked<Self> where Self: Sized {
         Chunked { chunk_size, iter: self }
+    }
+}
+
+pub trait Invertable {
+    fn invert(&self) -> Self;
+}
+
+impl Invertable for Color32 {
+    fn invert(&self) -> Self {
+        let [r,g,b, _] = self.to_array();
+        let (r,g,b) = (r as f32 / 255.0, g as f32 / 255.0, b as f32 /255.0);
+        let light = g + (r + b) / 2.0;
+        if light > 0.6 {
+            Color32::BLACK
+        } else {
+            Color32::WHITE
+        }
     }
 }
 

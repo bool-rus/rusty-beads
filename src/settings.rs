@@ -6,7 +6,8 @@ pub struct DrawOptions {
     pub size: Vec2,
     pub stroke: Stroke,
     pub rounding: Rounding,
-    pub seam_stroke: Stroke,
+    pub filled_stroke: Stroke,
+    pub seam_rounding: Rounding,
     factor: f32,
     origin_size: Vec2,
 }
@@ -16,8 +17,9 @@ impl Default for DrawOptions {
         Self { 
             size: vec2(10.0, 10.0), 
             stroke: Stroke::new(0.4, Color32::WHITE), 
-            seam_stroke: Stroke::new(0.4, Color32::WHITE), 
+            filled_stroke: Stroke::new(0.4, Color32::WHITE), 
             rounding: Default::default(), 
+            seam_rounding: Rounding::same(5.0),
             factor: 1.0,
             origin_size: vec2(10.0, 10.0), 
         }
@@ -38,11 +40,12 @@ impl DrawOptions {
                 ui.label("border color");
             });
             ui.separator();
-            ui.add(Slider::new(&mut self.seam_stroke.width, 0.0..=5.0).text("⛶"));
+            ui.add(Slider::new(&mut self.filled_stroke.width, 0.0..=5.0).text("⛶"));
             ui.horizontal(|ui| {
-                ui.color_edit_button_srgba(&mut self.seam_stroke.color);
-                ui.label("seam border color");
+                ui.color_edit_button_srgba(&mut self.filled_stroke.color);
+                ui.label("filled border color");
             });
+            ui.separator();
         });
     }
 }

@@ -119,17 +119,19 @@ impl <'a> egui::Widget for ColorBox<'a> {
                 color = *drawing_color;
             }
         }
-        let mut stroke = if self.is_seam {
-            self.options.seam_stroke
+        let stroke = if self.bead.filled {
+            self.options.filled_stroke
         } else {
             self.options.stroke
         };
-        if self.bead.filled {
-            stroke.color = Color32::RED;
-        }
+        let rounding = if self.is_seam {
+            self.options.seam_rounding
+        } else {
+            self.options.rounding
+        };
         ui.painter().rect(
             rect,
-            self.options.rounding,
+            rounding,
             color,
             stroke,
         );
