@@ -27,6 +27,7 @@ struct MyApp {
     rotation: isize,
     draw_options: DrawOptions,
     palette: palette::Palette,
+    drawing: bool,
 
     show_draw_options: bool,
     show_summary: bool,
@@ -54,8 +55,11 @@ impl eframe::App for MyApp {
             ui.add(Slider::new(&mut self.rotation, -w..=w).show_value(false));
         });
         egui::CentralPanel::default().show(ctx, |ui| {
-            let drawing = ctx.input().pointer.any_down();
-            let drawing_color = if drawing {
+            let pointer = ctx.input().pointer.clone();
+            if pointer.any_released() {
+                self.drawing = false;
+            }
+            let drawing_color = if self.drawing {
                 Some(self.palette.active_color())
             } else {
                 None
@@ -63,11 +67,12 @@ impl eframe::App for MyApp {
             ui.spacing_mut().icon_spacing = 0.0;
             ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
             let height = self.bead_line.height;
-            ScrollArea::vertical().enable_scrolling(!drawing)
+            ScrollArea::vertical().enable_scrolling(!self.drawing)
                 .show_rows(ui, self.draw_options.size.y, height, |ui, range|{
                     ui.horizontal_wrapped(|ui|{
                         ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
                         ui.set_row_height(self.draw_options.size.y);
+                        let mut drawing = false;
                         let box_width = self.draw_options.size.x;
                         let offset_tail = box_width / self.bead_line.schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
@@ -84,14 +89,21 @@ impl eframe::App for MyApp {
                                     break;
                                 }
                                 let is_seam = ncol == 0;
-                                if ui.add(ColorBox{options: &self.draw_options, bead, drawing_color: &drawing_color, is_seam}).changed() {
+                                let response = ui.add(ColorBox{options: &self.draw_options, bead, drawing_color: &drawing_color, is_seam});
+                                if response.changed() {
                                     coord = Some(Coord{ x: ncol, y: row });
+                                }
+                                if response.hovered() && pointer.any_pressed() {
+                                    drawing = true;
                                 }
                             }
                             ui.add_space(offset_tail);
                             ui.end_row();
                             coord
                         }); 
+                        if drawing {
+                            self.drawing = true;
+                        }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
                             self.bead_line.set_value(color, coord);
                         }
