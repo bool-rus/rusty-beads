@@ -21,6 +21,37 @@ impl<T: Eq + Hash + Clone + Default + Debug> Default for BeadsLine<T> {
 }
 
 impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
+    pub fn resize(&mut self, size: Size) {
+        let mut grid = self.simplified_grid();
+        grid.resize(size);
+        *self = Self::from_simplified_grid(grid, self.schema.clone());
+    }
+
+    pub fn change_schema(&mut self, schema: Schema) {
+        let grid = self.simplified_grid();
+        *self = Self::from_simplified_grid(grid, schema);
+    }
+
+    pub fn grow(&mut self, side: Side) {
+        match side {
+            Side::Top => self.grow_top(),
+            side => {
+                let mut grid = self.simplified_grid();
+                grid.grow(side, T::default());
+                *self = Self::from_simplified_grid(grid, self.schema.clone());
+            }
+        }
+    }
+    pub fn shrink(&mut self, side: Side) {
+        match side {
+            Side::Top => self.shrink_top(),
+            side => {
+                let mut grid = self.simplified_grid();
+                grid.grow(side, T::default());
+                *self = Self::from_simplified_grid(grid, self.schema.clone());
+            }
+        }
+    }
 
     pub fn simplified_grid(&self) -> SimplifiedGrid<T> {
         let data = self.table(0)
