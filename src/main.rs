@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 use eframe::egui;
 use egui::*;
+use line_settings::LineSettings;
 use model::*;
 use beads::BeadsRow;
 use settings::DrawOptions;
@@ -9,6 +10,7 @@ mod wrapper;
 mod model;
 mod palette;
 mod settings;
+mod line_settings;
 mod summary;
 
 fn main() {
@@ -23,31 +25,37 @@ fn main() {
 
 #[derive(Default)]
 struct MyApp {
-    bead_line: BeadsLine<Color32>,
+    beads_line: BeadsLine<Color32>,
     rotation: isize,
     draw_options: DrawOptions,
     palette: palette::Palette,
+    line_settings: LineSettings,
+    
     drawing: bool,
 
     show_draw_options: bool,
     show_summary: bool,
+    show_line_settings: bool,
 }
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.bead_line.show_summary(ctx, &mut self.show_summary);
+        self.line_settings.show_settings(ctx, &mut self.show_line_settings, &mut self.beads_line);
+        self.beads_line.show_summary(ctx, &mut self.show_summary);
         self.draw_options.show(ctx, &mut self.show_draw_options);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
-            ui.horizontal_centered(|ui| {
-                ui.toggle_value(&mut self.show_draw_options, "⛭");
-                ui.toggle_value(&mut self.show_summary, "");
+            ui.horizontal(|ui| {
+                
+                ui.toggle_value(&mut self.show_draw_options, RichText::new("⛭").size(20.));
+                ui.toggle_value(&mut self.show_summary, RichText::new("").size(20.));
+                ui.toggle_value(&mut self.show_line_settings, RichText::new("📃").size(20.));
                 self.palette.show(ui);
             })
         });
         egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
             let delta = ui.input().scroll_delta;
             self.rotation += (delta.x/3.0) as isize;
-            let w = self.bead_line.width() as isize;
+            let w = self.beads_line.width() as isize;
             if self.rotation.abs() > w {
                 self.rotation = self.rotation % w;
             }
@@ -66,7 +74,7 @@ impl eframe::App for MyApp {
             };
             ui.spacing_mut().icon_spacing = 0.0;
             ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
-            let height = self.bead_line.height;
+            let height = self.beads_line.height;
             ScrollArea::vertical().enable_scrolling(!self.drawing)
                 .show_rows(ui, self.draw_options.size.y, height, |ui, range|{
                     ui.horizontal_wrapped(|ui|{
@@ -74,9 +82,9 @@ impl eframe::App for MyApp {
                         ui.set_row_height(self.draw_options.size.y);
                         let mut drawing = false;
                         let box_width = self.draw_options.size.x;
-                        let offset_tail = box_width / self.bead_line.schema.base() as f32;
+                        let offset_tail = box_width / self.beads_line.schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
-                        let coord = self.bead_line.table(self.rotation)
+                        let coord = self.beads_line.table(self.rotation)
                             .skip(range.start)
                             .take(range.end - range.start)
                             .fold(None, |mut coord, row| {
@@ -105,7 +113,7 @@ impl eframe::App for MyApp {
                             self.drawing = true;
                         }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
-                            self.bead_line.set_value(color, coord);
+                            self.beads_line.set_value(color, coord);
                         }
                     });
                 });

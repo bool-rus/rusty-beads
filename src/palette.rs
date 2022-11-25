@@ -1,8 +1,8 @@
 use egui::*;
-use fxhash::FxHashSet;
+use indexmap::IndexSet;
 
 pub struct Palette {
-    colors: FxHashSet<Color32>,
+    colors: IndexSet<Color32>,
     active_color: Color32,
     choise_color: Color32,
 }
@@ -10,7 +10,7 @@ pub struct Palette {
 impl Default for Palette {
     fn default() -> Self {
         use Color32 as C;
-        let mut colors = FxHashSet::default();
+        let mut colors = IndexSet::default();
         for c in [C::YELLOW, C::WHITE, C::BLACK, C::RED, C::BLUE, C::GREEN] {
             colors.insert(c);
         }
@@ -27,9 +27,15 @@ impl Palette {
         self.active_color
     }
     pub fn show(&mut self, ui: &mut Ui) {
-        ui.horizontal(|ui|{
+        ui.horizontal_centered(|ui|{
+            if ui.button(RichText::new("🗙").size(20.).color(Color32::RED)).clicked() {
+                self.colors.remove(&self.active_color);
+            }
+            ui.color_edit_button_srgba(&mut self.choise_color);
+            if ui.button(RichText::new("➕").size(20.).color(Color32::GREEN)).clicked() {
+                self.colors.insert(self.choise_color);
+            }
             ui.horizontal_wrapped(|ui| {
-                ui.set_max_width(ui.available_width() - 100.0);
                 for color in self.colors.clone() {
                     ui.selectable_value(
                         &mut self.active_color,
@@ -38,13 +44,6 @@ impl Palette {
                     );
                 }
             });
-            if ui.button("➕").clicked() {
-                self.colors.insert(self.choise_color);
-            }
-            ui.color_edit_button_srgba(&mut self.choise_color);
-            if ui.button("🗙").clicked() {
-                self.colors.remove(&self.active_color);
-            }
         });
     }
 }

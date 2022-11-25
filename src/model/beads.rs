@@ -1,4 +1,4 @@
-use fxhash::FxHashMap;
+use indexmap::{IndexSet, IndexMap};
 
 use crate::wrapper::{Uncompressable, Compressable, Chunkable};
 
@@ -185,8 +185,8 @@ impl<T: Eq + Hash + Clone + Debug + Default + ColorTrait> BeadsLine<T> {
     pub fn line_mut(&mut self) -> &mut Vec<(Bead<T>,usize)> {
         &mut self.line
     }
-    pub fn summary(&self) -> FxHashMap<T, usize> {
-        self.line.iter().fold(FxHashMap::default(), |mut summary, (item, count)|{
+    pub fn summary(&self) -> IndexMap<T, usize> {
+        self.line.iter().fold(IndexMap::default(), |mut summary, (item, count)|{
             if let Some(saved) = summary.get_mut(&item.color) {
                 *saved += *count;
             } else {
