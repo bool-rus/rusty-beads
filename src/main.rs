@@ -30,7 +30,7 @@ struct MyApp {
     draw_options: Settings,
     palette: palette::Palette,
     drawing: bool,
-
+    undo: usize,
     show_draw_options: bool,
     show_summary: bool,
 }
@@ -68,6 +68,9 @@ impl eframe::App for MyApp {
                 ui.toggle_value(&mut self.show_summary, text4btn("🍡")); // //🏮 // 
                 if ui.button(text4btn("⟲")).clicked() {
                     self.beads.undo();
+                }
+                if ui.add(Slider::new(&mut self.undo, self.beads.max_undo()..=0).show_value(false).logarithmic(true)).changed() {
+                    self.beads.undo_at(self.undo);
                 }
                 if ui.button(text4btn("⟳")).clicked() {
                     self.beads.redo();
@@ -136,7 +139,9 @@ impl eframe::App for MyApp {
                             self.drawing = true;
                         }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
-                            self.beads.set_value(color, coord);
+                            if self.beads.set_value(color, coord) {
+                                self.undo = 0;
+                            }
                         }
                     });
                 });
