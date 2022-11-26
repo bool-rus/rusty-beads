@@ -96,6 +96,11 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
         .compress()
         .collect();
     }
+    pub fn rotate(&mut self, rotation: isize) {
+        let mut grid = self.simplified_grid();
+        grid.rotate(rotation);
+        *self = BeadsLine::from_simplified_grid(grid, self.schema);
+    }
 }
 
 pub struct BeadsRow<'a, T> {

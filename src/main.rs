@@ -3,16 +3,14 @@
 // hide console window on Windows in release
 use eframe::egui;
 use egui::*;
-use line_settings::LineSettings;
 use model::*;
 use beads::BeadsRow;
-use settings::DrawOptions;
+use settings::Settings;
 
 mod wrapper;
 mod model;
 mod palette;
 mod settings;
-mod line_settings;
 mod summary;
 mod io;
 
@@ -30,41 +28,45 @@ fn main() {
 struct MyApp {
     beads_line: BeadsLine<Color32>,
     rotation: isize,
-    draw_options: DrawOptions,
+    draw_options: Settings,
     palette: palette::Palette,
-    line_settings: LineSettings,
     drawing: bool,
 
     show_draw_options: bool,
     show_summary: bool,
-    show_line_settings: bool,
+}
+
+pub fn text4btn(text: &str) -> RichText {
+    RichText::new(text).size(20.)
 }
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.line_settings.show_settings(ctx, &mut self.show_line_settings, &mut self.beads_line);
         self.beads_line.show_summary(ctx, &mut self.show_summary);
-        self.draw_options.show(ctx, &mut self.show_draw_options);
+        self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads_line);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
-                if ui.button("Open file…").clicked() {
+                if ui.button(text4btn("📂")).clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_file() {
                         match io::load_line(&path) {
-                            Ok(line) => self.beads_line = line,
+                            Ok(line) => {
+                                let colors = line.summary().keys().copied().collect();
+                                self.palette.set_colors(colors);
+                                self.beads_line = line;
+                            }
                             Err(e) => println!("err on open: {e}"),
                         }
                     }
                 }
-                if ui.button("Save file…").clicked() {
+                if ui.button(text4btn("💾")).clicked() {
                     if let Some(path) = rfd::FileDialog::new().save_file() {
                         if let Err(e) = io::save(&path, &self.beads_line) {
                             println!("err on save: {e}");
                         }
                     }
                 }
-                ui.toggle_value(&mut self.show_draw_options, RichText::new("⛭").size(20.));
-                ui.toggle_value(&mut self.show_summary, RichText::new("").size(20.));
-                ui.toggle_value(&mut self.show_line_settings, RichText::new("📃").size(20.));
+                ui.toggle_value(&mut self.show_draw_options, text4btn("⛭"));
+                ui.toggle_value(&mut self.show_summary, text4btn("🍡")); // //🏮 // 
                 self.palette.show(ui);
             })
         });
@@ -139,7 +141,7 @@ impl eframe::App for MyApp {
 
 
 struct ColorBox<'a> {
-    options: &'a DrawOptions,
+    options: &'a Settings,
     bead: &'a Bead<Color32>,
     drawing_color: &'a Option<Color32>,
     is_seam: bool,

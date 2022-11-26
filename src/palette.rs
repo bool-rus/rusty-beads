@@ -23,6 +23,9 @@ impl Default for Palette {
 }
 
 impl Palette {
+    pub fn set_colors(&mut self, colors: IndexSet<Color32>) {
+        self.colors = colors;
+    }
     pub fn active_color(&self) -> Color32 {
         self.active_color
     }
