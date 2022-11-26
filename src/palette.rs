@@ -4,7 +4,6 @@ use indexmap::IndexSet;
 pub struct Palette {
     colors: IndexSet<Color32>,
     active_color: Color32,
-    choise_color: Color32,
 }
 
 impl Default for Palette {
@@ -17,7 +16,6 @@ impl Default for Palette {
         Self { 
             colors, 
             active_color: C::BLUE, 
-            choise_color: C::DARK_RED, 
         }
     }
 }
@@ -34,10 +32,10 @@ impl Palette {
             if ui.button(RichText::new("🗙").size(20.).color(Color32::RED)).clicked() {
                 self.colors.remove(&self.active_color);
             }
-            ui.color_edit_button_srgba(&mut self.choise_color);
+            ui.color_edit_button_srgba(&mut self.active_color);
             if ui.button(RichText::new("➕").size(20.).color(Color32::GREEN)).clicked() {
-                self.colors.insert(self.choise_color);
-                self.active_color = self.choise_color;
+                self.colors.insert(self.active_color);
+                self.active_color = self.active_color;
             }
             ui.horizontal_wrapped(|ui| {
                 for color in self.colors.clone() {
