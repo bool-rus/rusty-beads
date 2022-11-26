@@ -200,17 +200,16 @@ impl<T: Eq + Hash + Clone + Debug + Default + ColorTrait> BeadsLine<T> {
             summary
         })
     }
-    /* 
-    pub fn map<X: Debug + Hash + Eq + Clone + Default, F: Fn(&Bead<T>)->Bead<X>>(&self, fun: F) -> BeadsLine<Bead<X>> {
+
+    pub fn map<X: Debug + Hash + Eq + Clone + Default, F: Fn(&T)->X>(&self, fun: F) -> BeadsLine<X> {
         BeadsLine {
             width: self.width,
             height: self.height,
             schema: self.schema,
-            line: self.line.iter().map(|(x, count)|(fun(x), *count)).collect()
+            line: self.line.iter().map(|(x, count)|{(x.map(&fun), *count)}).collect()
         }
-    }*/
+    }
 }
-
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bead<T: ColorTrait> {
@@ -221,6 +220,10 @@ pub struct Bead<T: ColorTrait> {
 impl<T: ColorTrait> Bead<T> {
     fn unfill(&self) -> Self{
         Bead{color: self.color.clone(), filled: false}
+    }
+    fn map<X: ColorTrait>(&self, fun: impl Fn(&T) -> X) -> Bead<X> {
+        let color = fun(&self.color);
+        Bead {color, filled: self.filled}
     }
 }
 

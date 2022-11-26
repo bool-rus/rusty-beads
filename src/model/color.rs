@@ -1,3 +1,5 @@
+use egui::Color32;
+
 use super::{Serialize, Deserialize};
 use std::fmt;
 use std::num::ParseIntError;
@@ -65,5 +67,12 @@ impl FromStr for Color {
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:X}", self)
+    }
+}
+
+impl Into<Color32> for Color {
+    fn into(self) -> Color32 {
+        let Color {r,g,b} = self;
+        Color32::from_rgb(r, g, b)
     }
 }
