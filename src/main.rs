@@ -1,4 +1,6 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] use std::path::PathBuf;
+
+// hide console window on Windows in release
 use eframe::egui;
 use egui::*;
 use line_settings::LineSettings;
@@ -12,6 +14,7 @@ mod palette;
 mod settings;
 mod line_settings;
 mod summary;
+mod io;
 
 fn main() {
 
@@ -30,7 +33,6 @@ struct MyApp {
     draw_options: DrawOptions,
     palette: palette::Palette,
     line_settings: LineSettings,
-    
     drawing: bool,
 
     show_draw_options: bool,
@@ -45,7 +47,21 @@ impl eframe::App for MyApp {
         self.draw_options.show(ctx, &mut self.show_draw_options);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
-                
+                if ui.button("Open file…").clicked() {
+                    if let Some(path) = rfd::FileDialog::new().pick_file() {
+                        match io::load_line(&path) {
+                            Ok(line) => self.beads_line = line,
+                            Err(e) => println!("err on open: {e}"),
+                        }
+                    }
+                }
+                if ui.button("Save file…").clicked() {
+                    if let Some(path) = rfd::FileDialog::new().save_file() {
+                        if let Err(e) = io::save(&path, &self.beads_line) {
+                            println!("err on save: {e}");
+                        }
+                    }
+                }
                 ui.toggle_value(&mut self.show_draw_options, RichText::new("⛭").size(20.));
                 ui.toggle_value(&mut self.show_summary, RichText::new("").size(20.));
                 ui.toggle_value(&mut self.show_line_settings, RichText::new("📃").size(20.));

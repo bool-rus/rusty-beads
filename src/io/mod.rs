@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use crate::model::beads::BeadsLine;
 use serde::Deserialize;
 
-pub fn save(path: &PathBuf, line: &BeadsLine<ColorBead>) -> Result<(), String> {
+pub fn save(path: &PathBuf, line: &BeadsLine<egui::Color32>) -> Result<(), String> {
     let mut file = File::create(path)
         .map_err(|e|e.to_string())?;
     let serialized = serde_json::to_string(line)
@@ -17,7 +17,7 @@ pub fn save(path: &PathBuf, line: &BeadsLine<ColorBead>) -> Result<(), String> {
         .map_err(|e|e.to_string())
 }
 
-pub fn load_line(path: &PathBuf) -> Result<BeadsLine<ColorBead>, String> {
+pub fn load_line(path: &PathBuf) -> Result<BeadsLine<egui::Color32>, String> {
     let file = File::open(path).map_err(|e| e.to_string())?;
     let reader = BufReader::new(file);
     let mut deserializer = serde_json::Deserializer::from_reader(reader);
@@ -49,8 +49,4 @@ pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<ColorBead>, String> {
         filled: false,
     });
     Ok(grid)
-}
-
-pub fn default_dir() -> PathBuf {
-    dirs::document_dir().unwrap_or(".".into())
 }
