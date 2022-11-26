@@ -1,5 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] use std::path::PathBuf;
-
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] 
 // hide console window on Windows in release
 use eframe::egui;
 use egui::*;
@@ -26,7 +25,7 @@ fn main() {
 
 #[derive(Default)]
 struct MyApp {
-    beads_line: BeadsLine<Color32>,
+    beads: Undo,
     rotation: isize,
     draw_options: Settings,
     palette: palette::Palette,
@@ -42,8 +41,8 @@ pub fn text4btn(text: &str) -> RichText {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.beads_line.show_summary(ctx, &mut self.show_summary);
-        self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads_line);
+        self.beads.line_mut().show_summary(ctx, &mut self.show_summary);
+        self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
                 if ui.button(text4btn("📂")).clicked() {
@@ -52,7 +51,7 @@ impl eframe::App for MyApp {
                             Ok(line) => {
                                 let colors = line.summary().keys().copied().collect();
                                 self.palette.set_colors(colors);
-                                self.beads_line = line;
+                                self.beads = line.into();
                             }
                             Err(e) => println!("err on open: {e}"),
                         }
@@ -60,20 +59,26 @@ impl eframe::App for MyApp {
                 }
                 if ui.button(text4btn("💾")).clicked() {
                     if let Some(path) = rfd::FileDialog::new().save_file() {
-                        if let Err(e) = io::save(&path, &self.beads_line) {
+                        if let Err(e) = io::save(&path, &self.beads.line()) {
                             println!("err on save: {e}");
                         }
                     }
                 }
                 ui.toggle_value(&mut self.show_draw_options, text4btn("⛭"));
                 ui.toggle_value(&mut self.show_summary, text4btn("🍡")); // //🏮 // 
+                if ui.button(text4btn("⟲")).clicked() {
+                    self.beads.undo();
+                }
+                if ui.button(text4btn("⟳")).clicked() {
+                    self.beads.redo();
+                }
                 self.palette.show(ui);
             })
         });
         egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
             let delta = ui.input().scroll_delta;
             self.rotation += (delta.x/3.0) as isize;
-            let w = self.beads_line.width() as isize;
+            let w = self.beads.line().width() as isize;
             if self.rotation.abs() > w {
                 self.rotation = self.rotation % w;
             }
@@ -92,7 +97,7 @@ impl eframe::App for MyApp {
             };
             ui.spacing_mut().icon_spacing = 0.0;
             ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
-            let height = self.beads_line.height;
+            let height = self.beads.line().height;
             ScrollArea::vertical().enable_scrolling(!self.drawing)
                 .show_rows(ui, self.draw_options.size.y, height, |ui, range|{
                     ui.horizontal_wrapped(|ui|{
@@ -100,9 +105,9 @@ impl eframe::App for MyApp {
                         ui.set_row_height(self.draw_options.size.y);
                         let mut drawing = false;
                         let box_width = self.draw_options.size.x;
-                        let offset_tail = box_width / self.beads_line.schema.base() as f32;
+                        let offset_tail = box_width / self.beads.line().schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
-                        let coord = self.beads_line.table(self.rotation)
+                        let coord = self.beads.line().table(self.rotation)
                             .skip(range.start)
                             .take(range.end - range.start)
                             .fold(None, |mut coord, row| {
@@ -131,7 +136,7 @@ impl eframe::App for MyApp {
                             self.drawing = true;
                         }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
-                            self.beads_line.set_value(color, coord);
+                            self.beads.set_value(color, coord);
                         }
                     });
                 });

@@ -1,5 +1,4 @@
 use std::num::NonZeroUsize;
-use std::collections::HashMap;
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
@@ -8,16 +7,13 @@ pub mod grid;
 mod color;
 pub mod beads;
 mod faces;
-mod model;
+mod undo;
 
+pub use undo::Undo;
 pub use faces::*;
 pub use grid::Grid;
-pub use model::Model;
 pub use beads::{Bead, BeadsLine};
 pub use color::Color;
-
-
-pub type ColorBead = Bead<Color>;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }

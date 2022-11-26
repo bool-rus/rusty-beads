@@ -31,12 +31,12 @@ impl Default for Settings {
 }
 
 impl Settings {
-    pub fn show(&mut self, ctx: &Context, open: &mut bool, line: &mut BeadsLine<Color32>) {
+    pub fn show(&mut self, ctx: &Context, open: &mut bool, beads: &mut Undo) {
         Window::new("settings").open(open).show(ctx, |ui| {
-            self.show_ui(ui, line);
+            self.show_ui(ui, beads);
         });
     }
-    fn show_ui(&mut self, ui: &mut Ui, line: &mut BeadsLine<Color32>) {
+    fn show_ui(&mut self, ui: &mut Ui, beads: &mut Undo) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.add(Slider::new(&mut self.origin_size.x, 10.0..=100.0).text("↔"));
             ui.add(Slider::new(&mut self.origin_size.y, 10.0..=100.0).text("↕"));
@@ -66,7 +66,7 @@ impl Settings {
                 if ui.button("OK").clicked() {
                     match (self.width.parse(), self.height.parse()) {
                         (Ok(width), Ok(height)) => {
-                            line.resize(Size {width, height});
+                            beads.resize(Size {width, height});
                         }
                         _ => {},
                     };
@@ -74,17 +74,17 @@ impl Settings {
                 ui.end_row();
                 ui.vertical(|ui|ui.separator());
                 if ui.button(text4btn("◀")).clicked() {
-                    line.rotate(-1);
+                    beads.line_mut().rotate(-1);
                 };
                 ui.label(text4btn("💫"));
                 if ui.button(text4btn("▶")).clicked() {
-                    line.rotate(1);
+                    beads.line_mut().rotate(1);
                 };
                 ui.end_row();
                 ui.vertical(|ui|ui.separator());
                 if ui.button("сменить схему").clicked() {
-                    let schema = line.schema.switch();
-                    line.change_schema(schema);
+                    let schema = beads.line_mut().schema.switch();
+                    beads.line_mut().change_schema(schema);
                 }
             });
         });
