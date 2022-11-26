@@ -1,7 +1,6 @@
 use crate::model::{Grid, ColorBead, Color, Bead};
 use std::fs::File;
 use std::io::{Write, BufReader};
-use quick_csv::Csv;
 use std::str::FromStr;
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
@@ -24,29 +23,3 @@ pub fn load_line(path: &PathBuf) -> Result<BeadsLine<egui::Color32>, String> {
     BeadsLine::deserialize(&mut deserializer).map_err(|e|e.to_string())
 }
 
-
-pub fn load_grid<T: AsRef<Path>>(file: T) -> Result<Grid<ColorBead>, String> {
-    let mut data = Vec::with_capacity(10000usize);
-    let csv = Csv::from_file(file).map_err(|e|e.to_string())?;
-    let mut first = true;
-    let mut width = 0usize;
-    for row in csv.into_iter() {
-        let row = row.map_err(|e|e.to_string())?;
-        if first {
-            first = false;
-            width = row.len();
-        }
-        row.columns().map_err(|e|e.to_string())?.for_each(|item| {
-            data.push(Color::from_str(item).unwrap())
-        })
-    }
-    let width = NonZeroUsize::new(width).ok_or("invalid width".to_string())?;
-    let data = data.into_iter().map(|color|(color, false)).collect();
-    let grid = Grid::frow_raw(width, data)
-        .map_err(|e|e.to_string())?
-        .map(|item|Bead {
-        color: item.clone(),
-        filled: false,
-    });
-    Ok(grid)
-}

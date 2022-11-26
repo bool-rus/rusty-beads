@@ -97,7 +97,6 @@ dependencies = [
  "eframe",
  "egui",
  "indexmap",
- "quick-csv",
  "rand",
  "rfd",
  "serde",
@@ -1329,15 +1328,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quick-csv"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edf4b7701db7d2e4c9c010f21eebd8676a50f79223a0cf858162d24bff47338c"
-dependencies = [
- "rustc-serialize",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1426,12 +1416,6 @@ dependencies = [
  "web-sys",
  "windows",
 ]
-
-[[package]]
-name = "rustc-serialize"
-version = "0.3.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 
 [[package]]
 name = "ryu"
