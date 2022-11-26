@@ -10,7 +10,7 @@ impl Default for Palette {
     fn default() -> Self {
         use Color32 as C;
         let mut colors = IndexSet::default();
-        for c in [C::YELLOW, C::WHITE, C::BLACK, C::RED, C::BLUE, C::GREEN] {
+        for c in [C::YELLOW, C::WHITE, C::TRANSPARENT, C::RED, C::BLUE, C::GREEN] {
             colors.insert(c);
         }
         Self { 
