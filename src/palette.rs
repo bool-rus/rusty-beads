@@ -37,6 +37,7 @@ impl Palette {
             ui.color_edit_button_srgba(&mut self.choise_color);
             if ui.button(RichText::new("➕").size(20.).color(Color32::GREEN)).clicked() {
                 self.colors.insert(self.choise_color);
+                self.active_color = self.choise_color;
             }
             ui.horizontal_wrapped(|ui| {
                 for color in self.colors.clone() {
