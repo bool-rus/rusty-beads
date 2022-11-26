@@ -72,7 +72,7 @@ impl Settings {
                     };
                 }
                 ui.end_row();
-                ui.separator();
+                ui.vertical(|ui|ui.separator());
                 if ui.button(text4btn("◀")).clicked() {
                     line.rotate(-1);
                 };
@@ -81,7 +81,7 @@ impl Settings {
                     line.rotate(1);
                 };
                 ui.end_row();
-                ui.separator();
+                ui.vertical(|ui|ui.separator());
                 if ui.button("сменить схему").clicked() {
                     let schema = line.schema.switch();
                     line.change_schema(schema);
