@@ -19,22 +19,18 @@ impl eframe::App for MyApp {
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
                 if ui.button(text4btn("📂")).clicked() {
-                    if let Some(path) = rfd::FileDialog::new().pick_file() {
-                        match io::load_line(&path) {
-                            Ok(line) => {
-                                let colors = line.summary().keys().copied().collect();
-                                self.palette.set_colors(colors);
-                                self.beads = line.into();
-                            }
-                            Err(e) => println!("err on open: {e}"),
-                        }
+                    match io::open_file() {
+                        Ok(line) => {
+                            let colors = line.summary().keys().copied().collect();
+                            self.palette.set_colors(colors);
+                            self.beads = line.into();
+                        },
+                        Err(e) => println!("{e}"),
                     }
                 }
                 if ui.button(text4btn("💾")).clicked() {
-                    if let Some(path) = rfd::FileDialog::new().save_file() {
-                        if let Err(e) = io::save(&path, &self.beads.line()) {
-                            println!("err on save: {e}");
-                        }
+                    if let Some(e) = io::save_file(self.beads.line()).err() {
+                        println!("{e}");
                     }
                 }
                 ui.toggle_value(&mut self.show_draw_options, text4btn("⛭"));
