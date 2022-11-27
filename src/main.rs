@@ -100,7 +100,7 @@ impl eframe::App for MyApp {
             };
             ui.spacing_mut().icon_spacing = 0.0;
             ui.spacing_mut().item_spacing = vec2(0.0, 0.0);
-            let height = self.beads.line().height;
+            let height = self.beads.height();
             ScrollArea::vertical().enable_scrolling(!self.drawing)
                 .show_rows(ui, self.draw_options.size.y, height, |ui, range|{
                     ui.horizontal_wrapped(|ui|{

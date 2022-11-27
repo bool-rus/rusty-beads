@@ -103,7 +103,7 @@ impl Size {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,

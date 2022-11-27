@@ -2,13 +2,21 @@ use egui::Color32;
 
 use super::*;
 
+#[derive(Default)]
 struct Action (Color32, Coord);
 
-#[derive(Default)]
-pub struct Undo{
+pub struct Undo {
     line: BeadsLine<Color32>,
+    height: usize,
     undo: Vec<Action>,
     redo: Vec<Action>,
+}
+
+impl Default for Undo {
+    fn default() -> Self {
+        let line: BeadsLine<_> = Default::default();
+        Self { height: line.calculate_height(), line, undo: Default::default(), redo: Default::default() }
+    }
 }
 
 impl Undo {
@@ -24,6 +32,9 @@ impl Undo {
             false
         }
     }
+    pub fn height(&self) -> usize {
+        self.height
+    } 
     pub fn line(&self) -> &BeadsLine<Color32> {
         &self.line
     }
@@ -32,6 +43,7 @@ impl Undo {
     }
     pub fn resize(&mut self, size: Size) {
         self.line.resize(size);
+        self.height = size.height.get();
         self.undo.clear();
         self.redo.clear();
     }
@@ -74,6 +86,7 @@ impl Undo {
 
 impl From<BeadsLine<Color32>> for Undo {
     fn from(line: BeadsLine<Color32>) -> Self {
-        Self {line, undo: vec![], redo: vec![]}
+        let height = line.calculate_height();
+        Self {line, undo: vec![], redo: vec![], height}
     }
 }
