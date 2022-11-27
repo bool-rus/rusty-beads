@@ -11,9 +11,17 @@ mod model;
 mod palette;
 mod settings;
 mod summary;
+#[cfg(not(target_arch="wasm32"))]
 mod io;
 mod app;
 
+
+#[cfg(target_arch="wasm32")]
+mod io_wasm;
+#[cfg(target_arch="wasm32")]
+use io_wasm as io;
+
+#[cfg(not(target_arch="wasm32"))]
 fn main() {
     let options = eframe::NativeOptions::default();
     eframe::run_native(
@@ -21,6 +29,16 @@ fn main() {
         options,
         Box::new(|_cc| Box::new(app::MyApp::default())),
     );
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn main() {
+    let web_options = eframe::WebOptions::default();
+    eframe::start_web(
+        "rusty-beads",
+        web_options,
+        Box::new(|_cc| Box::new(app::MyApp::default())),
+    ).unwrap();
 }
 
 pub fn text4btn(text: &str) -> RichText {

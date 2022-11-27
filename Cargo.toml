@@ -1,5 +1,5 @@
 [package]
-name = "beads-and-threads"
+name = "rusty-beads"
 version = "2.0.0"
 authors = ["Serge Barinov <bool.rus@gmail.com>"]
 edition = "2018"
