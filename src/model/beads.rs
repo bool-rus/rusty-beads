@@ -53,7 +53,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     }
 
     pub fn simplified_grid(&self) -> SimplifiedGrid<T> {
-        let data = self.table(0)
+        let data = self.table(0, 0)
         .map(|br|br.iter)
         .flatten().map(|(_, obj)|obj.color.clone()).collect();
         SimplifiedGrid::from_raw(NonZeroUsize::new(self.width).unwrap(), data)
@@ -61,7 +61,6 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
 
     pub fn from_simplified_grid(grid: SimplifiedGrid<T>, schema: Schema) -> Self {
         let width = grid.size().width();
-        let height = grid.size().height();
         let line = grid.as_table_iter().enumerate().map(|(n, i)|{
             let rot = schema.calculate_rotation(n, width, 0);
             i.rev().cycle().skip(rot).take(width)
@@ -121,11 +120,12 @@ impl<T: Eq + Hash + Clone + Debug + Default + ColorTrait> BeadsLine<T> {
         let modulo = rot % width;
         if modulo >= 0 { modulo as usize} else { (width + modulo) as usize }
     }
-    pub fn table(&self, rotation: isize) -> impl Iterator<Item=BeadsRow<'_, Bead<T>>> {
+    pub fn table(&self, rotation: isize, skip_rows: usize) -> impl Iterator<Item=BeadsRow<'_, Bead<T>>> {
         let rotation = self.normalize_rotation(rotation); 
         let width = self.width;
         let schema = self.schema;
-        self.line.iter().uncompress().chunks(width).enumerate().map(move |(row_num, chunk)|{
+        self.line.iter().uncompress().skip(skip_rows * width).chunks(width).enumerate().map(move |(mut row_num, chunk)|{
+            row_num += skip_rows;
             let rotation = schema.calculate_rotation(row_num, width, rotation);
             let iter = chunk.into_iter().enumerate().rev().cycle().skip(rotation).take(width);
             BeadsRow {row: row_num, offset: schema.calculate_offset(row_num), iter:  Box::new(iter) }

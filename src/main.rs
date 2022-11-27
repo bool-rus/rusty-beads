@@ -110,8 +110,8 @@ impl eframe::App for MyApp {
                         let box_width = self.draw_options.size.x;
                         let offset_tail = box_width / self.beads.line().schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
-                        let coord = self.beads.line().table(self.rotation)
-                            .skip(range.start)
+                        let coord = self.beads.line().table(self.rotation, range.start)
+                            //.skip(range.start)
                             .take(range.end - range.start)
                             .fold(None, |mut coord, row| {
                             let BeadsRow { row, offset, iter } = row;
