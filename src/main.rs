@@ -25,7 +25,7 @@ fn main() {
 
 #[derive(Default)]
 struct MyApp {
-    beads: Undo,
+    beads: Model,
     rotation: isize,
     draw_options: Settings,
     palette: palette::Palette,

@@ -5,21 +5,21 @@ use super::*;
 #[derive(Default)]
 struct Action (Color32, Coord);
 
-pub struct Undo {
+pub struct Model {
     line: BeadsLine<Color32>,
     height: usize,
     undo: Vec<Action>,
     redo: Vec<Action>,
 }
 
-impl Default for Undo {
+impl Default for Model {
     fn default() -> Self {
         let line: BeadsLine<_> = Default::default();
         Self { height: line.calculate_height(), line, undo: Default::default(), redo: Default::default() }
     }
 }
 
-impl Undo {
+impl Model {
     pub fn set_value(&mut self, value: Color32, coord: Coord) -> bool {
         if let Some(prev) = self.line.set_value(value, coord) {
             self.undo.push(Action(prev.color, coord));
@@ -84,7 +84,7 @@ impl Undo {
     }
 }
 
-impl From<BeadsLine<Color32>> for Undo {
+impl From<BeadsLine<Color32>> for Model {
     fn from(line: BeadsLine<Color32>) -> Self {
         let height = line.calculate_height();
         Self {line, undo: vec![], redo: vec![], height}

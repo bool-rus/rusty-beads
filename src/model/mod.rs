@@ -7,9 +7,9 @@ pub mod grid;
 mod color;
 pub mod beads;
 mod faces;
-mod undo;
+mod model;
 
-pub use undo::Undo;
+pub use model::Model;
 pub use faces::*;
 pub use grid::Grid;
 pub use beads::{Bead, BeadsLine};

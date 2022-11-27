@@ -31,12 +31,12 @@ impl Default for Settings {
 }
 
 impl Settings {
-    pub fn show(&mut self, ctx: &Context, open: &mut bool, beads: &mut Undo) {
+    pub fn show(&mut self, ctx: &Context, open: &mut bool, beads: &mut Model) {
         Window::new("settings").open(open).show(ctx, |ui| {
             self.show_ui(ui, beads);
         });
     }
-    fn show_ui(&mut self, ui: &mut Ui, beads: &mut Undo) {
+    fn show_ui(&mut self, ui: &mut Ui, beads: &mut Model) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.add(Slider::new(&mut self.origin_size.x, 10.0..=100.0).text("↔"));
             ui.add(Slider::new(&mut self.origin_size.y, 10.0..=100.0).text("↕"));
