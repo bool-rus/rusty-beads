@@ -27,8 +27,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
     }
 
     pub fn change_schema(&mut self, schema: Schema) {
-        let grid = self.simplified_grid();
-        *self = Self::from_simplified_grid(grid, schema);
+        self.schema = schema;
     }
 
     pub fn grow(&mut self, side: Side) {
