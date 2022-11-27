@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs>
-    <bx:grid x="0" y="0" width="3" height="3"/>
-  </defs>
-  <rect x="40.61" y="80" width="33.841" height="20" style="" transform="matrix(-0.697809, 0.716284, -0.716284, -0.697809, 121.640739, 113.496696)"/>
-  <circle style="stroke-width: 7px; fill: none; stroke: rgb(102, 3, 3);" cx="60.981" cy="48.44" r="43.273"/>
-  <rect x="36" y="39" width="51" height="21" style="fill: rgb(209, 6, 6);"/>
-</svg>
