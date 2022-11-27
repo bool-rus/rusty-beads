@@ -11,7 +11,6 @@ mod model;
 
 pub use model::Model;
 pub use faces::*;
-pub use grid::Grid;
 pub use beads::{Bead, BeadsLine};
 pub use color::Color;
 

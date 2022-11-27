@@ -1,5 +1,3 @@
-use std::hash::{Hasher, Hash};
-
 use egui::Color32;
 
 pub struct Wrapped<T>(T);
