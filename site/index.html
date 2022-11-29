@@ -106,6 +106,25 @@
     <script src="rusty-beads.js"></script>
 
     <script>
+        var fileContent = null;
+        function get_file_content() {
+            var content = fileContent;
+            fileContent = null;
+            return content;
+        }
+        function open_file_dialog() {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = event => {
+                var file = event.target.files[0];
+                var reader = new FileReader();
+                reader.readAsText(file, 'UTF-8');
+                reader.onload = readerEvent => {
+                    fileContent = readerEvent.target.result;
+                }
+            }
+            input.click();
+        }
         console.debug("loading wasm…");
         wasm_bindgen("./rusty-beads_bg.wasm")
             .then(on_wasm_loaded)

@@ -10,23 +10,59 @@ pub struct MyApp {
     undo: usize,
     show_draw_options: bool,
     show_summary: bool,
+    #[cfg(target_arch="wasm32")]
+    waiting_file: bool,
+}
+
+impl MyApp {
+    fn update_from_line(&mut self, line: BeadsLine<Color32>) {
+        let colors = line.summary().keys().copied().collect();
+        self.palette.set_colors(colors);
+        self.beads = line.into();
+    }
+}
+
+#[cfg(not(target_arch="wasm32"))]
+impl MyApp {
+    fn open_file(&mut self) {
+        match io::open_file() {
+            Ok(line) => {
+                self.update_from_line(line);
+            },
+            Err(e) => println!("{e}"),
+        }
+    }
+    fn on_update(&mut self) {
+
+    }
+}
+#[cfg(target_arch="wasm32")]
+impl MyApp {
+    fn open_file(&mut self) {
+        self.waiting_file = true;
+        io::open_file();
+    }
+    fn on_update(&mut self) {
+        if self.waiting_file {
+            if let Some(beads) = io::invoke_beads() {
+                self.waiting_file = false;
+                if let Ok(line) = beads {
+                    self.update_from_line(line);
+                }
+            } 
+        }
+    }
 }
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.on_update();
         self.beads.line_mut().show_summary(ctx, &mut self.show_summary);
         self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
                 if ui.button(text4btn("📂")).clicked() {
-                    match io::open_file() {
-                        Ok(line) => {
-                            let colors = line.summary().keys().copied().collect();
-                            self.palette.set_colors(colors);
-                            self.beads = line.into();
-                        },
-                        Err(e) => println!("{e}"),
-                    }
+                    self.open_file();
                 }
                 if ui.button(text4btn("💾")).clicked() {
                     if let Some(e) = io::save_file(self.beads.line()).err() {
