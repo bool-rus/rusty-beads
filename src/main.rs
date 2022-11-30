@@ -11,15 +11,9 @@ mod model;
 mod palette;
 mod settings;
 mod summary;
-#[cfg(not(target_arch="wasm32"))]
 mod io;
 mod app;
 
-
-#[cfg(target_arch="wasm32")]
-mod io_wasm;
-#[cfg(target_arch="wasm32")]
-use io_wasm as io;
 
 #[cfg(not(target_arch="wasm32"))]
 fn main() {

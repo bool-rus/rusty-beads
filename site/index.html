@@ -106,6 +106,20 @@
     <script src="rusty-beads.js"></script>
 
     <script>
+        function send_file(data) {
+            let blob = new Blob([data], {type: "application/json"});
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.style = "display:none";
+            document.body.appendChild(a);
+            a.href = url;
+            a.download = 'my_picture.beads';
+            a.target = '_blank';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        }
+
         var fileContent = null;
         function get_file_content() {
             var content = fileContent;
