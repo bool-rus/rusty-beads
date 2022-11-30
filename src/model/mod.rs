@@ -1,5 +1,4 @@
 use std::num::NonZeroUsize;
-use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
@@ -9,45 +8,70 @@ mod color;
 pub mod beads;
 mod faces;
 mod model;
-mod line_builder;
-mod palette;
 
-pub use faces::*;
-pub use grid::Grid;
 pub use model::Model;
+pub use faces::*;
 pub use beads::{Bead, BeadsLine};
 pub use color::Color;
-pub use palette::Palette;
-
-
-pub type ColorBead = Bead<Color>;
-
-pub type BeadGrid = Grid<Bead<Color>>;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum Schema {
+#[derive(Serialize, Deserialize)]
+enum SchemaOld {
     FirstOffset,
     SecondOffset,
     Straight,
 }
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+enum SchemaCompat {
+    Old(SchemaOld),
+    Actual{base_offset: usize, offset_step: usize},
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[serde(from = "SchemaCompat")]
+pub struct Schema {
+    base_offset: usize,
+    offset_step: usize,
+}
+
+impl From<SchemaCompat> for Schema {
+    fn from(value: SchemaCompat) -> Self {
+        match value {
+            SchemaCompat::Old(SchemaOld::Straight) => Self {base_offset: 1, offset_step: 0},
+            SchemaCompat::Old(_) => Self {base_offset: 2, offset_step: 1},
+            SchemaCompat::Actual { base_offset, offset_step } => Self {base_offset, offset_step},
+        }
+    }
+}
 
 impl Schema {
     pub fn switch(self) -> Self {
-        use Schema::*;
         match self {
-            FirstOffset => SecondOffset,
-            SecondOffset => Straight,
-            Straight => FirstOffset,
+            Self {base_offset: 1, offset_step: 0} => Self {base_offset: 4, offset_step: 1},
+            Self {base_offset: 4, offset_step: 1} => Self {base_offset: 3, offset_step: 1},
+            Self {base_offset: 3, offset_step: 1} => Self {base_offset: 7, offset_step: 3},
+            Self {base_offset: 7, offset_step: 3} => Self {base_offset: 2, offset_step: 1},
+            Self {base_offset: 2, offset_step: 1} => Self {base_offset: 1, offset_step: 0},
+            _ => Self {base_offset: 1, offset_step: 0}
         }
+    }
+    pub fn calculate_rotation(&self, row: usize, width: usize, rotation: usize) -> usize {
+        width - (rotation + row*self.offset_step/self.base_offset) % width
+    }
+    pub fn calculate_offset(&self, row: usize) -> usize {
+        row * self.offset_step % self.base_offset
+    }
+    pub fn base(&self) -> usize {
+        self.base_offset
     }
 }
 
 impl Default for Schema {
     fn default() -> Self {
-        Schema::FirstOffset
+        Self {base_offset: 2, offset_step: 1}
     }
 }
 
@@ -66,8 +90,40 @@ impl Default for Size {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+impl Size {
+    pub fn capacity(&self) -> usize {
+        self.width.get() * self.height.get()
+    }
+    pub fn width(&self) -> usize {
+        self.width.get()
+    }
+    pub fn height(&self) -> usize {
+        self.height.get()
+    }
+}
+
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
+}
+
+pub trait Increasable {
+    fn increase(self) -> Self;
+}
+
+pub trait Decreasable {
+    fn decrease(self) -> Option<Self> where Self: Sized;
+}
+
+impl Increasable for NonZeroUsize {
+    fn increase(self) -> Self {
+        NonZeroUsize::new(self.get() + 1).unwrap()
+    }
+}
+
+impl Decreasable for NonZeroUsize {
+    fn decrease(self) -> Option<Self> {
+        NonZeroUsize::new(self.get() - 1)
+    }
 }

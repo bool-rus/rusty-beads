@@ -1,3 +1,5 @@
+use egui::Color32;
+
 use super::{Serialize, Deserialize};
 use std::fmt;
 use std::num::ParseIntError;
@@ -68,20 +70,9 @@ impl fmt::Display for Color {
     }
 }
 
-impl Into<iced::Color> for Color {
-    fn into(self) -> iced::Color {
-        let Self {r,g,b} = self;
-        iced::Color::from_rgb8(r,g,b)
-    }
-}
-
-impl From<iced::Color> for Color {
-    fn from(color: iced::Color) -> Self {
-        let max = u8::MAX as f32;
-        Self {
-            r: (max * color.r) as u8,
-            g: (max * color.g) as u8,
-            b: (max * color.b) as u8,
-        }
+impl Into<Color32> for Color {
+    fn into(self) -> Color32 {
+        let Color {r,g,b} = self;
+        Color32::from_rgb(r, g, b)
     }
 }
