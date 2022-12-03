@@ -1,12 +1,13 @@
 use super::*;
 
 #[derive(Default)]
-pub struct MyApp {
+pub struct BeadApp {
     beads: Model,
     rotation: isize,
     draw_options: Settings,
     palette: palette::Palette,
     drawing: bool,
+    prev_coord: Option<Coord>,
     undo: usize,
     show_draw_options: bool,
     show_summary: bool,
@@ -14,7 +15,7 @@ pub struct MyApp {
     waiting_file: bool,
 }
 
-impl MyApp {
+impl BeadApp {
     fn update_from_line(&mut self, line: BeadsLine<Color32>) {
         let colors = line.summary().keys().copied().collect();
         self.palette.set_colors(colors);
@@ -23,7 +24,7 @@ impl MyApp {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-impl MyApp {
+impl BeadApp {
     fn open_file(&mut self) {
         match io::open_file() {
             Ok(line) => {
@@ -37,7 +38,7 @@ impl MyApp {
     }
 }
 #[cfg(target_arch="wasm32")]
-impl MyApp {
+impl BeadApp {
     fn open_file(&mut self) {
         self.waiting_file = true;
         io::open_file();
@@ -54,7 +55,7 @@ impl MyApp {
     }
 }
 
-impl eframe::App for MyApp {
+impl eframe::App for BeadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.on_update();
         self.beads.line_mut().show_summary(ctx, &mut self.show_summary);
@@ -97,6 +98,7 @@ impl eframe::App for MyApp {
             let pointer = ctx.input().pointer.clone();
             if pointer.any_released() {
                 self.drawing = false;
+                self.prev_coord = None;
             }
             let drawing_color = if self.drawing {
                 Some(self.palette.active_color())
@@ -116,7 +118,6 @@ impl eframe::App for MyApp {
                         let offset_tail = box_width / self.beads.line().schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
                         let coord = self.beads.line().table(self.rotation, range.start)
-                            //.skip(range.start)
                             .take(range.end - range.start)
                             .fold(None, |mut coord, row| {
                             let BeadsRow { row, offset, iter } = row;
@@ -144,9 +145,15 @@ impl eframe::App for MyApp {
                             self.drawing = true;
                         }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
-                            if self.beads.set_value(color, coord) {
+                            let changed = if let Some(prev) = self.prev_coord {
+                                self.beads.draw_line(color, prev, coord)
+                            } else {
+                                self.beads.set_value(color, coord)
+                            };
+                            if changed {
                                 self.undo = 0;
                             }
+                            self.prev_coord = Some(coord);
                         }
                     });
                 });

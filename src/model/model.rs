@@ -20,6 +20,16 @@ impl Default for Model {
 }
 
 impl Model {
+    pub fn draw_line(&mut self, color: Color32, start: Coord, end: Coord) -> bool {
+        let line = self.line.schema.make_line(start, end, self.line.width);
+        let mut changed = false;
+        for coord in line {
+            if self.set_value(color, coord) {
+                changed = true;
+            }
+        };
+        changed
+    }
     pub fn set_value(&mut self, value: Color32, coord: Coord) -> bool {
         if let Some(prev) = self.line.set_value(value, coord) {
             self.undo.push(Action(prev.color, coord));
