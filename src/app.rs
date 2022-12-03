@@ -7,6 +7,7 @@ pub struct MyApp {
     draw_options: Settings,
     palette: palette::Palette,
     drawing: bool,
+    prev_coord: Option<Coord>,
     undo: usize,
     show_draw_options: bool,
     show_summary: bool,
@@ -97,6 +98,7 @@ impl eframe::App for MyApp {
             let pointer = ctx.input().pointer.clone();
             if pointer.any_released() {
                 self.drawing = false;
+                self.prev_coord = None;
             }
             let drawing_color = if self.drawing {
                 Some(self.palette.active_color())
@@ -116,7 +118,6 @@ impl eframe::App for MyApp {
                         let offset_tail = box_width / self.beads.line().schema.base() as f32;
                         let max_width = ui.available_width() - ui.spacing().scroll_bar_width - offset_tail;
                         let coord = self.beads.line().table(self.rotation, range.start)
-                            //.skip(range.start)
                             .take(range.end - range.start)
                             .fold(None, |mut coord, row| {
                             let BeadsRow { row, offset, iter } = row;
@@ -144,9 +145,15 @@ impl eframe::App for MyApp {
                             self.drawing = true;
                         }
                         if let (Some(coord), Some(color)) = (coord, drawing_color){
-                            if self.beads.set_value(color, coord) {
+                            let changed = if let Some(prev) = self.prev_coord {
+                                self.beads.draw_line(color, prev, coord)
+                            } else {
+                                self.beads.set_value(color, coord)
+                            };
+                            if changed {
                                 self.undo = 0;
                             }
+                            self.prev_coord = Some(coord);
                         }
                     });
                 });
