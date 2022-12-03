@@ -21,7 +21,7 @@ fn main() {
     eframe::run_native(
         "Rusty Beads",
         options,
-        Box::new(|_cc| Box::new(app::MyApp::default())),
+        Box::new(|_cc| Box::new(app::BeadApp::default())),
     );
 }
 
@@ -31,7 +31,7 @@ pub fn main() {
     eframe::start_web(
         "rusty-beads",
         web_options,
-        Box::new(|_cc| Box::new(app::MyApp::default())),
+        Box::new(|_cc| Box::new(app::BeadApp::default())),
     ).unwrap();
 }
 

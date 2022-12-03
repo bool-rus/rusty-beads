@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Default)]
-pub struct MyApp {
+pub struct BeadApp {
     beads: Model,
     rotation: isize,
     draw_options: Settings,
@@ -15,7 +15,7 @@ pub struct MyApp {
     waiting_file: bool,
 }
 
-impl MyApp {
+impl BeadApp {
     fn update_from_line(&mut self, line: BeadsLine<Color32>) {
         let colors = line.summary().keys().copied().collect();
         self.palette.set_colors(colors);
@@ -24,7 +24,7 @@ impl MyApp {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-impl MyApp {
+impl BeadApp {
     fn open_file(&mut self) {
         match io::open_file() {
             Ok(line) => {
@@ -38,7 +38,7 @@ impl MyApp {
     }
 }
 #[cfg(target_arch="wasm32")]
-impl MyApp {
+impl BeadApp {
     fn open_file(&mut self) {
         self.waiting_file = true;
         io::open_file();
@@ -55,7 +55,7 @@ impl MyApp {
     }
 }
 
-impl eframe::App for MyApp {
+impl eframe::App for BeadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.on_update();
         self.beads.line_mut().show_summary(ctx, &mut self.show_summary);
