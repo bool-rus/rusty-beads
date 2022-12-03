@@ -21,6 +21,12 @@ pub struct Schema {
     offset_step: usize,
 }
 
+impl Default for Schema {
+    fn default() -> Self {
+        Self {base_offset: 2, offset_step: 1}
+    }
+}
+
 impl From<SchemaCompat> for Schema {
     fn from(value: SchemaCompat) -> Self {
         match value {
@@ -54,17 +60,10 @@ impl Schema {
     pub fn make_line(&self, start: Coord, end: Coord, width: usize) -> Vec<Coord> {
         match self {
             Self {base_offset: 1, offset_step: 0} => make_line(start, end, width),
-            _ => vec![end],
+            _ => make_line_offset(start, end, width),
         }
     }
 }
-
-impl Default for Schema {
-    fn default() -> Self {
-        Self {base_offset: 2, offset_step: 1}
-    }
-}
-
 
 fn normalize_x(dist: &mut f32, width: usize) {
     let width = width as f32;
@@ -77,13 +76,40 @@ fn normalize_x(dist: &mut f32, width: usize) {
     }
 }
 
+fn make_line_offset(start: Coord, end: Coord, width: usize) -> Vec<Coord> {
+    let coords = make_line(start, end, width);
+    let egui::Vec2{x,y} = end - start;
+    let need_correction = (x*y).is_sign_negative(); //координаты направлены разные стороны
+    let Coord{x: mut px,y: mut py } = start;
+    let mut result = Vec::with_capacity(coords.len()*2);
+    for Coord{x,y} in coords {
+        if need_correction && x != px && y != py {
+            result.push(Coord {x, y: py});
+        }
+        result.push(Coord{x,y});
+        (px, py) = (x, y);
+    };
+    result
+}
+
 fn make_line(start: Coord, end: Coord, width: usize) -> Vec<Coord> {
     if start == end {
         return vec![start];
     }
-    use std::mem::swap;
-    let egui::Vec2 {mut x, mut y} = end - start;
+    let startx = (start.x + width) as f32; //добавляем ширину, чтобы не перейти через 0
+    let starty = start.y as f32;
+    let egui::Vec2 {mut x, y} = end - start;
     normalize_x(&mut x, width);
+    let dots = make_dots(x,y);
+    dots.into_iter().map(|(x,y)| {
+        let y = (y + starty).round() as usize;
+        let x = (x + startx).round() as usize % width;
+        Coord{x,y}
+    }).collect()
+}
+
+fn make_dots(mut x: f32, mut y: f32) -> Vec<(f32,f32)> {
+    use std::mem::swap;
     //теперь мы будем строить функцию y = a * x
     //но в качестве x нам нужна самая большая координата дистанции
     let transposition = y.abs() > x.abs(); 
@@ -92,21 +118,16 @@ fn make_line(start: Coord, end: Coord, width: usize) -> Vec<Coord> {
     }
     let a = y/x;
     let n = x.abs();
-    let startx = (start.x + width) as f32; //добавляем ширину, чтобы не перейти через 0
-    let starty = start.y as f32;
     let mut result = Vec::with_capacity(n.abs() as usize);
-    let mut i = 0.0f32;
     let step = if x > 0.0 { 1.0 } else { -1.0 };
+    let mut i = 0.0f32;
     while i.abs() <= n.abs() {
         let mut x = i;
         let mut y = a * x;
         if transposition {
             swap(&mut x, &mut y);
         }
-        let y = (y + starty).round() as usize;
-        let x = (x + startx).round() as usize % width;
-        let coord = Coord{x,y};
-        result.push(coord);
+        result.push((x,y));
         i += step;
     }
     result
