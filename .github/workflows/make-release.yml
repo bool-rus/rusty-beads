@@ -1,8 +1,8 @@
 name: make-release
 on:
   push:
-    branches: 
-      - 'feature/release-build'
+    tags: 
+      - 'v*'
 jobs:
   build-linux:
     runs-on: ubuntu-latest
