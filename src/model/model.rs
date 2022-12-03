@@ -34,9 +34,6 @@ impl Model {
         if let Some(prev) = self.line.set_value(value, coord) {
             self.undo.push(Action(prev.color, coord));
             self.redo.clear();
-            if self.undo.len() % 1000 == 0 {
-                println!("уже {}", self.undo.len());
-            }
             true
         } else {
             false
