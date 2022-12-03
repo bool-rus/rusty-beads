@@ -1,22 +1,5 @@
 use super::*;
 
-#[derive(Debug)]
-pub enum Error {
-    InvalidDataSize,
-}
-
-impl ToString for Error {
-    fn to_string(&self) -> String {
-        "Invalid data size".to_string()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Grid<T: Debug + Clone> {
-    size: Size,
-    data: Vec<(T, bool)>,
-}
-
 #[derive(Debug, Clone)]
 pub struct SimplifiedGrid<T: Debug + Clone> {
     size: Size,
@@ -24,6 +7,11 @@ pub struct SimplifiedGrid<T: Debug + Clone> {
 }
 
 impl <T: Debug + Clone + Default> SimplifiedGrid<T> {
+    pub fn from_raw(width: NonZeroUsize, data: Vec<T>) -> Self {
+        let height = NonZeroUsize::new(data.len()/width.get()).unwrap();
+        let size = Size {width, height: height};
+        Self {size, data}
+    }
     pub fn size(&self) -> Size {
         self.size
     }
@@ -153,74 +141,8 @@ impl <T: Debug + Clone + Default> SimplifiedGrid<T> {
 }
 
 
-impl<T: Debug + Clone> Grid<T> {
-    pub fn new(size: Size, item: T) -> Self {
-        Self {
-            size,
-            data: vec![(item, false); size.capacity()], //TODO: возможно, стоит переделать
-        }
-    }
-    pub fn frow_raw(width: NonZeroUsize, data: Vec<(T, bool)>) -> Result<Self, Error> {
-        if data.len() % width.get() > 0 {
-            Err(Error::InvalidDataSize)
-        } else {
-            let height = NonZeroUsize::new(data.len()/width.get()).ok_or(Error::InvalidDataSize)?;
-            Ok(Self { size: Size{width, height}, data })
-        }
-    }
-    pub fn size(&self) -> Size {
-        self.size
-    }
-    pub fn width(&self) -> usize {
-        self.size.width.get()
-    }
-    pub fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut T, String> {
-        Ok(self.data
-            .as_mut_slice()
-            .chunks_mut(self.size.width())
-            .nth(row)
-            .ok_or("row out of bounds")?
-            .get_mut(column)
-            .map(|x|&mut x.0)
-            .ok_or("column out of bounds")?)
-    }
-    pub fn as_table_iter(&self) -> impl Iterator<Item=impl DoubleEndedIterator<Item=&T> + Clone> {
-        self.data.as_slice()
-        .chunks(self.width())
-        .map(
-            |chunk|chunk.into_iter().map(|x|&x.0)
-        )
-    }
-    pub fn as_full_table_iter(&self) -> impl Iterator<Item=impl DoubleEndedIterator<Item=&(T, bool)> + Clone> {
-        self.data.as_slice()
-        .chunks(self.width())
-        .map(IntoIterator::into_iter)
-    }
-    pub fn map<X: Debug + Clone, F: Fn(&T)->X>(&self, fun: F) -> Grid<X> {
-        Grid {
-            size: self.size,
-            data: self.data.iter().map(
-                |(obj, first)|(fun(obj), *first)
-            ).collect(),
-        }
-    }
-    pub fn simplify(&self) -> SimplifiedGrid<T> {
-        SimplifiedGrid {
-            size: self.size,
-            data: self.data.iter().map(|(obj,_)|obj.clone()).collect()
-        }
-    }
-}
-
-
-impl<T: Debug + Default + Clone> Default for Grid<T> {
-    fn default() -> Self {
-        Self::new(Size::default(), T::default())
-    }
-}
-
 #[test]
 fn negative_remainder() {
     assert_eq!(-3, -3 % 10);
-    assert_eq!(-3, -13 %10);
+    assert_eq!(-3, -13 % 10);
 }

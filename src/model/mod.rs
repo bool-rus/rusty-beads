@@ -1,5 +1,4 @@
-use std::num::NonZeroUsize;
-use std::collections::HashMap;
+use std::{num::NonZeroUsize, ops::Sub};
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
@@ -9,47 +8,16 @@ mod color;
 pub mod beads;
 mod faces;
 mod model;
-mod line_builder;
-mod palette;
+mod schema;
 
-pub use faces::*;
-pub use grid::Grid;
 pub use model::Model;
+pub use faces::*;
 pub use beads::{Bead, BeadsLine};
 pub use color::Color;
-pub use palette::Palette;
-
-
-pub type ColorBead = Bead<Color>;
-
-pub type BeadGrid = Grid<Bead<Color>>;
+pub use schema::Schema;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Side { Top, Left, Right, Bottom }
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum Schema {
-    FirstOffset,
-    SecondOffset,
-    Straight,
-}
-
-impl Schema {
-    pub fn switch(self) -> Self {
-        use Schema::*;
-        match self {
-            FirstOffset => SecondOffset,
-            SecondOffset => Straight,
-            Straight => FirstOffset,
-        }
-    }
-}
-
-impl Default for Schema {
-    fn default() -> Self {
-        Schema::FirstOffset
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 pub struct Size {
@@ -78,10 +46,20 @@ impl Size {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
+}
+
+impl Sub for Coord {
+    type Output = egui::Vec2;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let x = self.x as f32 - rhs.x as f32;
+        let y = self.y as f32 - rhs.y as f32;
+        egui::vec2(x, y)
+    }
 }
 
 pub trait Increasable {

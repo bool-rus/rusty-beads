@@ -16,7 +16,7 @@ deploy:
   provider: releases
   api_key:
     secure: o3IHDvvgVWB/r5JV0u8YpvuzQs74l247qI3kE79odd0y9sncaC3VH94a7jRBIAyJ1l2zzQTfY9QtRyRzaru8ZCgY7Y35RBV724WQs880x/T9lxT0zOMQsHVNlCAZSF3/7yBeniM35rB/UZGtvVgoK7z2TlpU/Mk8OqH3h/mAYsvhi7IQZSnvlROi5xkIxGuf11/Fs386XQGc/0nQK/zqd6J9QL3YSPmiT54iCrbPOwJzFQFxEjFflkba5EdSSCigerFB9t4eF6vbv96+xcX4QqoNIOWfnTVc3A9XmV1Ld+2GrgOqn6i/oLOsTgjAot/IWl3CW6Ixarmjcjyw1Q4ISHmnSKB6oITO0JDBhzHQ3kaXVkep8XAwPBFmqUqSvhgu+LyUOh/RGyE8G6TE2QSbej9UXkuFz0e0n5vkh2Vwp/S0dkMhscV2NRHsg0pClsQ1fZg7E5SBy/27wAGMBy4fxDvvXl1UuQVjYy8sr2+7QWZJEpuyEmwxICunWpBxpxLHcf6Hi+O8BSMdNa8N1w1GMWQwkjaPqJr4Blob7NZ/BSgnqYVclCty9pZWtrQNuSikEcZNcQvO8AJZFHZiA+zrPf5i9rPT4S4X+mKJzqXgljOrtod+o+lqOeVALN8jjvgL43Poy5ZGGGqZ2mNu2c+Df8UcrouhakEK9ReI4GP03eU=
-  file: target/release/beads-and-threads.exe
+  file: target/release/rusty-beads.exe
   on:
     branch: master
     tags: true
