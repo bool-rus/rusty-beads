@@ -103,7 +103,7 @@
         <div class="lds-dual-ring"></div>
     </div>
 
-    <script src="rusty-beads.js"></script>
+    <script src="rusty_beads.js"></script>
 
     <script>
         function send_file(data) {
@@ -140,13 +140,14 @@
             input.click();
         }
         console.debug("loading wasm…");
-        wasm_bindgen("./rusty-beads_bg.wasm")
+        wasm_bindgen("./rusty_beads_bg.wasm")
             .then(on_wasm_loaded)
             .catch(on_wasm_error);
 
         function on_wasm_loaded() {
-            console.debug("wasm loaded. starting app…");
+            console.info("wasm loaded. starting app…");
             document.getElementById("center_text").remove();
+            wasm_bindgen.start();
         }
 
         function on_wasm_error(error) {

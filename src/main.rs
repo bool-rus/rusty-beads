@@ -22,16 +22,6 @@ fn main() {
         "Rusty Beads",
         options,
         Box::new(|_cc| Box::new(app::BeadApp::default())),
-    );
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn main() {
-    let web_options = eframe::WebOptions::default();
-    eframe::start_web(
-        "rusty-beads",
-        web_options,
-        Box::new(|_cc| Box::new(app::BeadApp::default())),
     ).unwrap();
 }
 
