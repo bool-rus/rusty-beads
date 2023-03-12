@@ -90,7 +90,7 @@ impl eframe::App for BeadApp {
             })
         });
         egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
-            let delta = ui.input().scroll_delta;
+            let delta = ui.input(|i|i.scroll_delta);
             self.rotation += (delta.x/3.0) as isize;
             let w = self.beads.line().width() as isize;
             if self.rotation.abs() > w {
@@ -100,7 +100,7 @@ impl eframe::App for BeadApp {
             ui.add(Slider::new(&mut self.rotation, -w..=w).show_value(false));
         });
         egui::CentralPanel::default().show(ctx, |ui| {
-            let pointer = ctx.input().pointer.clone();
+            let pointer = ui.input(|i| i.pointer.clone());
             if pointer.any_released() {
                 self.drawing = false;
                 self.prev_coord = None;
