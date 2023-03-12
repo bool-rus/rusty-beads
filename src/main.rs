@@ -35,6 +35,6 @@ pub fn main() {
     ).unwrap();
 }
 
-pub fn text4btn(text: &str) -> RichText {
+pub fn rich(text: &str) -> RichText {
     RichText::new(text)
 }

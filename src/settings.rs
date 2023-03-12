@@ -58,13 +58,13 @@ impl Settings {
             ui.add(Slider::new(&mut self.stroke.width, 0.0..=5.0).text("☐"));
             ui.horizontal(|ui| {
                 ui.color_edit_button_srgba(&mut self.stroke.color);
-                ui.label(text4btn("☐").color(self.stroke.color));
+                ui.label(rich("☐").color(self.stroke.color));
             });
             ui.separator();
             ui.add(Slider::new(&mut self.filled_stroke.width, 0.0..=5.0).text("⛶"));
             ui.horizontal(|ui| {
                 ui.color_edit_button_srgba(&mut self.filled_stroke.color);
-                ui.label(text4btn("⛶").color(self.filled_stroke.color));
+                ui.label(rich("⛶").color(self.filled_stroke.color));
             });
             ui.separator();
             ui.horizontal(|ui| {
@@ -130,11 +130,11 @@ impl Settings {
                 }
                 ui.end_row();
                 ui.vertical(|ui|ui.separator());
-                if ui.button(text4btn("◀")).clicked() {
+                if ui.button(rich("◀")).clicked() {
                     beads.line_mut().rotate(-1);
                 };
-                ui.label(text4btn("💫"));
-                if ui.button(text4btn("▶")).clicked() {
+                ui.label(rich("💫"));
+                if ui.button(rich("▶")).clicked() {
                     beads.line_mut().rotate(1);
                 };
                 ui.end_row();
