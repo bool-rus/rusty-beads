@@ -28,12 +28,12 @@ impl Palette {
         self.active_color
     }
     pub fn show(&mut self, ui: &mut Ui) {
-        ui.horizontal_centered(|ui|{
-            if ui.button(RichText::new("🗙").size(20.).color(Color32::RED)).clicked() {
+        ui.horizontal(|ui|{
+            if ui.button(RichText::new("🗙").color(Color32::RED)).clicked() {
                 self.colors.remove(&self.active_color);
             }
             ui.color_edit_button_srgba(&mut self.active_color);
-            if ui.button(RichText::new("➕").size(20.).color(Color32::GREEN)).clicked() {
+            if ui.button(RichText::new("➕").color(Color32::GREEN)).clicked() {
                 self.colors.insert(self.active_color);
                 self.active_color = self.active_color;
             }

@@ -67,6 +67,16 @@ impl Settings {
                 ui.label(text4btn("⛶").color(self.filled_stroke.color));
             });
             ui.separator();
+            ui.horizontal(|ui| {
+                if ui.button("➕").clicked() {
+                    self.font_scale += 0.07;
+                }
+                ui.label("🗛");
+                if ui.button("➖").clicked() {
+                    self.font_scale -= 0.07;
+                }
+            });
+            ui.separator();
 
             ui.horizontal_wrapped(|ui| {
                 ui.text_edit_singleline(&mut self.width);

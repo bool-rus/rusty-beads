@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] 
 // hide console window on Windows in release
-use eframe::egui;
+use eframe::{egui, CreationContext};
 use egui::*;
 use model::*;
 use beads::BeadsRow;
@@ -36,5 +36,5 @@ pub fn main() {
 }
 
 pub fn text4btn(text: &str) -> RichText {
-    RichText::new(text).size(20.)
+    RichText::new(text)
 }

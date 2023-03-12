@@ -67,16 +67,16 @@ impl eframe::App for BeadApp {
         self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 
             ui.horizontal(|ui| {
-                if ui.button(text4btn("📂")).clicked() {
+                if ui.button(text4btn("📂").text_style(TextStyle::Heading)).clicked() {
                     self.open_file();
                 }
-                if ui.button(text4btn("💾")).clicked() {
+                if ui.button(text4btn("💾").text_style(TextStyle::Heading)).clicked() {
                     if let Some(e) = io::save_file(self.beads.line()).err() {
                         println!("{e}");
                     }
                 }
-                ui.toggle_value(&mut self.show_draw_options, text4btn("⛭"));
-                ui.toggle_value(&mut self.show_summary, text4btn("🍡")); // //🏮 // 
+                ui.toggle_value(&mut self.show_draw_options, text4btn("⛭").text_style(TextStyle::Heading));
+                ui.toggle_value(&mut self.show_summary, text4btn("🍡").text_style(TextStyle::Heading)); // //🏮 // 
                 if ui.button(text4btn("⟲")).clicked() {
                     self.beads.undo();
                 }
