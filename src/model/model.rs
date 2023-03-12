@@ -42,6 +42,9 @@ impl Model {
     pub fn height(&self) -> usize {
         self.height
     } 
+    pub fn width(&self) -> usize {
+        self.line.width
+    }
     pub fn line(&self) -> &BeadsLine<Color32> {
         &self.line
     }
@@ -53,6 +56,38 @@ impl Model {
         self.height = size.height.get();
         self.undo.clear();
         self.redo.clear();
+    }
+    pub fn grow_top(&mut self) {
+        self.line.grow_top();
+        self.height += 1;
+    }
+    pub fn grow_bottom(&mut self) {
+        self.line.grow_bottom();
+        self.height += 1;
+    }
+    pub fn shrink_top(&mut self) {
+        if self.height > 1 {
+            self.line.shrink_top();
+            self.height -= 1;
+        }
+    }
+    pub fn shrink_bottom(&mut self) {
+        if self.height > 1 {
+            self.line.shrink_bottom();
+            self.height -= 1;
+        }
+    }
+    pub fn grow_left(&mut self) {
+        self.line.grow(Side::Left);
+    }
+    pub fn grow_right(&mut self) {
+        self.line.grow(Side::Right);
+    }
+    pub fn shrink_left(&mut self) {
+        self.line.shrink(Side::Left);
+    }
+    pub fn shrink_right(&mut self) {
+        self.line.shrink(Side::Right);
     }
     pub fn undo_at(&mut self, n: usize) {
         let target = n as isize;

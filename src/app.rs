@@ -58,6 +58,11 @@ impl BeadApp {
 impl eframe::App for BeadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.on_update();
+        if let Some(scale) = self.draw_options.changed_font_scale() {
+            let mut style = ctx.style().as_ref().clone();
+            style.text_styles.iter_mut().for_each(|(_, font)|font.size *= scale);
+            ctx.set_style(style);
+        }
         self.beads.line_mut().show_summary(ctx, &mut self.show_summary);
         self.draw_options.show(ctx, &mut self.show_draw_options, &mut self.beads);
         egui::TopBottomPanel::top("top").show(ctx, |ui|{ 

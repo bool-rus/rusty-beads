@@ -12,6 +12,8 @@ pub struct Settings {
     origin_size: Vec2,
     width: String,
     height: String,
+    font_scale: f32,
+    current_font_scale: f32,
 }
 
 impl Default for Settings {
@@ -26,11 +28,21 @@ impl Default for Settings {
             origin_size: vec2(10.0, 10.0), 
             width: 100.to_string(),
             height: 100.to_string(),
+            font_scale: 1.0,
+            current_font_scale: 1.0,
         }
     }
 }
 
 impl Settings {
+    pub fn changed_font_scale(&mut self) -> Option<f32> {
+        if self.font_scale == self.current_font_scale {
+            return None;
+        }
+        let result = self.font_scale / self.current_font_scale;
+        self.current_font_scale = self.font_scale;
+        Some(result)
+    }
     pub fn show(&mut self, ctx: &Context, open: &mut bool, beads: &mut Model) {
         Window::new("settings").open(open).show(ctx, |ui| {
             self.show_ui(ui, beads);
@@ -70,6 +82,41 @@ impl Settings {
                         }
                         _ => {},
                     };
+                }
+                ui.end_row();
+                ui.vertical(|ui|ui.separator());
+                if ui.button("⬅➕").clicked() {
+                    beads.grow_left();
+                    self.width = beads.width().to_string();
+                }
+                if ui.button("⬆➕").clicked() {
+                    beads.grow_top();
+                    self.height = beads.height().to_string();
+                }
+                if ui.button("⬇➕").clicked() {
+                    beads.grow_bottom();
+                    self.height = beads.height().to_string();
+                }
+                if ui.button("➡➕").clicked() {
+                    beads.grow_right();
+                    self.width = beads.width().to_string();
+                }
+                ui.end_row();
+                if ui.button("⬅➖").clicked() {
+                    beads.shrink_left();
+                    self.width = beads.width().to_string();
+                }
+                if ui.button("⬆➖").clicked() {
+                    beads.shrink_top();
+                    self.height = beads.height().to_string();
+                }
+                if ui.button("⬇➖").clicked() {
+                    beads.shrink_bottom();
+                    self.height = beads.height().to_string();
+                }
+                if ui.button("➡➖").clicked() {
+                    beads.shrink_right();
+                    self.width = beads.width().to_string();
                 }
                 ui.end_row();
                 ui.vertical(|ui|ui.separator());

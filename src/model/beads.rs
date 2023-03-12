@@ -45,7 +45,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
             Side::Top => self.shrink_top(),
             side => {
                 let mut grid = self.simplified_grid();
-                grid.grow(side, T::default());
+                grid.shrink(side);
                 *self = Self::from_simplified_grid(grid, self.schema.clone());
             }
         }
@@ -74,6 +74,7 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
         let default_item = T::default();
         if let Some((first_item, count)) = self.line.first_mut() {
             if &first_item.color == &default_item {
+                first_item.filled = false;
                 *count += self.width;
                 return;
             }
@@ -83,15 +84,46 @@ impl <T: Default + Eq + Hash + Clone + Debug> BeadsLine<T> {
         std::mem::swap(&mut buf, &mut self.line);
         self.line.append(&mut buf);
     }
+
+    pub fn grow_bottom(&mut self) {
+        let default_item = T::default();
+        if let Some((last_item, count)) = self.line.last_mut() {
+            if &last_item.color == &default_item {
+                last_item.filled = false;
+                *count += self.width;
+                return;
+            }
+        } 
+        self.line.push((default_item.into(), self.width));
+    }
+
     pub fn shrink_top(&mut self) {
-        let first = self.line.first().unwrap().clone().0;
-        let mut buf = vec![(first,1)];
-        std::mem::swap(&mut buf, &mut self.line);
-        self.line = buf.iter()
-        .uncompress().cloned()
-        .skip(self.width)
-        .compress()
-        .collect();
+        let mut elapsed = self.width;
+        while elapsed > 0 {
+            let (bead, count) = self.line.first_mut().unwrap();
+            if *count > elapsed {
+                *count = *count - elapsed;
+                bead.filled = false;
+                elapsed = 0;
+            } else {
+                elapsed -= *count;
+                self.line.remove(0);
+            }
+        }
+    }
+    pub fn shrink_bottom(&mut self) {
+        let mut elapsed = self.width;
+        while elapsed > 0 {
+            let (bead, count) = self.line.last_mut().unwrap();
+            if *count > elapsed {
+                *count = *count - elapsed;
+                bead.filled = false;
+                elapsed = 0;
+            } else {
+                elapsed -= *count;
+                self.line.pop();
+            }
+        }
     }
     pub fn rotate(&mut self, rotation: isize) {
         let mut grid = self.simplified_grid();
