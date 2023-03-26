@@ -20,6 +20,7 @@ impl BeadApp {
         let colors = line.summary().keys().copied().collect();
         self.palette.set_colors(colors);
         self.beads = line.into();
+        self.draw_options.model_loaded(&self.beads);
     }
 }
 

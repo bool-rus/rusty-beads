@@ -43,6 +43,10 @@ impl Settings {
         self.current_font_scale = self.font_scale;
         Some(result)
     }
+    pub fn model_loaded(&mut self, beads: &Model) {
+        self.width = beads.width().to_string();
+        self.height = beads.height().to_string();
+    }
     pub fn show(&mut self, ctx: &Context, open: &mut bool, beads: &mut Model) {
         Window::new("settings").open(open).show(ctx, |ui| {
             self.show_ui(ui, beads);
