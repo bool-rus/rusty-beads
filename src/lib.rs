@@ -1,4 +1,4 @@
-
+#![cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::{self, prelude::*};
 
 use eframe::egui;
@@ -15,8 +15,6 @@ mod summary;
 mod io;
 mod app;
 
-
-#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub async fn start()  {
     let web_options = eframe::WebOptions::default();
